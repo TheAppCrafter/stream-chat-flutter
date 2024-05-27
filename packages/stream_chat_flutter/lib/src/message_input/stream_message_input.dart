@@ -1400,9 +1400,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
         _effectiveController.message = message;
       }
       _startSlowMode();
-      if (widget.onMessageSentAsync != null) {
-        await widget.onMessageSentAsync!(resp.message);
-      }
+      widget.onMessageSentAsync?.call(resp.message);
       widget.onMessageSent?.call(resp.message);
     } catch (e, stk) {
       if (widget.onError != null) {
