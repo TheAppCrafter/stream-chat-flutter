@@ -98,6 +98,7 @@ class StreamMessageInput extends StatefulWidget {
   const StreamMessageInput({
     super.key,
     this.onMessageSent,
+    this.onMessageSentAsync,
     this.preMessageSending,
     this.maxHeight = 150,
     this.maxLines,
@@ -172,6 +173,9 @@ class StreamMessageInput extends StatefulWidget {
 
   /// Function called after sending the message.
   final void Function(Message)? onMessageSent;
+
+  /// Async Function called after sending the message.
+  final Future<void> Function(Message)? onMessageSentAsync;
 
   /// Function called right before sending the message.
   ///
@@ -1396,6 +1400,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
         _effectiveController.message = message;
       }
       _startSlowMode();
+      if (widget.onMessageSentAsync != null) {
+        await widget.onMessageSentAsync!(resp.message);
+      }
       widget.onMessageSent?.call(resp.message);
     } catch (e, stk) {
       if (widget.onError != null) {
