@@ -175,7 +175,7 @@ class StreamMessageInput extends StatefulWidget {
   final void Function(Message)? onMessageSent;
 
   /// Async Function called after sending the message.
-  final Future<void> Function(Message)? onMessageSentAsync;
+  final Future<void> Function(BuildContext, Message)? onMessageSentAsync;
 
   /// Function called right before sending the message.
   ///
