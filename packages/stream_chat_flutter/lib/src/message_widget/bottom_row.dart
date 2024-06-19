@@ -33,6 +33,7 @@ class BottomRow extends StatelessWidget {
     this.onThreadTap,
     this.usernameBuilder,
     this.sendingIndicatorBuilder,
+    this.actionBarBuilder,
   });
 
   /// {@macro messageIsDeleted}
@@ -92,6 +93,9 @@ class BottomRow extends StatelessWidget {
   /// {@macro sendingIndicatorBuilder}
   final Widget Function(BuildContext, Message)? sendingIndicatorBuilder;
 
+  /// {@macro actionBarBuilder}
+  final Widget Function(BuildContext, Message)? actionBarBuilder;
+
   /// {@template copyWith}
   /// Creates a copy of [BottomRow] with specified attributes
   /// overridden.
@@ -117,6 +121,7 @@ class BottomRow extends StatelessWidget {
     void Function(Message)? onThreadTap,
     Widget Function(BuildContext, Message)? usernameBuilder,
     Widget Function(BuildContext, Message)? sendingIndicatorBuilder,
+    Widget Function(BuildContext, Message)? actionBarBuilder,
   }) =>
       BottomRow(
         key: key ?? this.key,
@@ -142,6 +147,7 @@ class BottomRow extends StatelessWidget {
         usernameBuilder: usernameBuilder ?? this.usernameBuilder,
         sendingIndicatorBuilder:
             sendingIndicatorBuilder ?? this.sendingIndicatorBuilder,
+        actionBarBuilder: actionBarBuilder ?? this.actionBarBuilder,
       );
 
   @override
@@ -251,28 +257,35 @@ class BottomRow extends StatelessWidget {
       children.insertAll(0, threadIndicatorWidgets);
     }
 
-    return Text.rich(
-      TextSpan(
-        children: [
-          ...children.insertBetween(const SizedBox(width: 8)).map((child) {
-            final mediaQueryData = MediaQuery.of(context);
-            return WidgetSpan(
-              child: MediaQuery(
-                // Hardcoding the textScaleFactor to 1 to avoid the multiple
-                // resizing of the text. This is needed because the
-                // textScaleFactor is already applied to the textSpan.
-                //
-                // issue: https://github.com/GetStream/stream-chat-flutter/issues/1250
-                // ignore: deprecated_member_use
-                data: mediaQueryData.copyWith(textScaleFactor: 1),
-                child: child,
-              ),
-            );
-          }),
-        ],
-      ),
-      maxLines: 1,
-      textAlign: reverse ? TextAlign.right : TextAlign.left,
+    return Column(
+      crossAxisAlignment:
+          reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        if (actionBarBuilder != null)
+          actionBarBuilder!(context, message),
+        Text.rich(
+          TextSpan(
+            children: [
+              ...children.insertBetween(const SizedBox(width: 8)).map((child) {
+                final mediaQueryData = MediaQuery.of(context);
+                return WidgetSpan(
+                  child: MediaQuery(
+                    // Hardcoding the textScaleFactor to 1 to avoid the multiple
+                    // resizing of the text. This is needed because the
+                    // textScaleFactor is already applied to the textSpan.
+                    //
+                    // issue: https://github.com/GetStream/stream-chat-flutter/issues/1250
+                    data: mediaQueryData.copyWith(textScaleFactor: 1),
+                    child: child,
+                  ),
+                );
+              }),
+            ],
+          ),
+          maxLines: 1,
+          textAlign: reverse ? TextAlign.right : TextAlign.left,
+        ),
+      ],
     );
   }
 }
