@@ -29,6 +29,7 @@ class BottomRow extends StatelessWidget {
     required this.streamChatTheme,
     required this.hasNonUrlAttachments,
     required this.streamChat,
+    required this.showActionBar,
     this.deletedBottomRowBuilder,
     this.onThreadTap,
     this.usernameBuilder,
@@ -86,6 +87,9 @@ class BottomRow extends StatelessWidget {
 
   /// {@macro streamChat}
   final StreamChatState streamChat;
+
+  /// {@macro streamChat}
+  final bool showActionBar;
 
   /// {@macro usernameBuilder}
   final Widget Function(BuildContext, Message)? usernameBuilder;
@@ -261,8 +265,8 @@ class BottomRow extends StatelessWidget {
       crossAxisAlignment:
           reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        if (actionBarBuilder != null)
-          actionBarBuilder!(context, message),
+        if (showActionBar)
+          actionBarBuilder?.call(context, message),
         Text.rich(
           TextSpan(
             children: [
