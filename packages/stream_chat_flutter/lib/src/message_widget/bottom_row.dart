@@ -267,7 +267,7 @@ class BottomRow extends StatelessWidget {
           reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         if (showActionBar)
-          actionBarBuilder?.call(context, message),
+          actionBarBuilder?.call(context, message) ?? SizedBox.shrink(),
         Text.rich(
           TextSpan(
             children: [
