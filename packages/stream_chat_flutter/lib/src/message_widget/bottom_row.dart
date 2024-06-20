@@ -152,6 +152,7 @@ class BottomRow extends StatelessWidget {
         usernameBuilder: usernameBuilder ?? this.usernameBuilder,
         sendingIndicatorBuilder:
             sendingIndicatorBuilder ?? this.sendingIndicatorBuilder,
+        showActionBar: showActionBar ?? this.showActionBar,
         actionBarBuilder: actionBarBuilder ?? this.actionBarBuilder,
       );
 
