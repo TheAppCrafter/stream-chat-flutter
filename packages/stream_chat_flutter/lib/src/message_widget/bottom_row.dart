@@ -29,7 +29,7 @@ class BottomRow extends StatelessWidget {
     required this.streamChatTheme,
     required this.hasNonUrlAttachments,
     required this.streamChat,
-    required this.showActionBar,
+    this.showActionBar = false,
     this.deletedBottomRowBuilder,
     this.onThreadTap,
     this.usernameBuilder,
