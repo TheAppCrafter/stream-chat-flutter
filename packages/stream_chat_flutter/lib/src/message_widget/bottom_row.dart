@@ -117,6 +117,7 @@ class BottomRow extends StatelessWidget {
     bool? hasUrlAttachments,
     bool? isGiphy,
     bool? isOnlyEmoji,
+    bool? showActionBar,
     StreamMessageThemeData? messageTheme,
     StreamChatThemeData? streamChatTheme,
     bool? hasNonUrlAttachments,
