@@ -99,7 +99,7 @@ class StreamMessageWidget extends StatefulWidget {
     this.imageAttachmentThumbnailResizeType = 'clip',
     this.imageAttachmentThumbnailCropType = 'center',
     this.attachmentActionsModalBuilder,
-    this.showRegenerateMessage = false,
+    this.showRegenerateMessage,
     this.onRegenerateTap,
     this.showReadAloudMessage = true,
     this.onReadAloudTap,
@@ -320,12 +320,12 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@template showRegenerateMessage}
   /// Display Regnerate Message
   /// {@endtemplate}
-  final bool showRegenerateMessage;
+  final bool Function(Message)? showRegenerateMessage;
 
   /// {@template onRegenerateTap}
   /// The function called when tapping on RegenerateMessage
   /// {@endtemplate}
-  final OnMessageTap? onRegenerateTap;
+  final void Function(Message)? onRegenerateTap;
 
   /// {@template showReadAloudMessage}
   /// Display Read Aloud
@@ -335,7 +335,7 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@template onReadAloudTap}
   /// The function called when tapping on Read Aloud
   /// {@endtemplate}
-  final OnMessageTap? onReadAloudTap;
+  final void Function(Message)? onReadAloudTap;
 
   /// {@template attachmentBuilders}
   /// List of attachment builders for rendering attachment widgets pre-defined
@@ -458,7 +458,7 @@ class StreamMessageWidget extends StatefulWidget {
     AttachmentActionsBuilder? attachmentActionsModalBuilder,
     void Function(Message)? onRegenerateTap,
     void Function(Message)? onReadAloudTap,
-    bool? showRegenerateMessage,
+    bool Function(Message)? showRegenerateMessage,
     bool? showReadAloudMessage,
   }) {
     return StreamMessageWidget(
@@ -632,9 +632,10 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
 
-  bool get shouldShowRegenerateMessage =>
-      widget.showRegenerateMessage &&
-      widget.onRegenerateTap != null;
+  bool get shouldShowRegenerateMessage {
+    return widget.showRegenerateMessage?.call(widget.message) == true && 
+    widget.onRegenerateTap != null;
+  }
 
   bool get shouldShowReadAloudMessage =>
       widget.showReadAloudMessage && 
