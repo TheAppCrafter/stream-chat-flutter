@@ -632,7 +632,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
 
-  bool get showShowRegenerateMessage =>
+  bool get shouldShowRegenerateMessage =>
       widget.showRegenerateMessage &&
       widget.onRegenerateTap != null;
 
@@ -880,7 +880,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
           },
         ),
       ],
-      if (showShowRegenerateMessage)
+      if (shouldShowRegenerateMessage)
         StreamChatContextMenuItem(
           leading: const Icon(
             Icons.autorenew,
@@ -1091,6 +1091,10 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
             showResendMessage: shouldShowResendAction,
             showCopyMessage: shouldShowCopyAction,
             showEditMessage: shouldShowEditAction,
+            showRegenerateMessage: shouldShowReadAloudMessage,
+            onRegenerateTap: widget.onRegenerateTap,
+            showReadAloudMessage: shouldShowReadAloudMessage,
+            onReadAloudTap: widget.onReadAloudTap,
             showReactionPicker: widget.showReactionPicker,
             showReplyMessage: shouldShowReplyAction,
             showThreadReplyMessage: shouldShowThreadReplyAction,
