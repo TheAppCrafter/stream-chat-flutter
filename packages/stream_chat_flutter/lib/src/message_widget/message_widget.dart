@@ -1092,7 +1092,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
             showResendMessage: shouldShowResendAction,
             showCopyMessage: shouldShowCopyAction,
             showEditMessage: shouldShowEditAction,
-            showRegenerateMessage: shouldShowReadAloudMessage,
+            showRegenerateMessage: shouldShowRegenerateMessage,
             onRegenerateTap: widget.onRegenerateTap,
             showReadAloudMessage: shouldShowReadAloudMessage,
             onReadAloudTap: widget.onReadAloudTap,
