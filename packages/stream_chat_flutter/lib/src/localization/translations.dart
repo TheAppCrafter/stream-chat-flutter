@@ -223,6 +223,12 @@ abstract class Translations {
   /// The label for "copy message"
   String get copyMessageLabel;
 
+  // The label for "regenerate message"
+  String get regenerateMessageLabel;
+
+  // The label for "read aloud message"
+  String get readAloudMessageLabel;
+
   /// The label for "edit message"
   String get editMessageLabel;
 
@@ -600,6 +606,12 @@ class DefaultTranslations implements Translations {
 
   @override
   String get copyMessageLabel => 'Copy Message';
+
+  @override 
+  String get regenerateMessageLabel => 'Regenerate Message';
+
+  @override 
+  String get readAloudMessageLabel => 'Read Aloud';
 
   @override
   String get editMessageLabel => 'Edit Message';

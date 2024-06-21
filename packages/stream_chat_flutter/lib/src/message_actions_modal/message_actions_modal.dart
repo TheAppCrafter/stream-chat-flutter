@@ -33,6 +33,10 @@ class MessageActionsModal extends StatefulWidget {
     this.reverse = false,
     this.customActions = const [],
     this.onCopyTap,
+    this.showRegenerateMessage = false,
+    this.onRegenerateTap,
+    this.showReadAloudMessage = true,
+    this.onReadAloudTap,
   });
 
   /// Widget that shows the message
@@ -94,6 +98,18 @@ class MessageActionsModal extends StatefulWidget {
 
   /// List of custom actions
   final List<StreamMessageAction> customActions;
+
+  /// Flag for showing regenerate message action
+  final bool showRegenerateMessage;
+
+  /// Callback when regenerate message is tapped
+  final OnMessageTap? onRegenerateTap;
+
+  /// Flag for showing read aloud message action
+  final bool showReadAloudMessage;
+
+  /// Callback when read aloud message is tapped
+  final OnMessageTap? onReadAloudTap;
 
   @override
   _MessageActionsModalState createState() => _MessageActionsModalState();
@@ -209,6 +225,20 @@ class _MessageActionsModalState extends State<MessageActionsModal> {
                               onTap: () {
                                 Navigator.of(context).pop();
                                 _showEditBottomSheet(context);
+                              },
+                            ),
+                          if (widget.showRegenerateMessage)
+                            RegenerateMessageButton(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                widget.onRegenerateTap?.call(widget.message);
+                              },
+                            ),
+                          if (widget.showReadAloudMessage)
+                            ReadAloudMessageButton(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                widget.onReadAloudTap?.call(widget.message);
                               },
                             ),
                           if (widget.showCopyMessage)

@@ -99,6 +99,10 @@ class StreamMessageWidget extends StatefulWidget {
     this.imageAttachmentThumbnailResizeType = 'clip',
     this.imageAttachmentThumbnailCropType = 'center',
     this.attachmentActionsModalBuilder,
+    this.showRegenerateMessage = false,
+    this.onRegenerateTap,
+    this.showReadAloudMessage = true,
+    this.onReadAloudTap,
   });
 
   /// {@template onMentionTap}
@@ -313,6 +317,26 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final bool showPinHighlight;
 
+  /// {@template showRegenerateMessage}
+  /// Display Regnerate Message
+  /// {@endtemplate}
+  final bool showRegenerateMessage;
+
+  /// {@template onRegenerateTap}
+  /// The function called when tapping on RegenerateMessage
+  /// {@endtemplate}
+  final OnMessageTap? onRegenerateTap;
+
+  /// {@template showReadAloudMessage}
+  /// Display Read Aloud
+  /// {@endtemplate}
+  final bool showReadAloudMessage;
+
+  /// {@template onReadAloudTap}
+  /// The function called when tapping on Read Aloud
+  /// {@endtemplate}
+  final OnMessageTap? onReadAloudTap;
+
   /// {@template attachmentBuilders}
   /// List of attachment builders for rendering attachment widgets pre-defined
   /// and custom attachment types.
@@ -432,6 +456,10 @@ class StreamMessageWidget extends StatefulWidget {
     String? imageAttachmentThumbnailResizeType,
     String? imageAttachmentThumbnailCropType,
     AttachmentActionsBuilder? attachmentActionsModalBuilder,
+    void Function(Message)? onRegenerateTap,
+    void Function(Message)? onReadAloudTap,
+    bool? showRegenerateMessage,
+    bool? showReadAloudMessage,
   }) {
     return StreamMessageWidget(
       key: key ?? this.key,
@@ -499,6 +527,10 @@ class StreamMessageWidget extends StatefulWidget {
           this.imageAttachmentThumbnailCropType,
       attachmentActionsModalBuilder:
           attachmentActionsModalBuilder ?? this.attachmentActionsModalBuilder,
+      onRegenerateTap: onRegenerateTap ?? this.onRegenerateTap,
+      onReadAloudTap: onReadAloudTap ?? this.onReadAloudTap,
+      showRegenerateMessage: showRegenerateMessage ?? this.showRegenerateMessage,
+      showReadAloudMessage: showReadAloudMessage ?? this.showReadAloudMessage,
     );
   }
 
@@ -599,6 +631,15 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
       !isDeleteFailed &&
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
+
+  bool get showShowRegenerateMessage =>
+      widget.showRegenerateMessage &&
+      widget.onRegenerateTap != null;
+
+  bool get shouldShowReadAloudMessage =>
+      widget.showReadAloudMessage && 
+      !isFailedState &&
+      widget.onReadAloudTap != null;
 
   bool get shouldShowResendAction =>
       widget.showResendMessage && (isSendFailed || isUpdateFailed);
@@ -839,6 +880,32 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
           },
         ),
       ],
+      if (showShowRegenerateMessage)
+        StreamChatContextMenuItem(
+          leading: const Icon(
+            Icons.autorenew,
+            color: Colors.grey,
+            size: 24,
+          ),
+          title: Text(context.translations.regenerateMessageLabel),
+          onClick: () {
+            Navigator.of(context, rootNavigator: true).pop();
+            widget.onRegenerateTap!(widget.message);
+          },
+        ),
+      if (shouldShowReadAloudMessage)
+        StreamChatContextMenuItem(
+          leading: const Icon(
+            Icons.volume_up,
+            color: Colors.grey,
+            size: 24,
+          ),
+          title: Text(context.translations.readAloudMessageLabel),
+          onClick: () {
+            Navigator.of(context, rootNavigator: true).pop();
+            widget.onRegenerateTap!(widget.message);
+          },
+        ),
       if (widget.showPinButton)
         StreamChatContextMenuItem(
           leading: StreamSvgIcon.pin(
