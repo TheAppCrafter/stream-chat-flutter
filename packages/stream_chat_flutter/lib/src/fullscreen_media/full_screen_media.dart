@@ -342,23 +342,22 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                             topWidget = const SizedBox.shrink(); // Default case
                           }
 
-                          return Column(
+                          return Stack(
                             children: [
-                              Expanded(
-                                flex: 9,
-                                child: Center(child: topWidget)
+                              Positioned.fill(
+                                child: Center(child: topWidget),
                               ),
-                              Expanded(
-                                flex: 1,
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 50),
-                                  child: Text(
-                                    attachment.title ?? 'Unnamed Attachment',
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context).textTheme.bodyLarge,
-                                    textAlign: TextAlign.center,
-                                  ),
+                              Positioned(
+                                left: 50,
+                                right: 50,
+                                bottom: isDisplayingDetail ? (kToolbarHeight + 
+                                  MediaQuery.of(context).padding.bottom + 10) : 10,
+                                child: Text(
+                                  attachment.title ?? 'Unnamed Attachment',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
