@@ -799,8 +799,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
   List<Widget> _actionsList() {
     final channel = StreamChannel.of(context).channel;
     final defaultActions = <Widget>[
-      if (!widget.disableAttachments &&
-          channel.ownCapabilities.contains(PermissionType.uploadFile))
+      if (!widget.disableAttachments)
         _buildAttachmentButton(context),
       if (widget.showCommandsButton &&
           !_isEditing &&
@@ -1324,6 +1323,24 @@ class StreamMessageInputState extends State<StreamMessageInput>
     final streamChannel = StreamChannel.of(context);
     final channel = streamChannel.channel;
     var message = _effectiveController.value;
+
+    // adding check here for upload file permssion. Since the new chat page does
+    // not create the new channel until the preMessageSending is called, file
+    // uploads will always be disabled on that screen. Instead, we can check the
+    // permissions here.
+    if (!channel.ownCapabilities.contains(PermissionType.uploadFile) && 
+      message.attachments.isNotEmpty) {
+      showInfoBottomSheet(
+        context,
+        icon: StreamSvgIcon.error(
+          color: StreamChatTheme.of(context).colorTheme.accentError,
+          size: 24,
+        ),
+        title: 'Attachments are disabled',
+        details: 'Uploading attachments is not allowed in this conversation.',
+        okText: context.translations.okLabel,
+      );
+    }
 
     if (!channel.ownCapabilities.contains(PermissionType.sendLinks) &&
         _urlRegex.allMatches(message.text ?? '').any((element) =>
