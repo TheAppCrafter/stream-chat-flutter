@@ -119,117 +119,122 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
               widget.mediaAttachmentPackages[currentPage];
           final _currentMessage = _currentAttachmentPackage.message;
           final _currentAttachment = _currentAttachmentPackage.attachment;
-          return Stack(
-            children: [
-              child!,
-              ValueListenableBuilder<bool>(
-                valueListenable: _isDisplayingDetail,
-                builder: (context, isDisplayingDetail, child) {
-                  final mediaQuery = MediaQuery.of(context);
-                  final topPadding = mediaQuery.padding.top;
-                  return AnimatedPositionedDirectional(
-                    duration: kThemeAnimationDuration,
-                    curve: Curves.easeInOut,
-                    top:
-                        isDisplayingDetail ? 0 : -(topPadding + kToolbarHeight),
-                    start: 0,
-                    end: 0,
-                    height: topPadding + kToolbarHeight,
-                    child: StreamGalleryHeader(
-                      userName: widget.userName,
-                      sentAt: context.translations.sentAtText(
-                        date: _currentAttachmentPackage.message.createdAt,
-                        time: _currentAttachmentPackage.message.createdAt,
-                      ),
-                      onBackPressed: Navigator.of(context).pop,
-                      message: _currentMessage,
-                      attachment: _currentAttachment,
-                      onShowMessage: widget.onShowMessage != null
-                          ? () {
-                              Navigator.pop(context);
-                              Navigator.pop(context);
-                              widget.onShowMessage?.call(
-                                _currentMessage,
-                                StreamChannel.of(context).channel,
-                              );
-                            }
-                          : null,
-                      onReplyMessage: widget.onReplyMessage != null
-                          ? () {
-                              Navigator.pop(context);
-                              Navigator.pop(context);
-                              widget.onReplyMessage?.call(
-                                _currentMessage,
-                              );
-                            }
-                          : null,
-                      attachmentActionsModalBuilder:
-                          widget.attachmentActionsModalBuilder,
-                    ),
-                  );
-                },
-              ),
-              if (!_currentMessage.isEphemeral)
+          // added _currentChannel and stream channel widget to satisfy child widget requirements while still allowing for attachments from multiple channels
+          final _currentChannel = _currentAttachmentPackage.channel!;
+          return StreamChannel( 
+            channel: _currentChannel,
+              child: Stack(
+              children: [
+                child!,
                 ValueListenableBuilder<bool>(
                   valueListenable: _isDisplayingDetail,
                   builder: (context, isDisplayingDetail, child) {
                     final mediaQuery = MediaQuery.of(context);
-                    final bottomPadding = mediaQuery.padding.bottom;
+                    final topPadding = mediaQuery.padding.top;
                     return AnimatedPositionedDirectional(
                       duration: kThemeAnimationDuration,
                       curve: Curves.easeInOut,
-                      bottom: isDisplayingDetail
-                          ? 0
-                          : -(bottomPadding + kToolbarHeight),
+                      top:
+                          isDisplayingDetail ? 0 : -(topPadding + kToolbarHeight),
                       start: 0,
                       end: 0,
-                      height: bottomPadding + kToolbarHeight,
-                      child: StreamGalleryFooter(
-                        currentPage: currentPage,
-                        totalPages: widget.mediaAttachmentPackages.length,
-                        mediaAttachmentPackages: widget.mediaAttachmentPackages,
-                        mediaSelectedCallBack: (val) {
-                          _currentPage.value = val;
-                          _pageController.animateToPage(
-                            val,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                          Navigator.pop(context);
-                        },
+                      height: topPadding + kToolbarHeight,
+                      child: StreamGalleryHeader(
+                        userName: widget.userName,
+                        sentAt: context.translations.sentAtText(
+                          date: _currentAttachmentPackage.message.createdAt,
+                          time: _currentAttachmentPackage.message.createdAt,
+                        ),
+                        onBackPressed: Navigator.of(context).pop,
+                        message: _currentMessage,
+                        attachment: _currentAttachment,
+                        onShowMessage: widget.onShowMessage != null
+                            ? () {
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                                widget.onShowMessage?.call(
+                                  _currentMessage,
+                                  StreamChannel.of(context).channel,
+                                );
+                              }
+                            : null,
+                        onReplyMessage: widget.onReplyMessage != null
+                            ? () {
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                                widget.onReplyMessage?.call(
+                                  _currentMessage,
+                                );
+                              }
+                            : null,
+                        attachmentActionsModalBuilder:
+                            widget.attachmentActionsModalBuilder,
                       ),
                     );
                   },
                 ),
-              if (widget.mediaAttachmentPackages.length > 1) ...[
-                if (currentPage > 0)
-                  GalleryNavigationItem(
-                    left: 8,
-                    opacityAnimation: _isDisplayingDetail,
-                    icon: const Icon(Icons.chevron_left_rounded),
-                    onPressed: () {
-                      _currentPage.value--;
-                      _pageController.previousPage(
-                        duration: const Duration(milliseconds: 300),
+                if (!_currentMessage.isEphemeral)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: _isDisplayingDetail,
+                    builder: (context, isDisplayingDetail, child) {
+                      final mediaQuery = MediaQuery.of(context);
+                      final bottomPadding = mediaQuery.padding.bottom;
+                      return AnimatedPositionedDirectional(
+                        duration: kThemeAnimationDuration,
                         curve: Curves.easeInOut,
+                        bottom: isDisplayingDetail
+                            ? 0
+                            : -(bottomPadding + kToolbarHeight),
+                        start: 0,
+                        end: 0,
+                        height: bottomPadding + kToolbarHeight,
+                        child: StreamGalleryFooter(
+                          currentPage: currentPage,
+                          totalPages: widget.mediaAttachmentPackages.length,
+                          mediaAttachmentPackages: widget.mediaAttachmentPackages,
+                          mediaSelectedCallBack: (val) {
+                            _currentPage.value = val;
+                            _pageController.animateToPage(
+                              val,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
                       );
                     },
                   ),
-                if (currentPage < widget.mediaAttachmentPackages.length - 1)
-                  GalleryNavigationItem(
-                    right: 8,
-                    opacityAnimation: _isDisplayingDetail,
-                    icon: const Icon(Icons.chevron_right_rounded),
-                    onPressed: () {
-                      _currentPage.value++;
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                  ),
+                if (widget.mediaAttachmentPackages.length > 1) ...[
+                  if (currentPage > 0)
+                    GalleryNavigationItem(
+                      left: 8,
+                      opacityAnimation: _isDisplayingDetail,
+                      icon: const Icon(Icons.chevron_left_rounded),
+                      onPressed: () {
+                        _currentPage.value--;
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
+                  if (currentPage < widget.mediaAttachmentPackages.length - 1)
+                    GalleryNavigationItem(
+                      right: 8,
+                      opacityAnimation: _isDisplayingDetail,
+                      icon: const Icon(Icons.chevron_right_rounded),
+                      onPressed: () {
+                        _currentPage.value++;
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
+                ],
               ],
-            ],
+            )
           );
         },
         child: InkWell(
@@ -288,9 +293,10 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                           : Colors.black,
                       child: Builder(
                         builder: (context) {
-                          if (attachment.type == AttachmentType.image ||
-                              attachment.type == AttachmentType.giphy) {
-                            return PhotoView.customChild(
+                          Widget topWidget;
+
+                          if (attachment.type == AttachmentType.image || attachment.type == AttachmentType.giphy) {
+                            topWidget = PhotoView.customChild(
                               maxScale: PhotoViewComputedScale.covered,
                               minScale: PhotoViewComputedScale.contained,
                               backgroundDecoration: const BoxDecoration(
@@ -305,28 +311,58 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                           } else if (attachment.type == AttachmentType.video) {
                             final controller = videoPackages[attachment.id]!;
                             if (!controller.initialized) {
-                              return const Center(
+                              topWidget = const Center(
                                 child: CircularProgressIndicator.adaptive(),
                               );
+                            } else {
+                              final mediaQuery = MediaQuery.of(context);
+                              final bottomPadding = mediaQuery.padding.bottom;
+
+                              topWidget = AnimatedPadding(
+                                duration: kThemeChangeDuration,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: isDisplayingDetail
+                                      ? kToolbarHeight + bottomPadding
+                                      : 0,
+                                ),
+                                child: Chewie(
+                                  controller: controller.chewieController!,
+                                ),
+                              );
                             }
-
-                            final mediaQuery = MediaQuery.of(context);
-                            final bottomPadding = mediaQuery.padding.bottom;
-
-                            return AnimatedPadding(
-                              duration: kThemeChangeDuration,
-                              padding: EdgeInsets.symmetric(
-                                vertical: isDisplayingDetail
-                                    ? kToolbarHeight + bottomPadding
-                                    : 0,
-                              ),
-                              child: Chewie(
-                                controller: controller.chewieController!,
-                              ),
+                          } else if (attachment.type == AttachmentType.file) {
+                            final mediaType = attachment.title?.mediaType;
+                            topWidget = Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              margin: const EdgeInsets.all(50),
+                              child: getFileTypeImage(mediaType?.mimeType),
                             );
+                          } else {
+                            topWidget = const SizedBox.shrink(); // Default case
                           }
 
-                          return const SizedBox();
+                          return Column(
+                            children: [
+                              Expanded(
+                                flex: 9,
+                                child: Center(child: topWidget)
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 50),
+                                  child: Text(
+                                    attachment.title ?? 'Unnamed Attachment',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
                         },
                       ),
                     );
