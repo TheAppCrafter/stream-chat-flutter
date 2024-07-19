@@ -1324,24 +1324,6 @@ class StreamMessageInputState extends State<StreamMessageInput>
     final channel = streamChannel.channel;
     var message = _effectiveController.value;
 
-    // adding check here for upload file permssion. Since the new chat page does
-    // not create the new channel until the preMessageSending is called, file
-    // uploads will always be disabled on that screen. Instead, we can check the
-    // permissions here.
-    if (!channel.ownCapabilities.contains(PermissionType.uploadFile) && 
-      message.attachments.isNotEmpty) {
-      showInfoBottomSheet(
-        context,
-        icon: StreamSvgIcon.error(
-          color: StreamChatTheme.of(context).colorTheme.accentError,
-          size: 24,
-        ),
-        title: 'Attachments are disabled',
-        details: 'Uploading attachments is not allowed in this conversation.',
-        okText: context.translations.okLabel,
-      );
-    }
-
     if (!channel.ownCapabilities.contains(PermissionType.sendLinks) &&
         _urlRegex.allMatches(message.text ?? '').any((element) =>
             element.group(0)?.split('.').last.isValidTLD() == true)) {
@@ -1374,6 +1356,24 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
     if (widget.preMessageSending != null) {
       message = await widget.preMessageSending!(message);
+    }
+
+    // adding check here for upload file permssion. Since the new chat page does
+    // not create the new channel until the preMessageSending is called, file
+    // uploads will always be disabled on that screen. Instead, we can check the
+    // permissions here.
+    if (!channel.ownCapabilities.contains(PermissionType.uploadFile) && 
+      message.attachments.isNotEmpty) {
+      showInfoBottomSheet(
+        context,
+        icon: StreamSvgIcon.error(
+          color: StreamChatTheme.of(context).colorTheme.accentError,
+          size: 24,
+        ),
+        title: 'Attachments are disabled',
+        details: 'Uploading attachments is not allowed in this conversation.',
+        okText: context.translations.okLabel,
+      );
     }
 
     message = message.replaceMentionsWithId();
