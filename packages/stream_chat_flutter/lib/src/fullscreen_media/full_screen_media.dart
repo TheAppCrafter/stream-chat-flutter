@@ -120,7 +120,7 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
           final _currentMessage = _currentAttachmentPackage.message;
           final _currentAttachment = _currentAttachmentPackage.attachment;
           // added _currentChannel and stream channel widget to satisfy child widget requirements while still allowing for attachments from multiple channels
-          final _currentChannel = _currentAttachmentPackage.channel!;
+          final _currentChannel = _currentAttachmentPackage.channel ?? StreamChannel.of(context).channel;
           return StreamChannel( 
             channel: _currentChannel,
               child: Stack(
