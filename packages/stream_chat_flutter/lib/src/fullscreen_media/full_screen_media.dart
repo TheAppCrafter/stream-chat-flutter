@@ -348,8 +348,8 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                                 child: Center(child: topWidget),
                               ),
                               Positioned(
-                                left: 50,
-                                right: 50,
+                                left: 30,
+                                right: 30,
                                 bottom: isDisplayingDetail ? (kToolbarHeight + 
                                   MediaQuery.of(context).padding.bottom + 10) : 10,
                                 child: Text(
