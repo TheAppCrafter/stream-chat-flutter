@@ -106,6 +106,16 @@ class AttachmentActionsModal extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  ...customActions
+                    .map(
+                      (e) => _buildButton(
+                        context,
+                        e.actionTitle,
+                        e.icon,
+                        e.onTap,
+                      ),
+                    )
+                    .toList(),
                   if (showReply)
                     _buildButton(
                       context,
@@ -222,16 +232,6 @@ class AttachmentActionsModal extends StatelessWidget {
                       },
                       color: theme.colorTheme.accentError,
                     ),
-                  ...customActions
-                      .map(
-                        (e) => _buildButton(
-                          context,
-                          e.actionTitle,
-                          e.icon,
-                          e.onTap,
-                        ),
-                      )
-                      .toList(),
                 ]
                     .map<Widget>((e) => Align(
                           alignment: Alignment.centerRight,
