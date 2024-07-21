@@ -152,6 +152,7 @@ class StreamMessageInput extends StatefulWidget {
     this.ogPreviewFilter = _defaultOgPreviewFilter,
     this.hintGetter = _defaultHintGetter,
     this.contentInsertionConfiguration,
+    this.filePickerCustomOptions
   });
 
   /// The predicate used to send a message on desktop/web
@@ -349,6 +350,9 @@ class StreamMessageInput extends StatefulWidget {
 
   /// {@macro flutter.widgets.editableText.contentInsertionConfiguration}
   final ContentInsertionConfiguration? contentInsertionConfiguration;
+
+  /// Custom options for the file picker
+  final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -838,6 +842,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
       onError: widget.onError,
       allowedTypes: widget.allowedAttachmentPickerTypes,
       initialAttachments: _effectiveController.attachments,
+      customOptions: widget.filePickerCustomOptions,
     );
 
     if (attachments != null) {
