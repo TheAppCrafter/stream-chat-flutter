@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:stream_chat_flutter/src/message_widget/reactions/reaction_bubble.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 import '../material_app_wrapper.dart';
@@ -26,7 +25,7 @@ void main() {
         StreamChat(
           client: client,
           streamChatThemeData: theme,
-          connectivityStream: Stream.value(ConnectivityResult.mobile),
+          connectivityStream: Stream.value([ConnectivityResult.mobile]),
           child: Scaffold(
             body: Center(
               child: StreamReactionBubble(
@@ -69,7 +68,7 @@ void main() {
         StreamChat(
           client: client,
           streamChatThemeData: StreamChatThemeData.fromTheme(themeData),
-          connectivityStream: Stream.value(ConnectivityResult.mobile),
+          connectivityStream: Stream.value([ConnectivityResult.mobile]),
           child: ColoredBox(
             color: Colors.black,
             child: StreamReactionBubble(
@@ -106,7 +105,7 @@ void main() {
         StreamChat(
           client: client,
           streamChatThemeData: StreamChatThemeData.fromTheme(themeData),
-          connectivityStream: Stream.value(ConnectivityResult.mobile),
+          connectivityStream: Stream.value([ConnectivityResult.mobile]),
           child: ColoredBox(
             color: Colors.black,
             child: StreamReactionBubble(
@@ -151,7 +150,7 @@ void main() {
         StreamChat(
           client: client,
           streamChatThemeData: StreamChatThemeData.fromTheme(themeData),
-          connectivityStream: Stream.value(ConnectivityResult.mobile),
+          connectivityStream: Stream.value([ConnectivityResult.mobile]),
           child: ColoredBox(
             color: Colors.black,
             child: StreamReactionBubble(
@@ -196,7 +195,7 @@ void main() {
       await tester.pumpWidgetBuilder(
         StreamChat(
           client: client,
-          connectivityStream: Stream.value(ConnectivityResult.mobile),
+          connectivityStream: Stream.value([ConnectivityResult.mobile]),
           streamChatThemeData: StreamChatThemeData.fromTheme(themeData),
           child: Scaffold(
             body: Center(

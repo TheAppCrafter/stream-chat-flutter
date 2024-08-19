@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:stream_chat_flutter/src/attachment/thumbnail/video_attachment_thumbnail.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// {@template streamGalleryFooter}
@@ -75,6 +74,8 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
         context: context,
         removeTop: true,
         child: BottomAppBar(
+          surfaceTintColor:
+              widget.backgroundColor ?? galleryFooterThemeData.backgroundColor,
           color:
               widget.backgroundColor ?? galleryFooterThemeData.backgroundColor,
           child: Row(
