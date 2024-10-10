@@ -21,6 +21,7 @@ class StreamFullScreenMedia extends FullScreenMediaWidget {
     this.onReplyMessage,
     this.attachmentActionsModalBuilder,
     this.autoplayVideos = false,
+    this.audioAttachmentWidget,
   }) : assert(startIndex >= 0, 'startIndex cannot be negative');
 
   /// The url of the image
@@ -45,6 +46,9 @@ class StreamFullScreenMedia extends FullScreenMediaWidget {
 
   /// Auto-play videos when page is opened
   final bool autoplayVideos;
+
+  /// Widget for audio attachment
+  final Widget? audioAttachmentWidget;
 
   @override
   _FullScreenMediaState createState() => _FullScreenMediaState();
@@ -282,6 +286,8 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                 final currentAttachmentPackage =
                     widget.mediaAttachmentPackages[index];
                 final attachment = currentAttachmentPackage.attachment;
+                final showAttachmentName = 
+                    currentAttachmentPackage.showAttachmentName;
                 return ValueListenableBuilder(
                   valueListenable: _isDisplayingDetail,
                   builder: (context, isDisplayingDetail, child) {
@@ -337,7 +343,11 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                               margin: const EdgeInsets.all(50),
                               child: getFileTypeImage(mediaType?.mimeType),
                             );
-                          } else {
+                          } 
+                          else if (attachment.type == AttachmentType.audio){
+                            return widget.audioAttachmentWidget ?? const SizedBox.shrink();
+                          }
+                          else {
                             topWidget = const SizedBox.shrink(); // Default case
                           }
 
@@ -346,19 +356,20 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                               Positioned.fill(
                                 child: Center(child: topWidget),
                               ),
-                              Positioned(
-                                left: 30,
-                                right: 30,
-                                bottom: isDisplayingDetail ? (kToolbarHeight + 
-                                  MediaQuery.of(context).padding.bottom + 10) : 10,
-                                child: Text(
-                                  attachment.title ?? 'Unnamed Attachment',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                  textAlign: TextAlign.center,
+                              if (showAttachmentName)
+                                Positioned(
+                                  left: 30,
+                                  right: 30,
+                                  bottom: isDisplayingDetail ? (kToolbarHeight + 
+                                    MediaQuery.of(context).padding.bottom + 10) : 10,
+                                  child: Text(
+                                    attachment.title ?? 'Unnamed Attachment',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              ),
                             ],
                           );
                         },
