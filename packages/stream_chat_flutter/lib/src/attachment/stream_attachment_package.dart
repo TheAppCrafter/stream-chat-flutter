@@ -7,7 +7,8 @@ class StreamAttachmentPackage {
   StreamAttachmentPackage({
     required this.attachment,
     required this.message,
-    this.channel
+    this.channel,
+    this.showAttachmentName = false,
   });
 
   /// This is the individual attachment
@@ -19,4 +20,7 @@ class StreamAttachmentPackage {
 
   /// This is the channel that the message and attachment belongs to
   final Channel? channel;
+
+  /// This is a flag to show the attachment name
+  final bool showAttachmentName;
 }
