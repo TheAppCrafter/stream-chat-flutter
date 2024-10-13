@@ -173,10 +173,10 @@ class StreamMessageInput extends StatefulWidget {
   final int maxAttachmentSize;
 
   /// Function called after sending the message.
-  final void Function(Message)? onMessageSent;
+  final void Function(BuildContext, Message)? onMessageSent;
 
   /// Async Function called after sending the message.
-  final Future<void> Function(BuildContext, Channel, Message)? onMessageSentAsync;
+  final Future<void> Function(BuildContext, Message)? onMessageSentAsync;
 
   /// Function called right before sending the message.
   ///
@@ -1442,8 +1442,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
         _effectiveController.message = message;
       }
       _startSlowMode();
-      widget.onMessageSentAsync?.call(context, channel, resp.message);
-      widget.onMessageSent?.call(resp.message);
+      widget.onMessageSentAsync?.call(context, resp.message);
+      widget.onMessageSent?.call(context, resp.message);
     } catch (e, stk) {
       if (widget.onError != null) {
         return widget.onError?.call(e, stk);
