@@ -119,8 +119,6 @@ class _StreamVoiceRecordingPlayerState
       builder: (context, snapshot) {
         final playingThis = snapshot.data == true;
 
-        final icon = playingThis ? theme.pauseIcon : theme.playIcon;
-
         final processingState = widget.player.playerStateStream
             .map((event) => event.processingState);
 
@@ -129,9 +127,21 @@ class _StreamVoiceRecordingPlayerState
           initialData: ProcessingState.idle,
           builder: (context, snapshot) {
             final state = snapshot.data ?? ProcessingState.idle;
+
+            // Handle the completed state
+            if (state == ProcessingState.completed) {
+              widget.player.pause(); // Stop playback on completion
+              widget.player.seek(Duration.zero, index: widget.index); // Reset to start
+            }
+
             if (state == ProcessingState.ready ||
                 state == ProcessingState.idle ||
+                state == ProcessingState.completed ||
                 !playingThis) {
+              final icon = (state == ProcessingState.completed || !playingThis)
+                  ? theme.playIcon
+                  : theme.pauseIcon;
+
               return ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   elevation: theme.buttonElevation,
@@ -156,6 +166,7 @@ class _StreamVoiceRecordingPlayerState
       },
     );
   }
+
 
   Widget _speedAndActionButton() {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
@@ -302,6 +313,11 @@ class _StreamVoiceRecordingPlayerState
   }
 
   Future<void> _play() async {
+    // Check if the player has completed playing the audio
+    if (widget.player.processingState == ProcessingState.completed) {
+      widget.player.seek(Duration.zero, index: widget.index); // Reset to the start
+    }
+
     if (widget.index != widget.player.currentIndex) {
       widget.player.seek(Duration.zero, index: widget.index);
     }
