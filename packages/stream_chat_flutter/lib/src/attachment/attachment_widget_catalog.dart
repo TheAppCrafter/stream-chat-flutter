@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:stream_chat_flutter/src/attachment/builder/attachment_widget_builder.dart';
+import 'package:stream_chat_flutter/src/utils/extensions.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 
 /// {@template attachmentWidgetCatalog}
@@ -19,38 +20,59 @@ import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 ///   * [MessageWidget] which uses the [AttachmentWidgetCatalog] to build the
 ///   widget for the [Message.attachments].
 class AttachmentWidgetCatalog {
-  /// {@macro attachmentWidgetCatalog}
   const AttachmentWidgetCatalog({required this.builders});
 
-  /// The list of builders to use to build the widget.
-  ///
-  /// The order of the builders is important. The first builder that can handle
-  /// the message and attachments will be used to build the widget.
   final List<StreamAttachmentWidgetBuilder> builders;
 
   /// Builds a widget for the given [message] and [attachments].
   ///
-  /// It iterates through the list of builders and uses the first builder
-  /// that can handle the message and attachments.
+  /// It iterates through the list of builders and ensures that only the first
+  /// builder that can handle each **group** of attachments by type is used.
   ///
-  /// Throws an [Exception] if no builder is found for the message.
+  /// A space is inserted between each built widget using `insertBetween`.
   Widget build(BuildContext context, Message message) {
     assert(!message.isDeleted, 'Cannot build attachment for deleted message');
-
     assert(
       message.attachments.isNotEmpty,
       'Cannot build attachment for message without attachments',
     );
 
-    // The list of attachments to build the widget for.
     final attachments = message.attachments.grouped;
+    final builtWidgets = <Widget>[];
+
+    // Track which attachment types have been handled.
+    final handledAttachmentTypes = <String>{};
+
     for (final builder in builders) {
-      if (builder.canHandle(message, attachments)) {
-        return builder.build(context, message, attachments);
+      for (final entry in attachments.entries) {
+        final attachmentType = entry.key;
+        final attachmentGroup = entry.value;
+
+        // Skip groups that have already been handled.
+        if (handledAttachmentTypes.contains(attachmentType)) {
+          continue;
+        }
+
+        // Create the map to pass to canHandle and build
+        final attachmentMap = {attachmentType: attachmentGroup};
+
+        // If the builder can handle the attachment group, build it.
+        if (builder.canHandle(message, attachmentMap)) {
+          handledAttachmentTypes.add(attachmentType); // Mark this group as handled
+          builtWidgets.add(builder.build(context, message, attachmentMap));
+          break; // Stop checking other builders for this attachment type
+        }
       }
     }
 
-    throw Exception('No builder found for $message and $attachments');
+    if (builtWidgets.isEmpty) {
+      throw Exception('No builder found for $message and $attachments');
+    }
+
+    // Insert a space between each widget.
+    return Column(
+      children: builtWidgets.insertBetween(const SizedBox(height: 8)),
+    );
   }
 }
 
