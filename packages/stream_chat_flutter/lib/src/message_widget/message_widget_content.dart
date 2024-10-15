@@ -73,6 +73,7 @@ class MessageWidgetContent extends StatelessWidget {
     this.quotedMessageBuilder,
     this.bottomRowBuilderWithDefaultWidget,
     this.userAvatarBuilder,
+    this.textBubbleBuilder,
   });
 
   /// {@macro reverse}
@@ -216,6 +217,9 @@ class MessageWidgetContent extends StatelessWidget {
   /// {@macro userAvatarBuilder}
   final Widget Function(BuildContext, User)? userAvatarBuilder;
 
+  /// {@macro textBubbleBuilder}
+  final TextBubbleBuilder? textBubbleBuilder;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -348,6 +352,7 @@ class MessageWidgetContent extends StatelessWidget {
                                             borderRadiusGeometry,
                                         borderSide: borderSide,
                                         shape: shape,
+                                        textBubbleBuilder: textBubbleBuilder,
                                       ),
                               ),
                               // TODO: Make tail part of the Reaction Picker.

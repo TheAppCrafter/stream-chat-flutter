@@ -102,6 +102,7 @@ class StreamMessageWidget extends StatefulWidget {
     this.onRegenerateTap,
     this.showReadAloudMessage = true,
     this.onReadAloudTap,
+    this.textBubbleBuilder,
   });
 
   /// {@template onMentionTap}
@@ -398,6 +399,9 @@ class StreamMessageWidget extends StatefulWidget {
   final String /*center|top|bottom|left|right*/
       imageAttachmentThumbnailCropType;
 
+  /// {@macro textBubbleBuilder}
+  final TextBubbleBuilder? textBubbleBuilder;
+
   /// {@template copyWith}
   /// Creates a copy of [StreamMessageWidget] with specified attributes
   /// overridden.
@@ -466,6 +470,7 @@ class StreamMessageWidget extends StatefulWidget {
     void Function(Message)? onReadAloudTap,
     bool Function(Message)? showRegenerateMessage,
     bool? showReadAloudMessage,
+    TextBubbleBuilder? textBubbleBuilder,
   }) {
     return StreamMessageWidget(
       key: key ?? this.key,
@@ -538,6 +543,7 @@ class StreamMessageWidget extends StatefulWidget {
       onReadAloudTap: onReadAloudTap ?? this.onReadAloudTap,
       showRegenerateMessage: showRegenerateMessage ?? this.showRegenerateMessage,
       showReadAloudMessage: showReadAloudMessage ?? this.showReadAloudMessage,
+      textBubbleBuilder: textBubbleBuilder ?? this.textBubbleBuilder,
     );
   }
 
@@ -780,6 +786,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
                       shape: widget.shape,
                       borderSide: widget.borderSide,
                       borderRadiusGeometry: widget.borderRadiusGeometry,
+                      textBubbleBuilder: widget.textBubbleBuilder,
                       textBuilder: widget.textBuilder,
                       quotedMessageBuilder: widget.quotedMessageBuilder,
                       onLinkTap: widget.onLinkTap,

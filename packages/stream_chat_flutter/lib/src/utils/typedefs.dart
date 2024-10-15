@@ -103,6 +103,20 @@ typedef AttachmentActionsBuilder = Widget Function(
   AttachmentActionsModal defaultActionsModal,
 );
 
+/// {@template textBubbleBuilder}
+/// A widget builder for building a custom text bubble.
+/// {@endtemplate}
+typedef TextBubbleBuilder = Widget Function({
+  required StreamMessageThemeData messageTheme,
+  required Message message,
+  required EdgeInsets textPadding,
+  required bool isOnlyEmoji,
+  required bool hasQuotedMessage,
+  required bool hasUrlAttachments,
+  Function(String)? onLinkTap,
+  Function(User)? onMentionTap,
+});
+
 /// {@template errorListener}
 /// A callback that can be passed to [StreamMessageInput.onError].
 ///

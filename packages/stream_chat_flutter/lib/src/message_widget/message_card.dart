@@ -36,6 +36,7 @@ class MessageCard extends StatefulWidget {
     this.onLinkTap,
     this.onMentionTap,
     this.onQuotedMessageTap,
+    this.textBubbleBuilder,
   });
 
   /// {@macro isFailedState}
@@ -115,6 +116,9 @@ class MessageCard extends StatefulWidget {
 
   /// {@macro reverse}
   final bool reverse;
+
+  /// {@macro textBubbleBuilder}
+  final TextBubbleBuilder? textBubbleBuilder;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -210,6 +214,18 @@ class _MessageCardState extends State<MessageCard> {
               attachmentActionsModalBuilder:
                   widget.attachmentActionsModalBuilder,
             ),
+          if (widget.textBubbleBuilder != null)
+          widget.textBubbleBuilder!(
+            messageTheme: widget.messageTheme,
+            message: widget.message,
+            textPadding: widget.textPadding,
+            isOnlyEmoji: widget.isOnlyEmoji,
+            hasQuotedMessage: widget.hasQuotedMessage,
+            hasUrlAttachments: widget.hasUrlAttachments,
+            onLinkTap: widget.onLinkTap,
+            onMentionTap: widget.onMentionTap,
+          ),
+          if (widget.textBubbleBuilder == null)
           TextBubble(
             messageTheme: widget.messageTheme,
             message: widget.message,
