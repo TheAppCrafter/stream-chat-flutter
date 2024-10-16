@@ -20,6 +20,7 @@ class StreamVoiceRecordingPlayer extends StatefulWidget {
     super.key,
     required this.player,
     required this.duration,
+    this.constraints = const BoxConstraints(maxHeight: 60, maxWidth: 500),
     this.waveBars,
     this.index = 0,
     this.fileSize,
@@ -35,6 +36,9 @@ class StreamVoiceRecordingPlayer extends StatefulWidget {
 
   /// The duration of the audio.
   final Duration duration;
+
+  /// The constraints of the player.
+  final BoxConstraints? constraints;
 
   /// The index of the audio inside the play list. If not provided, this is
   /// assumed to be zero.
@@ -83,14 +87,22 @@ class _StreamVoiceRecordingPlayerState
   }
 
   Widget _content(Duration totalDuration) {
+    final availableWidth = widget.constraints?.maxWidth ?? 500; // Fallback to a default value
+    final availableHeight = widget.constraints?.maxHeight ?? 60; // Fallback to a default value
+
+    // Calculate relative sizes based on available constraints
+    final controlButtonSize = availableHeight * 0.55; // 60% of the height
+    final sliderHeight = availableHeight * 0.6; // 30% of the height
+    final fontSize = availableHeight * 0.2; // 20% of the height for the text
+
     return Container(
+      constraints: widget.constraints,
       padding: const EdgeInsets.all(8),
-      height: 60,
       child: Row(
         children: <Widget>[
           SizedBox(
-            width: 36,
-            height: 36,
+            width: controlButtonSize,
+            height: controlButtonSize,
             child: _controlButton(),
           ),
           Padding(
@@ -98,12 +110,12 @@ class _StreamVoiceRecordingPlayerState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _timer(totalDuration),
-                _fileSizeWidget(widget.fileSize),
+                _timer(totalDuration, fontSize),
+                _fileSizeWidget(widget.fileSize, fontSize),
               ],
             ),
           ),
-          _audioWaveSlider(totalDuration),
+          _audioWaveSlider(totalDuration, sliderHeight),
           _speedAndActionButton(),
         ],
       ),
@@ -130,8 +142,8 @@ class _StreamVoiceRecordingPlayerState
 
             // Handle the completed state
             if (state == ProcessingState.completed) {
-              widget.player.pause(); // Stop playback on completion
-              widget.player.seek(Duration.zero, index: widget.index); // Reset to start
+              widget.player.pause();
+              widget.player.seek(Duration.zero, index: widget.index);
             }
 
             if (state == ProcessingState.ready ||
@@ -166,7 +178,6 @@ class _StreamVoiceRecordingPlayerState
       },
     );
   }
-
 
   Widget _speedAndActionButton() {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
@@ -210,8 +221,8 @@ class _StreamVoiceRecordingPlayerState
             return widget.actionButton!;
           } else {
             return SizedBox(
-              width: theme.speedButtonSize!.width,
-              height: theme.speedButtonSize!.height,
+              width: widget.constraints!.maxHeight! * 0.5,
+              height: widget.constraints!.maxHeight! * 0.5,
               child: theme.fileTypeIcon,
             );
           }
@@ -220,25 +231,13 @@ class _StreamVoiceRecordingPlayerState
     );
   }
 
-  Widget _fileSizeWidget(int? fileSize) {
-    final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
-
-    if (fileSize != null) {
-      return Text(
-        fileSize.toHumanReadableSize(),
-        style: theme.fileSizeTextStyle,
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
-  Widget _timer(Duration totalDuration) {
+  Widget _timer(Duration totalDuration, double fontSize) {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
 
     return StreamBuilder<Duration>(
       stream: widget.player.positionStream,
       builder: (context, snapshot) {
+        final textStyle = theme.timerTextStyle ?? TextStyle(); // Provide a default TextStyle
         if (snapshot.hasData &&
             (widget.player.currentIndex == widget.index &&
                 (widget.player.playing ||
@@ -246,19 +245,33 @@ class _StreamVoiceRecordingPlayerState
                     _seeking))) {
           return Text(
             snapshot.data!.toMinutesAndSeconds(),
-            style: theme.timerTextStyle,
+            style: textStyle.copyWith(fontSize: fontSize), // Safe to call copyWith
           );
         } else {
           return Text(
             totalDuration.toMinutesAndSeconds(),
-            style: theme.timerTextStyle,
+            style: textStyle.copyWith(fontSize: fontSize), // Safe to call copyWith
           );
         }
       },
     );
   }
 
-  Widget _audioWaveSlider(Duration totalDuration) {
+  Widget _fileSizeWidget(int? fileSize, double fontSize) {
+    final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
+
+    final fileSizeTextStyle = theme.fileSizeTextStyle ?? TextStyle();
+    if (fileSize != null) {
+      return Text(
+        fileSize.toHumanReadableSize(),
+        style: fileSizeTextStyle.copyWith(fontSize: fontSize),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _audioWaveSlider(Duration totalDuration, double sliderHeight) {
     final positionStream = widget.player.currentIndexStream.flatMap(
       (index) => widget.player.positionStream.map((duration) => _sliderValue(
             duration,
@@ -288,6 +301,7 @@ class _StreamVoiceRecordingPlayerState
             _seeking = false;
           });
         },
+        customSliderButtonWidth: sliderHeight * 0.1, 
       ),
     );
   }
