@@ -152,7 +152,8 @@ class StreamMessageInput extends StatefulWidget {
     this.ogPreviewFilter = _defaultOgPreviewFilter,
     this.hintGetter = _defaultHintGetter,
     this.contentInsertionConfiguration,
-    this.filePickerCustomOptions
+    this.filePickerCustomOptions,
+    this.actionsShrunkFunction,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -353,6 +354,8 @@ class StreamMessageInput extends StatefulWidget {
 
   /// Custom options for the file picker
   final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
+
+  final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -1113,7 +1116,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
       if (widget.showCommandsButton) actionsLength += 1;
       if (!widget.disableAttachments) actionsLength += 1;
 
-      setState(() => _actionsShrunk = value.isNotEmpty && actionsLength > 1);
+      setState(() => _actionsShrunk = widget.actionsShrunkFunction?.call(_effectiveController, actionsLength) ?? (value.isNotEmpty && actionsLength > 1));
 
       _checkContainsUrl(value, context);
     },
