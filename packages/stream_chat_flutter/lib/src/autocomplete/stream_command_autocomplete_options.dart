@@ -10,6 +10,7 @@ class StreamCommandAutocompleteOptions extends StatelessWidget {
   const StreamCommandAutocompleteOptions({
     required this.query,
     required this.channel,
+    this.userDefinedCommands,
     this.onCommandSelected,
     super.key,
   });
@@ -20,12 +21,19 @@ class StreamCommandAutocompleteOptions extends StatelessWidget {
   /// The channel to search for users.
   final Channel channel;
 
+  /// User defined commands.
+  final List<Command>? userDefinedCommands;
+
   /// Callback called when a command is selected.
   final ValueSetter<Command>? onCommandSelected;
 
   @override
   Widget build(BuildContext context) {
-    final commands = channel.config?.commands.where((it) {
+    final allCommands = [
+      ...channel.config?.commands ?? [],
+      ...userDefinedCommands ?? [],
+    ];
+    final commands = allCommands.where((it) {
       final normalizedQuery = query.toUpperCase();
       final normalizedName = it.name.toUpperCase();
       return normalizedName.contains(normalizedQuery);

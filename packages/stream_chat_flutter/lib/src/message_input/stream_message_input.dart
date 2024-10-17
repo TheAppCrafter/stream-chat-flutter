@@ -154,6 +154,7 @@ class StreamMessageInput extends StatefulWidget {
     this.contentInsertionConfiguration,
     this.filePickerCustomOptions,
     this.actionsShrunkFunction,
+    this.userDefinedCommands,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -355,7 +356,11 @@ class StreamMessageInput extends StatefulWidget {
   /// Custom options for the file picker
   final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
 
+  /// Function that returns whether the actions should be shrunk or not.
   final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
+
+  /// User defined commands.
+  final List<Command>? userDefinedCommands;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -705,6 +710,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
                 return StreamCommandAutocompleteOptions(
                   query: query,
                   channel: StreamChannel.of(context).channel,
+                  userDefinedCommands: widget.userDefinedCommands,
                   onCommandSelected: (command) {
                     _effectiveController.command = command.name;
                     // removing the overlay after the command is selected
