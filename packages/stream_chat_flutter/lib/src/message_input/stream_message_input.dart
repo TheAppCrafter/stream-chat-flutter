@@ -154,6 +154,7 @@ class StreamMessageInput extends StatefulWidget {
     this.contentInsertionConfiguration,
     this.filePickerCustomOptions,
     this.actionsShrunkFunction,
+    this.streamCommandAutoCompleteOptionsBuilder,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -356,6 +357,8 @@ class StreamMessageInput extends StatefulWidget {
   final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
 
   final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
+
+  final Widget Function(BuildContext, String, StreamMessageInputController)? streamCommandAutoCompleteOptionsBuilder;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -702,6 +705,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
                 messageEditingController,
               ) {
                 final query = autocompleteQuery.query;
+                if (widget.streamCommandAutoCompleteOptionsBuilder != null){
+                  return widget.streamCommandAutoCompleteOptionsBuilder!(context, query, messageEditingController);
+                }
                 return StreamCommandAutocompleteOptions(
                   query: query,
                   channel: StreamChannel.of(context).channel,
@@ -1023,37 +1029,48 @@ class StreamMessageInputState extends State<StreamMessageInput>
       ),
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 13, 11),
       prefixIcon: _commandEnabled
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8),
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: 64, 
+                  maxWidth: 100, 
+                  minHeight: 24, 
+                  maxHeight: 48,
+                ),
+                child: IntrinsicWidth(
                   child: Container(
-                    constraints: BoxConstraints.tight(const Size(64, 24)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color: _streamChatTheme.colorTheme.accentPrimary,
                     ),
                     alignment: Alignment.center,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        StreamSvgIcon.lightning(
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        Text(
-                          _effectiveController.message.command!.toUpperCase(),
-                          style:
-                              _streamChatTheme.textTheme.footnoteBold.copyWith(
-                            color: Colors.white,
+                    child: Padding(
+                      padding: EdgeInsets.all(2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StreamSvgIcon.lightning(
+                            color: Theme.of(context).colorScheme.surface,
+                            size: 16,
                           ),
-                        ),
-                      ],
+                          Flexible(
+                            child: Text(
+                              _effectiveController.message.command!.toUpperCase(),
+                              style: _streamChatTheme.textTheme.footnoteBold.copyWith(
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                              maxLines: 2, 
+                              overflow: TextOverflow.ellipsis, 
+                              softWrap: true, 
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ],
+              ),
             )
           : (widget.actionsLocation == ActionsLocation.leftInside
               ? Row(
