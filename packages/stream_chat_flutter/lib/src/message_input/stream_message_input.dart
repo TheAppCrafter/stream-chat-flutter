@@ -1402,7 +1402,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     // If the message contains command we should append it to the text
     // before sending it.
     if (containsCommand) {
-      containsCommandFunction != null ? message = await containsCommandFunction!(message) : message = message.copyWith(text: '/${message.command} ${message.text}');
+      widget.containsCommandFunction != null ? message = await widget.containsCommandFunction!(message) : message = message.copyWith(text: '/${message.command} ${message.text}');
     }
 
     var shouldKeepFocus = widget.shouldKeepFocusAfterMessage;
