@@ -138,6 +138,7 @@ class StreamMessageInput extends StatefulWidget {
     this.quotedMessageAttachmentThumbnailBuilders,
     this.shouldKeepFocusAfterMessage,
     this.validator = _defaultValidator,
+    this.customCommandValidator,
     this.restorationId,
     this.enableSafeArea,
     this.elevation,
@@ -155,6 +156,7 @@ class StreamMessageInput extends StatefulWidget {
     this.filePickerCustomOptions,
     this.actionsShrunkFunction,
     this.streamCommandAutoCompleteOptionsBuilder,
+    this.prefixIconTextWidget,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -320,6 +322,9 @@ class StreamMessageInput extends StatefulWidget {
   /// A callback function that validates the message.
   final MessageValidator validator;
 
+  /// A callback function that validates the command.
+  final Future<bool> Function(Message)? customCommandValidator;
+
   /// Restoration ID to save and restore the state of the MessageInput.
   final String? restorationId;
 
@@ -359,6 +364,8 @@ class StreamMessageInput extends StatefulWidget {
   final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
 
   final Widget Function(BuildContext, String, StreamMessageInputController)? streamCommandAutoCompleteOptionsBuilder;
+
+  final Widget Function(BuildContext, StreamMessageInputController)? prefixIconTextWidget;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -426,7 +433,7 @@ class StreamMessageInput extends StatefulWidget {
 /// State of [StreamMessageInput]
 class StreamMessageInputState extends State<StreamMessageInput>
     with RestorationMixin<StreamMessageInput>, WidgetsBindingObserver {
-  bool get _commandEnabled => _effectiveController.message.command != null;
+  bool get _commandEnabled => _effectiveController.message.command != null || _effectiveController.message.extraData['customCommand'] != null;
 
   bool _actionsShrunk = false;
 
@@ -1055,7 +1062,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
                             size: 16,
                           ),
                           Flexible(
-                            child: Text(
+                            child: widget.prefixIconTextWidget != null ? widget.prefixIconTextWidget!(context, _effectiveController) : Text(
                               _effectiveController.message.command!.toUpperCase(),
                               style: _streamChatTheme.textTheme.footnoteBold.copyWith(
                                 color: Theme.of(context).colorScheme.surface,
@@ -1359,9 +1366,12 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
   /// Sends the current message
   Future<void> sendMessage() async {
-    if (_timeOut > 0 ||
-        (_effectiveController.text.trim().isEmpty &&
-            _effectiveController.attachments.isEmpty)) {
+    if (_timeOut > 0 || !widget.validator(_effectiveController.message)) {
+      return;
+    }
+
+    // Await the customCommandValidator result separately
+    if (widget.customCommandValidator != null && !await widget.customCommandValidator!(_effectiveController.message)) {
       return;
     }
 
@@ -1385,7 +1395,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
       return;
     }
 
-    final containsCommand = message.command != null;
+    final containsCommand = message.command != null || message.extraData['customCommand'] != null;
     // If the message contains command we should append it to the text
     // before sending it.
     if (containsCommand) {
