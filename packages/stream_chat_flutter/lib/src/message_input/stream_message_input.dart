@@ -156,6 +156,7 @@ class StreamMessageInput extends StatefulWidget {
     this.filePickerCustomOptions,
     this.actionsShrunkFunction,
     this.streamCommandAutoCompleteOptionsBuilder,
+    this.containsCommandFunction,
     this.prefixIconTextWidget,
   });
 
@@ -364,6 +365,8 @@ class StreamMessageInput extends StatefulWidget {
   final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
 
   final Widget Function(BuildContext, String, StreamMessageInputController)? streamCommandAutoCompleteOptionsBuilder;
+
+  final Future<Message> Function(Message)? containsCommandFunction;
 
   final Widget Function(BuildContext, StreamMessageInputController)? prefixIconTextWidget;
 
@@ -1399,7 +1402,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     // If the message contains command we should append it to the text
     // before sending it.
     if (containsCommand) {
-      message = message.copyWith(text: '/${message.command} ${message.text}');
+      containsCommandFunction != null ? message = await containsCommandFunction!(message) : message = message.copyWith(text: '/${message.command} ${message.text}');
     }
 
     var shouldKeepFocus = widget.shouldKeepFocusAfterMessage;
