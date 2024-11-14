@@ -1378,9 +1378,10 @@ class StreamMessageInputState extends State<StreamMessageInput>
       return;
     }
 
-    // Await the customCommandValidator result separately
-    if (widget.customCommandValidator != null && !await widget.customCommandValidator!(_effectiveController.message)) {
-      return;
+    if (_commandEnabled){
+      if (_effectiveController.message.extraData['customCommand'] != null && widget.customCommandValidator != null && !await widget.customCommandValidator!(_effectiveController.message)) {
+        return;
+      }
     }
 
     final streamChannel = StreamChannel.of(context);
