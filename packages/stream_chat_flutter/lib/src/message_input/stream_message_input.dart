@@ -714,19 +714,24 @@ class StreamMessageInputState extends State<StreamMessageInput>
                 autocompleteQuery,
                 messageEditingController,
               ) {
-                final query = autocompleteQuery.query;
-                if (widget.streamCommandAutoCompleteOptionsBuilder != null){
-                  return widget.streamCommandAutoCompleteOptionsBuilder!(context, query, messageEditingController);
+                if (widget.showCommandsButton == false) {
+                  return const Offstage();
                 }
-                return StreamCommandAutocompleteOptions(
-                  query: query,
-                  channel: StreamChannel.of(context).channel,
-                  onCommandSelected: (command) {
-                    _effectiveController.command = command.name;
-                    // removing the overlay after the command is selected
-                    StreamAutocomplete.of(context).closeSuggestions();
-                  },
-                );
+                else {
+                  final query = autocompleteQuery.query;
+                  if (widget.streamCommandAutoCompleteOptionsBuilder != null){
+                    return widget.streamCommandAutoCompleteOptionsBuilder!(context, query, messageEditingController);
+                  }
+                  return StreamCommandAutocompleteOptions(
+                    query: query,
+                    channel: StreamChannel.of(context).channel,
+                    onCommandSelected: (command) {
+                      _effectiveController.command = command.name;
+                      // removing the overlay after the command is selected
+                      StreamAutocomplete.of(context).closeSuggestions();
+                    },
+                  );
+                }
               },
             ),
             if (widget.enableMentionsOverlay)
