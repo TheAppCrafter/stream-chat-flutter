@@ -157,7 +157,7 @@ class StreamMessageInput extends StatefulWidget {
     this.actionsShrunkFunction,
     this.streamCommandAutoCompleteOptionsBuilder,
     this.containsCommandFunction,
-    this.prefixIconTextWidget,
+    this.prefixIconWidget,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -368,7 +368,7 @@ class StreamMessageInput extends StatefulWidget {
 
   final Future<Message> Function(Message)? containsCommandFunction;
 
-  final Widget Function(BuildContext, StreamMessageInputController)? prefixIconTextWidget;
+  final Widget Function(BuildContext, StreamMessageInputController)? prefixIconWidget;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -1043,11 +1043,13 @@ class StreamMessageInputState extends State<StreamMessageInput>
         ),
       ),
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 13, 11),
-      prefixIcon: _commandEnabled
-          ? Padding(
+      prefixIcon: _commandEnabled ? 
+          widget.prefixIconWidget != null ? 
+          widget.prefixIconWidget!(context, _effectiveController) :
+          Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minWidth: 64, 
                   maxWidth: 100, 
                   minHeight: 24, 
@@ -1061,7 +1063,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
                     ),
                     alignment: Alignment.center,
                     child: Padding(
-                      padding: EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(2),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1070,7 +1072,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
                             size: 16,
                           ),
                           Flexible(
-                            child: widget.prefixIconTextWidget != null ? widget.prefixIconTextWidget!(context, _effectiveController) : Text(
+                            child: Text(
                               _effectiveController.message.command!.toUpperCase(),
                               style: _streamChatTheme.textTheme.footnoteBold.copyWith(
                                 color: Theme.of(context).colorScheme.surface,
