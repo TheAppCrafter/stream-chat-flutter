@@ -530,7 +530,7 @@ class DefaultTranslations implements Translations {
   String get videoFromCameraLabel => 'Video from camera';
 
   @override
-  String get okLabel => 'OK';
+  String get okLabel => 'Ok';
 
   @override
   String get somethingWentWrongError => 'Something went wrong';
@@ -555,10 +555,10 @@ class DefaultTranslations implements Translations {
       '\nmoderator for further investigation?';
 
   @override
-  String get flagLabel => 'FLAG';
+  String get flagLabel => 'Flag';
 
   @override
-  String get cancelLabel => 'CANCEL';
+  String get cancelLabel => 'Cancel';
 
   @override
   String get flagMessageSuccessfulLabel => 'Message flagged';
@@ -568,7 +568,7 @@ class DefaultTranslations implements Translations {
       'The message has been reported to a moderator.';
 
   @override
-  String get deleteLabel => 'DELETE';
+  String get deleteLabel => 'Delete';
 
   @override
   String get deleteMessageLabel => 'Delete Message';
@@ -710,7 +710,7 @@ class DefaultTranslations implements Translations {
   String get leaveGroupLabel => 'Leave Group';
 
   @override
-  String get leaveLabel => 'LEAVE';
+  String get leaveLabel => 'Leave';
 
   @override
   String get leaveConversationLabel => 'Leave conversation';
@@ -729,7 +729,7 @@ class DefaultTranslations implements Translations {
   String get saveVideoLabel => 'Save Video';
 
   @override
-  String get uploadErrorLabel => 'UPLOAD ERROR';
+  String get uploadErrorLabel => 'Upload Error';
 
   @override
   String get giphyLabel => 'Giphy';
@@ -763,7 +763,7 @@ class DefaultTranslations implements Translations {
   String get replyToMessageLabel => 'Reply to Message';
 
   @override
-  String get slowModeOnLabel => 'Slow mode ON';
+  String get slowModeOnLabel => 'Slow mode On';
 
   @override
   String get viewLibrary => 'View library';
