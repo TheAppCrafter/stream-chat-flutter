@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart' hide ButtonStyle;
+import 'package:stream_chat_flutter/src/message_actions_modal/hide_message_button.dart';
 import 'package:stream_chat_flutter/src/message_actions_modal/mam_widgets.dart';
 import 'package:stream_chat_flutter/src/message_actions_modal/mark_unread_message_button.dart';
 import 'package:stream_chat_flutter/src/message_widget/reactions/reactions_align.dart';
@@ -33,6 +34,8 @@ class MessageActionsModal extends StatefulWidget {
     this.reverse = false,
     this.customActions = const [],
     this.onCopyTap,
+    this.showHideMessage = false,
+    this.onHideMessageTap,
     this.showRegenerateMessage = false,
     this.onRegenerateTap,
     this.showReadAloudMessage = true,
@@ -98,6 +101,12 @@ class MessageActionsModal extends StatefulWidget {
 
   /// List of custom actions
   final List<StreamMessageAction> customActions;
+
+  /// Flag for showing hide message action
+  final bool showHideMessage;
+
+  /// Callback when hide message is tapped
+  final OnMessageTap? onHideMessageTap;
 
   /// Flag for showing regenerate message action
   final bool showRegenerateMessage;
@@ -225,6 +234,14 @@ class _MessageActionsModalState extends State<MessageActionsModal> {
                               onTap: () {
                                 Navigator.of(context).pop();
                                 _showEditBottomSheet(context);
+                              },
+                            ),
+                          if (widget.showHideMessage)
+                            HideMessageButton(
+                              message: widget.message,
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                widget.onHideMessageTap?.call(widget.message);
                               },
                             ),
                           if (widget.showRegenerateMessage)

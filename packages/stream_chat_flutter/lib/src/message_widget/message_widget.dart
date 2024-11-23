@@ -478,6 +478,7 @@ class StreamMessageWidget extends StatefulWidget {
     String? imageAttachmentThumbnailResizeType,
     String? imageAttachmentThumbnailCropType,
     AttachmentActionsBuilder? attachmentActionsModalBuilder,
+    void Function(Message)? onHideMessageTap,
     void Function(Message)? onRegenerateTap,
     void Function(Message)? onReadAloudTap,
     bool Function(Message)? showHideMessage,
