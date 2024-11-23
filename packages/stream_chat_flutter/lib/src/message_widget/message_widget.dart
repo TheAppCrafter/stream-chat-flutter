@@ -553,6 +553,7 @@ class StreamMessageWidget extends StatefulWidget {
           this.imageAttachmentThumbnailCropType,
       attachmentActionsModalBuilder:
           attachmentActionsModalBuilder ?? this.attachmentActionsModalBuilder,
+      onHideMessageTap: onHideMessageTap ?? this.onHideMessageTap,
       onRegenerateTap: onRegenerateTap ?? this.onRegenerateTap,
       onReadAloudTap: onReadAloudTap ?? this.onReadAloudTap,
       showHideMessage: showHideMessage ?? this.showHideMessage,
@@ -660,8 +661,9 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
 
-  bool get shouldShowHideMessageAction =>
-      widget.showHideMessage?.call(widget.message) == true && widget.onHideMessageTap != null;
+  bool get shouldShowHideMessageAction {
+    return widget.showHideMessage?.call(widget.message) == true && widget.onHideMessageTap != null;
+  }
 
   bool get shouldShowRegenerateMessage {
     return widget.showRegenerateMessage?.call(widget.message) == true && 
