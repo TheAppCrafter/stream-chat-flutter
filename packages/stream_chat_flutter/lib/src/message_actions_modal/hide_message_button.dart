@@ -31,21 +31,21 @@ class HideMessageButton extends StatelessWidget {
           children: [
             if (message.extraData['hidden'] == true)
               Icon(
-                Icons.visibility_off,
+                Icons.visibility,
                 size: 24,
                 color: streamChatThemeData.primaryIconTheme.color,
               ),
             if (message.extraData['hidden'] == false)
               Icon(
-                Icons.visibility,
+                Icons.visibility_off,
                 size: 24,
                 color: streamChatThemeData.primaryIconTheme.color,
               ),
             const SizedBox(width: 16),
             Text(
               message.extraData['hidden'] == true
-                  ? 'Hide message'
-                  : 'Unhide message',
+                  ? 'Unhide message'
+                  : 'Hide message',
               style: streamChatThemeData.textTheme.body,
             ),
           ],
