@@ -98,6 +98,8 @@ class StreamMessageWidget extends StatefulWidget {
     this.imageAttachmentThumbnailResizeType = 'clip',
     this.imageAttachmentThumbnailCropType = 'center',
     this.attachmentActionsModalBuilder,
+    this.showHideMessage,
+    this.onHideMessageTap,
     this.showRegenerateMessage,
     this.onRegenerateTap,
     this.showReadAloudMessage = true,
@@ -323,6 +325,16 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final bool showPinHighlight;
 
+  /// {@template showHideMessage}
+  /// Display Hide or Unhide Message
+  /// {@endtemplate}
+  final bool Function(Message)? showHideMessage;
+
+  /// {@template onHideMessageTap}
+  /// The function called when tapping on HideMessage
+  /// {@endtemplate}
+  final void Function(Message)? onHideMessageTap;
+
   /// {@template showRegenerateMessage}
   /// Display Regnerate Message
   /// {@endtemplate}
@@ -468,6 +480,7 @@ class StreamMessageWidget extends StatefulWidget {
     AttachmentActionsBuilder? attachmentActionsModalBuilder,
     void Function(Message)? onRegenerateTap,
     void Function(Message)? onReadAloudTap,
+    bool Function(Message)? showHideMessage,
     bool Function(Message)? showRegenerateMessage,
     bool? showReadAloudMessage,
     TextBubbleBuilder? textBubbleBuilder,
@@ -541,6 +554,7 @@ class StreamMessageWidget extends StatefulWidget {
           attachmentActionsModalBuilder ?? this.attachmentActionsModalBuilder,
       onRegenerateTap: onRegenerateTap ?? this.onRegenerateTap,
       onReadAloudTap: onReadAloudTap ?? this.onReadAloudTap,
+      showHideMessage: showHideMessage ?? this.showHideMessage,
       showRegenerateMessage: showRegenerateMessage ?? this.showRegenerateMessage,
       showReadAloudMessage: showReadAloudMessage ?? this.showReadAloudMessage,
       textBubbleBuilder: textBubbleBuilder ?? this.textBubbleBuilder,
@@ -644,6 +658,9 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
       !isDeleteFailed &&
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
+
+  bool get shouldShowHideMessageAction =>
+      widget.showHideMessage?.call(widget.message) == true && widget.onHideMessageTap != null;
 
   bool get shouldShowRegenerateMessage {
     return widget.showRegenerateMessage?.call(widget.message) == true && 
@@ -830,6 +847,21 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
           },
         ),
       ],
+      if (shouldShowHideMessageAction)
+        StreamChatContextMenuItem(
+          leading: widget.message.extraData['hidden'] == true
+              ? const Icon(Icons.visibility_off)
+              : const Icon(Icons.visibility),
+          title: Text(
+            widget.message.extraData['hidden'] == true
+                ? 'Hide message'
+                : 'Unhide message',
+          ),
+          onClick: () async {
+            Navigator.of(context, rootNavigator: true).pop();
+            widget.onHideMessageTap!(widget.message);
+          },
+        ),
       if (widget.showMarkUnreadMessage)
         StreamChatContextMenuItem(
           leading: StreamSvgIcon.messageUnread(),
@@ -1141,6 +1173,8 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
             showResendMessage: shouldShowResendAction,
             showCopyMessage: shouldShowCopyAction,
             showEditMessage: shouldShowEditAction,
+            showHideMessage: shouldShowHideMessageAction,
+            onHideMessageTap: widget.onHideMessageTap,
             showRegenerateMessage: shouldShowRegenerateMessage,
             onRegenerateTap: widget.onRegenerateTap,
             showReadAloudMessage: shouldShowReadAloudMessage,
