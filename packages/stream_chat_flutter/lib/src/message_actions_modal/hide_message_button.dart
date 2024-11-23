@@ -14,6 +14,7 @@ class HideMessageButton extends StatelessWidget {
     required this.onTap,
   });
 
+  /// The Message to hide or unhide
   final Message message;
 
   /// The callback to perform when the button is tapped.
@@ -28,14 +29,23 @@ class HideMessageButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
         child: Row(
           children: [
-            Icon(
-              Icons.autorenew,
-              size: 24,
-              color: streamChatThemeData.primaryIconTheme.color,
-            ),
+            if (message.extraData['hidden'] == true)
+              Icon(
+                Icons.visibility_off,
+                size: 24,
+                color: streamChatThemeData.primaryIconTheme.color,
+              ),
+            if (message.extraData['hidden'] == false)
+              Icon(
+                Icons.visibility,
+                size: 24,
+                color: streamChatThemeData.primaryIconTheme.color,
+              ),
             const SizedBox(width: 16),
             Text(
-              context.translations.regenerateMessageLabel,
+              message.extraData['hidden'] == true
+                  ? 'Hide message'
+                  : 'Unhide message',
               style: streamChatThemeData.textTheme.body,
             ),
           ],
