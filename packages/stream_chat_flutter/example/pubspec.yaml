@@ -13,9 +13,18 @@ dependencies:
   flutter:
     sdk: flutter
   responsive_builder: ^0.7.0
-  stream_chat_flutter: ^8.0.0
-  stream_chat_localizations: ^8.0.0
-  stream_chat_persistence: ^8.0.0
+  stream_chat_flutter:
+    git:
+      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
+      path: packages/stream_chat_flutter
+  stream_chat_localizations:
+    git:
+      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
+      path: packages/stream_chat_localizations
+  stream_chat_persistence:
+    git:
+      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
+      path: packages/stream_chat_persistence
 
 flutter:
   uses-material-design: true

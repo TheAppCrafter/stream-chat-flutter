@@ -14,7 +14,10 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  stream_chat_flutter: ^8.0.0
+  stream_chat_flutter:
+    git:
+      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
+      path: packages/stream_chat_flutter
 
 dev_dependencies:
   flutter_test:
