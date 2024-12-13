@@ -40,8 +40,10 @@ class StreamChatApi {
             );
 
   final StreamHttpClient _client;
-  final StreamHttpClient client;
   final AttachmentFileUploaderProvider _fileUploaderProvider;
+
+  /// Public getter for the client
+  StreamHttpClient get client => _client;
 
   UserApi? _user;
 
