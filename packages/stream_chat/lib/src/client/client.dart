@@ -125,6 +125,9 @@ class StreamChatClient {
   final _tokenManager = TokenManager();
   final _connectionIdManager = ConnectionIdManager();
 
+  /// Public getter for the chat API
+  StreamChatApi get chatApi => _chatApi;
+
   /// Default user agent for all requests
   static String defaultUserAgent =
       'stream-chat-dart-client-${CurrentPlatform.name}';
