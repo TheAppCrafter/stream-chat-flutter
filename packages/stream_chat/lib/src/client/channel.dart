@@ -866,9 +866,9 @@ class Channel {
         deletedMessage.attachments.forEach((attachment) {
           if (attachment.uploadState.isSuccess) {
             if (attachment.type == AttachmentType.image) {
-              deleteImage(attachment.imageUrl!);
+              deleteImage(attachment.imageUrl!, extraData: attachment.extraData);
             } else if (attachment.type == AttachmentType.file) {
-              deleteFile(attachment.assetUrl!);
+              deleteFile(attachment.assetUrl!, extraData: attachment.extraData);
             }
           }
         });
