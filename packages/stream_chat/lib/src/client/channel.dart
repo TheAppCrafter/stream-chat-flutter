@@ -867,8 +867,10 @@ class Channel {
           if (attachment.uploadState.isSuccess) {
             if (attachment.type == AttachmentType.image) {
               deleteImage(attachment.imageUrl!, extraData: attachment.extraData);
-            } else if (attachment.type == AttachmentType.file) {
+            } else if (attachment.type == AttachmentType.image) {
               deleteFile(attachment.assetUrl!, extraData: attachment.extraData);
+            } else {
+              deleteFile(attachment.ogScrapeUrl ?? attachment.thumbUrl!, extraData: attachment.extraData);
             }
           }
         });
