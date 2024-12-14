@@ -73,6 +73,7 @@ class StreamChatClient {
     AttachmentFileUploaderProvider attachmentFileUploaderProvider =
         StreamAttachmentFileUploader.new,
     Iterable<Interceptor>? chatApiInterceptors,
+    HttpClientAdapter? httpClientAdapter,
   }) {
     logger.info('Initiating new StreamChatClient');
 
@@ -92,6 +93,7 @@ class StreamChatClient {
           attachmentFileUploaderProvider: attachmentFileUploaderProvider,
           logger: detachedLogger('🕸️'),
           interceptors: chatApiInterceptors,
+          httpClientAdapter: httpClientAdapter,
         );
 
     _ws = ws ??
@@ -1277,6 +1279,18 @@ class StreamChatClient {
   /// Unmutes a user
   Future<EmptyResponse> unmuteUser(String userId) =>
       _chatApi.moderation.unmuteUser(userId);
+
+  /// Blocks a user
+  Future<UserBlockResponse> blockUser(String userId) =>
+      _chatApi.user.blockUser(userId);
+
+  /// Unblocks a user
+  Future<EmptyResponse> unblockUser(String userId) =>
+      _chatApi.user.unblockUser(userId);
+
+  /// Requests users with a given query.
+  Future<BlockedUsersResponse> queryBlockedUsers() =>
+      _chatApi.user.queryBlockedUsers();
 
   /// Flag a message
   Future<EmptyResponse> flagMessage(String messageId) =>

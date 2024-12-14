@@ -153,6 +153,7 @@ class StreamMessageInput extends StatefulWidget {
     this.ogPreviewFilter = _defaultOgPreviewFilter,
     this.hintGetter = _defaultHintGetter,
     this.contentInsertionConfiguration,
+    this.useNativeAttachmentPickerOnMobile = false,
     this.filePickerCustomOptions,
     this.actionsShrunkFunction,
     this.streamCommandAutoCompleteOptionsBuilder,
@@ -362,13 +363,9 @@ class StreamMessageInput extends StatefulWidget {
   /// Custom options for the file picker
   final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
 
-  final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
-
-  final Widget Function(BuildContext, String, StreamMessageInputController)? streamCommandAutoCompleteOptionsBuilder;
-
-  final Future<Message> Function(Message)? containsCommandFunction;
-
-  final Widget Function(BuildContext, StreamMessageInputController)? prefixIconWidget;
+    /// Forces use of native attachment picker on mobile instead of the custom
+  /// Stream attachment picker.
+  final bool useNativeAttachmentPickerOnMobile;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -882,6 +879,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
       onError: widget.onError,
       allowedTypes: widget.allowedAttachmentPickerTypes,
       initialAttachments: _effectiveController.attachments,
+      useNativeAttachmentPickerOnMobile:
+          widget.useNativeAttachmentPickerOnMobile,
       customOptions: widget.filePickerCustomOptions,
     );
 
@@ -1177,7 +1176,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
   String? _lastSearchedContainsUrlText;
   CancelableOperation? _enrichUrlOperation;
   final _urlRegex = RegExp(
-    r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
+    r'https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)',
     caseSensitive: false,
   );
 

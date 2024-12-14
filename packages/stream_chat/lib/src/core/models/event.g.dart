@@ -22,8 +22,8 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
       message: json['message'] == null
           ? null
           : Message.fromJson(json['message'] as Map<String, dynamic>),
-      totalUnreadCount: json['total_unread_count'] as int?,
-      unreadChannels: json['unread_channels'] as int?,
+      totalUnreadCount: (json['total_unread_count'] as num?)?.toInt(),
+      unreadChannels: (json['unread_channels'] as num?)?.toInt(),
       reaction: json['reaction'] == null
           ? null
           : Reaction.fromJson(json['reaction'] as Map<String, dynamic>),
@@ -38,6 +38,10 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
       channelType: json['channel_type'] as String?,
       parentId: json['parent_id'] as String?,
       hardDelete: json['hard_delete'] as bool?,
+      aiState: $enumDecodeNullable(_$AITypingStateEnumMap, json['ai_state'],
+          unknownValue: AITypingState.idle),
+      aiMessage: json['ai_message'] as String?,
+      messageId: json['message_id'] as String?,
       extraData: json['extra_data'] as Map<String, dynamic>? ?? const {},
       isLocal: json['is_local'] as bool? ?? false,
     );
@@ -70,9 +74,20 @@ Map<String, dynamic> _$EventToJson(Event instance) {
   }
 
   writeNotNull('hard_delete', instance.hardDelete);
+  val['ai_state'] = _$AITypingStateEnumMap[instance.aiState];
+  val['ai_message'] = instance.aiMessage;
+  val['message_id'] = instance.messageId;
   val['extra_data'] = instance.extraData;
   return val;
 }
+
+const _$AITypingStateEnumMap = {
+  AITypingState.idle: 'AI_STATE_IDLE',
+  AITypingState.error: 'AI_STATE_ERROR',
+  AITypingState.checkingSources: 'AI_STATE_CHECKING_SOURCES',
+  AITypingState.thinking: 'AI_STATE_THINKING',
+  AITypingState.generating: 'AI_STATE_GENERATING',
+};
 
 EventChannel _$EventChannelFromJson(Map<String, dynamic> json) => EventChannel(
       members: (json['members'] as List<dynamic>?)
@@ -97,8 +112,8 @@ EventChannel _$EventChannelFromJson(Map<String, dynamic> json) => EventChannel(
       deletedAt: json['deleted_at'] == null
           ? null
           : DateTime.parse(json['deleted_at'] as String),
-      memberCount: json['member_count'] as int? ?? 0,
-      extraData: json['extra_data'] as Map<String, dynamic>?,
-      cooldown: json['cooldown'] as int? ?? 0,
+      memberCount: (json['member_count'] as num?)?.toInt() ?? 0,
+      cooldown: (json['cooldown'] as num?)?.toInt() ?? 0,
       team: json['team'] as String?,
+      extraData: json['extra_data'] as Map<String, dynamic>?,
     );

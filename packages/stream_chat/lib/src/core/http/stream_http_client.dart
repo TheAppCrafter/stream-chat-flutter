@@ -26,6 +26,7 @@ class StreamHttpClient {
     ConnectionIdManager? connectionIdManager,
     Logger? logger,
     Iterable<Interceptor>? interceptors,
+    HttpClientAdapter? httpClientAdapter,
   })  : _options = options ?? const StreamHttpClientOptions(),
         httpClient = dio ?? Dio() {
     httpClient
@@ -66,6 +67,9 @@ class StreamHttpClient {
                 ),
             ],
       ]);
+    if (httpClientAdapter != null) {
+      httpClient.httpClientAdapter = httpClientAdapter;
+    }
   }
 
   /// Your project Stream Chat api key.
@@ -93,15 +97,10 @@ class StreamHttpClient {
   void close({bool force = false}) => httpClient.close(force: force);
 
   StreamChatNetworkError _parseError(DioException exception) {
-    StreamChatNetworkError error;
     // locally thrown dio error
-    if (exception is StreamChatDioError) {
-      error = exception.error;
-    } else {
-      // real network request dio error
-      error = StreamChatNetworkError.fromDioException(exception);
-    }
-    return error..stackTrace = exception.stackTrace;
+    if (exception is StreamChatDioError) return exception.error;
+    // real network request dio error
+    return StreamChatNetworkError.fromDioException(exception);
   }
 
   /// Handy method to make http GET request with error parsing.
