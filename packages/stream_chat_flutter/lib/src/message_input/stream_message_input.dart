@@ -363,6 +363,14 @@ class StreamMessageInput extends StatefulWidget {
   /// Custom options for the file picker
   final Iterable<AttachmentPickerOption>? filePickerCustomOptions;
 
+  final bool Function(StreamMessageInputController, int)? actionsShrunkFunction;
+
+  final Widget Function(BuildContext, String, StreamMessageInputController)? streamCommandAutoCompleteOptionsBuilder;
+
+  final Future<Message> Function(Message)? containsCommandFunction;
+
+  final Widget Function(BuildContext, StreamMessageInputController)? prefixIconWidget;
+
     /// Forces use of native attachment picker on mobile instead of the custom
   /// Stream attachment picker.
   final bool useNativeAttachmentPickerOnMobile;
