@@ -1383,12 +1383,22 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
   /// Sends the current message
   Future<void> sendMessage() async {
-    if (_timeOut > 0 || !widget.validator(_effectiveController.message)) {
+    if (_timeOut > 0) {
+      return;
+    }
+
+    final validationResult = widget.validator(_effectiveController.message);
+    final isValid = validationResult is Future ? 
+        await validationResult : validationResult;
+        
+    if (!isValid) {
       return;
     }
 
     if (_commandEnabled){
-      if (_effectiveController.message.extraData['customCommand'] != null && widget.customCommandValidator != null && !await widget.customCommandValidator!(_effectiveController.message)) {
+      if (_effectiveController.message.extraData['customCommand'] != null && 
+          widget.customCommandValidator != null && 
+          !await widget.customCommandValidator!(_effectiveController.message)) {
         return;
       }
     }
@@ -1417,7 +1427,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
     // If the message contains command we should append it to the text
     // before sending it.
     if (containsCommand) {
-      widget.containsCommandFunction != null ? message = await widget.containsCommandFunction!(message) : message = message.copyWith(text: '/${message.command} ${message.text}');
+      widget.containsCommandFunction != null ? 
+          message = await widget.containsCommandFunction!(message) : 
+          message = message.copyWith(text: '/${message.command} ${message.text}');
     }
 
     var shouldKeepFocus = widget.shouldKeepFocusAfterMessage;

@@ -373,4 +373,4 @@ typedef MessageRelatedBuilder = Widget Function(
 );
 
 /// A function that returns true if the message is valid and can be sent.
-typedef MessageValidator = bool Function(Message message);
+typedef MessageValidator = FutureOr<bool> Function(Message message);
