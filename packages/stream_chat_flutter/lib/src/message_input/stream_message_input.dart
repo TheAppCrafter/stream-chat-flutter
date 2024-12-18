@@ -1447,6 +1447,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
         details: 'Uploading attachments is not allowed in this conversation.',
         okText: context.translations.okLabel,
       );
+      return;
     }
 
     message = message.replaceMentionsWithId();
