@@ -138,7 +138,6 @@ class StreamMessageInput extends StatefulWidget {
     this.quotedMessageAttachmentThumbnailBuilders,
     this.shouldKeepFocusAfterMessage,
     this.validator = _defaultValidator,
-    this.customCommandValidator,
     this.restorationId,
     this.enableSafeArea,
     this.elevation,
@@ -323,9 +322,6 @@ class StreamMessageInput extends StatefulWidget {
 
   /// A callback function that validates the message.
   final MessageValidator validator;
-
-  /// A callback function that validates the command.
-  final Future<bool> Function(Message)? customCommandValidator;
 
   /// Restoration ID to save and restore the state of the MessageInput.
   final String? restorationId;
@@ -1398,22 +1394,6 @@ class StreamMessageInputState extends State<StreamMessageInput>
   Future<void> sendMessage() async {
     if (_timeOut > 0) {
       return;
-    }
-
-    final validationResult = widget.validator(_effectiveController.message);
-    final isValid = validationResult is Future ? 
-        await validationResult : validationResult;
-        
-    if (!isValid) {
-      return;
-    }
-
-    if (_commandEnabled){
-      if (_effectiveController.message.extraData['customCommand'] != null && 
-          widget.customCommandValidator != null && 
-          !await widget.customCommandValidator!(_effectiveController.message)) {
-        return;
-      }
     }
 
     final streamChannel = StreamChannel.of(context);
