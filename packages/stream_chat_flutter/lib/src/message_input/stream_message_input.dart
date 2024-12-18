@@ -495,6 +495,14 @@ class StreamMessageInputState extends State<StreamMessageInput>
       _initialiseEffectiveController();
     }
     _effectiveFocusNode.addListener(_focusNodeListener);
+    
+    // Initial validation
+    _updateValidationState();
+    
+    // Add listener to controller to trigger validation
+    _effectiveController.addListener(() {
+      _updateValidationState();
+    });
   }
 
   @override
@@ -790,13 +798,18 @@ class StreamMessageInputState extends State<StreamMessageInput>
       return widget.sendButtonBuilder!(context, _effectiveController);
     }
 
-    return StreamMessageSendButton(
-      onSendMessage: sendMessage,
-      timeOut: _timeOut,
-      isIdle: !widget.validator(_effectiveController.message),
-      isEditEnabled: _isEditing,
-      idleSendButton: widget.idleSendButton,
-      activeSendButton: widget.activeSendButton,
+    return ValueListenableBuilder<bool>(
+      valueListenable: _validationNotifier,
+      builder: (context, isValid, _) {
+        return StreamMessageSendButton(
+          onSendMessage: sendMessage,
+          timeOut: _timeOut,
+          isIdle: !isValid,
+          isEditEnabled: _isEditing,
+          idleSendButton: widget.idleSendButton,
+          activeSendButton: widget.activeSendButton,
+        );
+      },
     );
   }
 
@@ -1530,6 +1543,16 @@ class StreamMessageInputState extends State<StreamMessageInput>
     );
   }
 
+  // Add a new ValueNotifier to track validation state
+  late final ValueNotifier<bool> _validationNotifier = ValueNotifier(false);
+  
+  // Add method to update validation state
+  Future<void> _updateValidationState() async {
+    final validationResult = widget.validator(_effectiveController.message);
+    final isValid = validationResult is Future ? await validationResult : validationResult;
+    _validationNotifier.value = isValid;
+  }
+
   @override
   void dispose() {
     _effectiveController.removeListener(_onChangedDebounced);
@@ -1539,6 +1562,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     _stopSlowMode();
     _onChangedDebounced.cancel();
     WidgetsBinding.instance.removeObserver(this);
+    _validationNotifier.dispose();
     super.dispose();
   }
 }
