@@ -134,6 +134,7 @@ class StreamMessageInput extends StatefulWidget {
     this.customAutocompleteTriggers = const [],
     this.mentionAllAppUsers = false,
     this.sendButtonBuilder,
+    this.sendButtonSize = 24.0,
     this.quotedMessageBuilder,
     this.quotedMessageAttachmentThumbnailBuilders,
     this.shouldKeepFocusAfterMessage,
@@ -158,6 +159,7 @@ class StreamMessageInput extends StatefulWidget {
     this.streamCommandAutoCompleteOptionsBuilder,
     this.containsCommandFunction,
     this.prefixIconWidget,
+    this.onAttachmentRemovePressed,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -313,6 +315,8 @@ class StreamMessageInput extends StatefulWidget {
   /// Builder for creating send button
   final MessageRelatedBuilder? sendButtonBuilder;
 
+  final double? sendButtonSize;
+
   /// Builder for building quoted message
   final Widget Function(BuildContext, Message)? quotedMessageBuilder;
 
@@ -370,6 +374,8 @@ class StreamMessageInput extends StatefulWidget {
     /// Forces use of native attachment picker on mobile instead of the custom
   /// Stream attachment picker.
   final bool useNativeAttachmentPickerOnMobile;
+
+  final Future<void> Function(Attachment)? onAttachmentRemovePressed;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -459,6 +465,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
       widget.messageInputController ?? _controller!.value;
   StreamRestorableMessageInputController? _controller;
 
+  late final Future<void> Function(Attachment) _onAttachmentRemovePressed;
+
   void _createLocalController([Message? message]) {
     assert(_controller == null, '');
     _controller = StreamRestorableMessageInputController(message: message);
@@ -481,10 +489,39 @@ class StreamMessageInputState extends State<StreamMessageInput>
     if (!_isEditing && _timeOut <= 0) _startSlowMode();
   }
 
+  // Add a new ValueNotifier to track validation state
+  late final ValueNotifier<bool> validationNotifier = ValueNotifier(false);
+  
+  CancelableOperation<bool>? _currentValidation;
+
+  Future<void> _updateValidationState() async {
+    // Cancel any pending validation
+    await _currentValidation?.cancel();
+
+    final validationResult = widget.validator(_effectiveController.message);
+    
+    if (validationResult is Future<bool>) {
+      _currentValidation = CancelableOperation.fromFuture(
+        validationResult,
+      );
+      
+      final isValid = await _currentValidation?.value;
+      if (isValid != null) { // Check if operation wasn't cancelled
+        validationNotifier.value = isValid;
+      }
+    } else {
+      // Handle synchronous result
+      validationNotifier.value = validationResult as bool;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    _onAttachmentRemovePressed = widget.onAttachmentRemovePressed ?? defaultOnAttachmentRemovePressed;
+
     if (widget.messageInputController == null) {
       _createLocalController();
     } else {
@@ -795,7 +832,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     }
 
     return ValueListenableBuilder<bool>(
-      valueListenable: _validationNotifier,
+      valueListenable: validationNotifier,
       builder: (context, isValid, _) {
         return StreamMessageSendButton(
           onSendMessage: sendMessage,
@@ -804,6 +841,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
           isEditEnabled: _isEditing,
           idleSendButton: widget.idleSendButton,
           activeSendButton: widget.activeSendButton,
+          size: widget.sendButtonSize,
         );
       },
     );
@@ -1327,7 +1365,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
   }
 
   // Default callback for removing an attachment.
-  Future<void> _onAttachmentRemovePressed(Attachment attachment) async {
+  Future<void> defaultOnAttachmentRemovePressed(Attachment attachment) async {
     final file = attachment.file;
     final uploadState = attachment.uploadState;
 
@@ -1523,18 +1561,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
     );
   }
 
-  // Add a new ValueNotifier to track validation state
-  late final ValueNotifier<bool> _validationNotifier = ValueNotifier(false);
-  
-  // Add method to update validation state
-  Future<void> _updateValidationState() async {
-    final validationResult = widget.validator(_effectiveController.message);
-    final isValid = validationResult is Future ? await validationResult : validationResult;
-    _validationNotifier.value = isValid;
-  }
-
   @override
   void dispose() {
+    _currentValidation?.cancel();
     _effectiveController.removeListener(_onChangedDebounced);
     _controller?.dispose();
     _effectiveFocusNode.removeListener(_focusNodeListener);
@@ -1542,7 +1571,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     _stopSlowMode();
     _onChangedDebounced.cancel();
     WidgetsBinding.instance.removeObserver(this);
-    _validationNotifier.dispose();
+    validationNotifier.dispose();
     super.dispose();
   }
 }
