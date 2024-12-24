@@ -59,11 +59,13 @@ class CommandButton extends StatelessWidget {
           StreamSvgIcon.lightning(
             color: color,
           ),
+      /*
       padding: EdgeInsets.zero,
       constraints: BoxConstraints.tightFor(
         height: size,
         width: size,
       ),
+      */
       splashRadius: size,
       onPressed: onPressed,
     );
