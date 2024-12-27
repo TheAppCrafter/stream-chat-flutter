@@ -329,39 +329,61 @@ class MessageWidgetContent extends StatelessWidget {
                                           messageTheme: messageTheme,
                                         ),
                                       )
-                                    : MessageCard(
-                                        message: message,
-                                        isFailedState: isFailedState,
-                                        showUserAvatar: showUserAvatar,
-                                        messageTheme: messageTheme,
-                                        hasQuotedMessage: hasQuotedMessage,
-                                        hasUrlAttachments: hasUrlAttachments,
-                                        hasNonUrlAttachments:
-                                            hasNonUrlAttachments,
-                                        isOnlyEmoji: isOnlyEmoji,
-                                        isGiphy: isGiphy,
-                                        attachmentBuilders: attachmentBuilders,
-                                        attachmentPadding: attachmentPadding,
-                                        attachmentShape: attachmentShape,
-                                        onAttachmentTap: onAttachmentTap,
-                                        onReplyTap: onReplyTap,
-                                        onShowMessage: onShowMessage,
-                                        attachmentActionsModalBuilder:
-                                            attachmentActionsModalBuilder,
-                                        textPadding: textPadding,
-                                        reverse: reverse,
-                                        onQuotedMessageTap: onQuotedMessageTap,
-                                        onMentionTap: onMentionTap,
-                                        onLinkTap: onLinkTap,
-                                        textBuilder: textBuilder,
-                                        quotedMessageBuilder:
-                                            quotedMessageBuilder,
-                                        borderRadiusGeometry:
-                                            borderRadiusGeometry,
-                                        borderSide: borderSide,
-                                        shape: shape,
-                                        textBubbleBuilder: textBubbleBuilder,
-                                      ),
+                                    : Wrap(
+                                        children: [
+                                          if (isDesktopDeviceOrWeb && showReactions && reverse)
+                                            Tooltip(
+                                              message: 'Reactions',
+                                              child: IconButton(
+                                                onPressed: onReactionsTap,
+                                                icon: const Icon(Icons.emoji_emotions),
+                                                iconSize: 14,
+                                              ),
+                                            ),
+                                          MessageCard(
+                                            message: message,
+                                            isFailedState: isFailedState,
+                                            showUserAvatar: showUserAvatar,
+                                            messageTheme: messageTheme,
+                                            hasQuotedMessage: hasQuotedMessage,
+                                            hasUrlAttachments: hasUrlAttachments,
+                                            hasNonUrlAttachments:
+                                                hasNonUrlAttachments,
+                                            isOnlyEmoji: isOnlyEmoji,
+                                            isGiphy: isGiphy,
+                                            attachmentBuilders: attachmentBuilders,
+                                            attachmentPadding: attachmentPadding,
+                                            attachmentShape: attachmentShape,
+                                            onAttachmentTap: onAttachmentTap,
+                                            onReplyTap: onReplyTap,
+                                            onShowMessage: onShowMessage,
+                                            attachmentActionsModalBuilder:
+                                                attachmentActionsModalBuilder,
+                                            textPadding: textPadding,
+                                            reverse: reverse,
+                                            onQuotedMessageTap: onQuotedMessageTap,
+                                            onMentionTap: onMentionTap,
+                                            onLinkTap: onLinkTap,
+                                            textBuilder: textBuilder,
+                                            quotedMessageBuilder:
+                                                quotedMessageBuilder,
+                                            borderRadiusGeometry:
+                                                borderRadiusGeometry,
+                                            borderSide: borderSide,
+                                            shape: shape,
+                                            textBubbleBuilder: textBubbleBuilder,
+                                          ),
+                                          if (isDesktopDeviceOrWeb && showReactions && !reverse)
+                                            Tooltip(
+                                              message: 'Reactions',
+                                              child: IconButton(
+                                                onPressed: onReactionsTap,
+                                                icon: const Icon(Icons.emoji_emotions),
+                                                iconSize: 14,
+                                              ),
+                                            ),
+                                        ],
+                                  ),
                               ),
                               // TODO: Make tail part of the Reaction Picker.
                               if (showReactionPickerTail)
