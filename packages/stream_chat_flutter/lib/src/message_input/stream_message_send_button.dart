@@ -14,6 +14,7 @@ class StreamMessageSendButton extends StatelessWidget {
     this.isEditEnabled = false,
     this.idleSendButton,
     this.activeSendButton,
+    this.size = 24,
     required this.onSendMessage,
   });
 
@@ -37,6 +38,9 @@ class StreamMessageSendButton extends StatelessWidget {
 
   /// The callback to call when the button is pressed.
   final VoidCallback onSendMessage;
+
+  /// The size of the send button.
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +72,8 @@ class StreamMessageSendButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: StreamSvgIcon(
+        width: size,
+        height: size,
         assetName: _getIdleSendIcon(),
         color: _messageInputTheme.sendButtonIdleColor,
       ),
@@ -78,16 +84,18 @@ class StreamMessageSendButton extends StatelessWidget {
     final _messageInputTheme = StreamMessageInputTheme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: IconButton(
         onPressed: onSendMessage,
         padding: EdgeInsets.zero,
-        splashRadius: 24,
-        constraints: const BoxConstraints.tightFor(
-          height: 24,
-          width: 24,
+        //splashRadius: 24,
+        constraints: BoxConstraints.tightFor(
+          height: size,
+          width: size,
         ),
         icon: StreamSvgIcon(
+          width: size,
+          height: size,
           assetName: _getSendIcon(),
           color: _messageInputTheme.sendButtonColor,
         ),

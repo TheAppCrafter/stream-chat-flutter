@@ -134,7 +134,7 @@ class StreamMessageInput extends StatefulWidget {
     this.customAutocompleteTriggers = const [],
     this.mentionAllAppUsers = false,
     this.sendButtonBuilder,
-    this.sendButtonSize = 24.0,
+    this.sendButtonSize = 28.0,
     this.quotedMessageBuilder,
     this.quotedMessageAttachmentThumbnailBuilders,
     this.shouldKeepFocusAfterMessage,
@@ -315,7 +315,8 @@ class StreamMessageInput extends StatefulWidget {
   /// Builder for creating send button
   final MessageRelatedBuilder? sendButtonBuilder;
 
-  final double? sendButtonSize;
+  /// The size of the send button.
+  final double sendButtonSize;
 
   /// Builder for building quoted message
   final Widget Function(BuildContext, Message)? quotedMessageBuilder;
