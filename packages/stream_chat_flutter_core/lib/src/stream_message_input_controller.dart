@@ -53,6 +53,7 @@ class StreamMessageInputController extends ValueNotifier<Message> {
     required Message initialMessage,
     Map<RegExp, TextStyleBuilder>? textPatternStyle,
   })  : _initialMessage = initialMessage,
+        _lastMessageState = initialMessage,
         _textFieldController = MessageTextFieldController.fromValue(
           _textEditingValueFromMessage(initialMessage),
           textPatternStyle: textPatternStyle,
@@ -90,8 +91,15 @@ class StreamMessageInputController extends ValueNotifier<Message> {
   /// Sets the current message associated with this controller.
   set message(Message message) => value = message;
 
+  /// Stores the last message state before updates
+  Message _lastMessageState;
+
+  /// Returns the previous message state
+  Message get lastMessageState => _lastMessageState;
+
   @override
   set value(Message message) {
+    _lastMessageState = value; // Store the previous message state
     super.value = message;
 
     // Update text field controller only if message text has changed.
