@@ -160,6 +160,9 @@ class StreamMessageInput extends StatefulWidget {
     this.containsCommandFunction,
     this.prefixIconWidget,
     this.onAttachmentRemovePressed,
+    this.autoCompleteExtraUsersFunction,
+    this.onMentionUserTap,
+    this.userMentionsWidgetBuilder,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -377,6 +380,12 @@ class StreamMessageInput extends StatefulWidget {
   final bool useNativeAttachmentPickerOnMobile;
 
   final Future<void> Function(Attachment)? onAttachmentRemovePressed;
+
+  final Future<List<User>> Function(String)? autoCompleteExtraUsersFunction;
+
+  final void Function(BuildContext, User)? onMentionUserTap;
+
+  final Widget Function(BuildContext, StreamMessageInputController)? userMentionsWidgetBuilder;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -791,11 +800,14 @@ class StreamMessageInputState extends State<StreamMessageInput>
                 ) {
                   final query = autocompleteQuery.query;
                   return StreamMentionAutocompleteOptions(
+                    client: StreamChat.of(context).client,
                     query: query,
+                    autoCompleteExtraUsersFunction: widget.autoCompleteExtraUsersFunction,
                     channel: StreamChannel.of(context).channel,
+                    mentionedUsers: _effectiveController.message.mentionedUsers,
                     mentionAllAppUsers: widget.mentionAllAppUsers,
                     mentionsTileBuilder: widget.userMentionsTileBuilder,
-                    onMentionUserTap: (user) {
+                    onMentionUserTap: widget.onMentionUserTap ?? (context, user) {
                       // adding the mentioned user to the controller.
                       _effectiveController.addMentionedUser(user);
 
@@ -998,6 +1010,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
                 children: [
                   _buildReplyToMessage(),
                   _buildAttachments(),
+                  if (widget.userMentionsWidgetBuilder != null)
+                    widget.userMentionsWidgetBuilder!(context, _effectiveController),
                   LimitedBox(
                     maxHeight: widget.maxHeight,
                     child: PlatformWidgetBuilder(
@@ -1456,8 +1470,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     }
 
     final containsCommand = message.command != null || message.extraData['customCommand'] != null;
-    // If the message contains command we should append it to the text
-    // before sending it.
+    // If the message contains command we should prepend it to the text before sending it.
     if (containsCommand) {
       widget.containsCommandFunction != null ? 
           message = await widget.containsCommandFunction!(message) : 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'dart:async';
 
 /// {@template user_mentions_overlay}
 /// Overlay for displaying users that can be mentioned.
@@ -8,8 +9,10 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
   /// Constructor for creating a [StreamMentionAutocompleteOptions].
   StreamMentionAutocompleteOptions({
     super.key,
+    this.autoCompleteExtraUsersFunction,
     required this.query,
     required this.channel,
+    this.mentionedUsers = const [],
     this.client,
     this.limit = 10,
     this.mentionAllAppUsers = false,
@@ -27,11 +30,17 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
   /// Query for searching users.
   final String query;
 
+  /// Function to add extra users to autocomplete.
+  final Future<List<User>> Function(String)? autoCompleteExtraUsersFunction;
+
   /// Limit applied on user search results.
   final int limit;
 
   /// The channel to search for users.
   final Channel channel;
+
+  /// The users that have already been mentioned in the message.
+  final List<User> mentionedUsers;
 
   /// The client to search for users in case [mentionAllAppUsers] is True.
   final StreamChatClient? client;
@@ -45,7 +54,7 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
   final UserMentionTileBuilder? mentionsTileBuilder;
 
   /// Callback called when a user is selected.
-  final ValueSetter<User>? onMentionUserTap;
+  final void Function(BuildContext, User)? onMentionUserTap;
 
   @override
   _StreamMentionAutocompleteOptionsState createState() =>
@@ -55,35 +64,67 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
 class _StreamMentionAutocompleteOptionsState
     extends State<StreamMentionAutocompleteOptions> {
   late Future<List<User>> userMentionsFuture;
+  late Future<List<User>> extraUsersFuture;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     userMentionsFuture = queryMentions(widget.query);
+    extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _debouncedQuery() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 0), () {
+      if (mounted) {
+        setState(() {
+          userMentionsFuture = queryMentions(widget.query);
+          extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
+        });
+      }
+    });
   }
 
   @override
   void didUpdateWidget(covariant StreamMentionAutocompleteOptions oldWidget) {
     super.didUpdateWidget(oldWidget);
+    
+    // Immediately update for non-query changes
     if (widget.channel != oldWidget.channel ||
-        widget.query != oldWidget.query ||
         widget.mentionAllAppUsers != oldWidget.mentionAllAppUsers ||
         widget.limit != oldWidget.limit) {
       userMentionsFuture = queryMentions(widget.query);
+      extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
+    }
+    
+    // Debounce query changes
+    if (widget.query != oldWidget.query) {
+      _debouncedQuery();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<User>>(
-      future: userMentionsFuture,
+    final futureBuilder = FutureBuilder<List<List<User>>>(
+      future: Future.wait([userMentionsFuture, extraUsersFuture]),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const SizedBox.shrink();
         if (!snapshot.hasData) return const SizedBox.shrink();
-        final users = snapshot.data!;
+        final userList = snapshot.data!;
+        final List<User> users = snapshot.data![0] as List<User>;
+        final List<User> extraUsers = snapshot.data![1] as List<User>;
+        final List<User> allUsers = [...users, ...extraUsers];
+        final Set<User> usersSet = Set.from(allUsers)..removeAll(widget.mentionedUsers);
 
-        return StreamAutocompleteOptions<User>(
-          options: users,
+        final autocompleteOptions = StreamAutocompleteOptions<User>(
+          options: usersSet.toList(),
           optionBuilder: (context, user) {
             final colorTheme = StreamChatTheme.of(context).colorTheme;
             return Material(
@@ -91,15 +132,17 @@ class _StreamMentionAutocompleteOptionsState
               child: InkWell(
                 onTap: widget.onMentionUserTap == null
                     ? null
-                    : () => widget.onMentionUserTap!(user),
+                    : () => widget.onMentionUserTap!(context, user),
                 child: widget.mentionsTileBuilder?.call(context, user) ??
                     StreamUserMentionTile(user),
               ),
             );
           },
         );
+        return autocompleteOptions;
       },
     );
+    return futureBuilder;
   }
 
   List<User> get membersAndWatchers {
@@ -156,9 +199,9 @@ class _StreamMentionAutocompleteOptionsState
       filter: query.isEmpty
           ? const Filter.empty()
           : Filter.or([
-              Filter.autoComplete('id', query),
-              Filter.autoComplete('name', query),
-            ]),
+                Filter.autoComplete('id', query),
+                Filter.autoComplete('name', query),
+              ]),
       sort: [const SortOption('id', direction: SortOption.ASC)],
     );
     return response.users;
