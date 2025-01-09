@@ -7,7 +7,7 @@ class AttachmentActionsModal extends StatelessWidget {
   const AttachmentActionsModal({
     super.key,
     required this.attachment,
-    required this.message,
+    this.message,
     this.onShowMessage,
     this.onReply,
     this.attachmentDownloader,
@@ -22,7 +22,7 @@ class AttachmentActionsModal extends StatelessWidget {
   final Attachment attachment;
 
   /// The message containing the attachments
-  final Message message;
+  final Message? message;
 
   /// Callback to show the message
   final VoidCallback? onShowMessage;
@@ -198,7 +198,7 @@ class AttachmentActionsModal extends StatelessWidget {
                       },
                     ),
                   if (StreamChat.of(context).currentUser?.id ==
-                          message.user?.id &&
+                          message?.user?.id &&
                       showDelete)
                     _buildButton(
                       context,
@@ -208,26 +208,28 @@ class AttachmentActionsModal extends StatelessWidget {
                         color: theme.colorTheme.accentError,
                       ),
                       () {
-                        final channel = StreamChannel.of(context).channel;
-                        if (message.attachments.length > 1 ||
-                            message.text?.isNotEmpty == true) {
-                          final currentAttachmentIndex =
-                              message.attachments.indexWhere(
-                            (element) => element.id == attachment.id,
-                          );
-                          final remainingAttachments = [...message.attachments]
-                            ..removeAt(currentAttachmentIndex);
-                          channel.updateMessage(message.copyWith(
-                            attachments: remainingAttachments,
-                          ));
-                          Navigator.of(context)
-                            ..pop()
-                            ..maybePop();
-                        } else {
-                          channel.deleteMessage(message);
-                          Navigator.of(context)
-                            ..pop()
-                            ..maybePop();
+                        if (message != null) {
+                          final channel = StreamChannel.of(context).channel;
+                          if (message!.attachments.length > 1 ||
+                              message!.text?.isNotEmpty == true) {
+                            final currentAttachmentIndex =
+                                message!.attachments.indexWhere(
+                              (element) => element.id == attachment.id,
+                            );
+                            final remainingAttachments = [...message!.attachments]
+                              ..removeAt(currentAttachmentIndex);
+                            channel.updateMessage(message!.copyWith(
+                              attachments: remainingAttachments,
+                            ));
+                            Navigator.of(context)
+                              ..pop()
+                              ..maybePop();
+                          } else {
+                            channel.deleteMessage(message!);
+                            Navigator.of(context)
+                              ..pop()
+                              ..maybePop();
+                          }
                         }
                       },
                       color: theme.colorTheme.accentError,

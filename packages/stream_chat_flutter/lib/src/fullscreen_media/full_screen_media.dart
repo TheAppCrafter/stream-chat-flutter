@@ -144,14 +144,14 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                       height: topPadding + kToolbarHeight,
                       child: StreamGalleryHeader(
                         userName: widget.userName,
-                        sentAt: context.translations.sentAtText(
-                          date: _currentAttachmentPackage.message.createdAt,
-                          time: _currentAttachmentPackage.message.createdAt,
-                        ),
+                        sentAt: _currentAttachmentPackage.message != null ? context.translations.sentAtText(
+                          date: _currentAttachmentPackage.message!.createdAt,
+                          time: _currentAttachmentPackage.message!.createdAt,
+                        ) : '',
                         onBackPressed: Navigator.of(context).pop,
                         message: _currentMessage,
                         attachment: _currentAttachment,
-                        onShowMessage: widget.onShowMessage != null
+                        onShowMessage: _currentMessage != null && widget.onShowMessage != null
                             ? () {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
@@ -161,7 +161,7 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                                 );
                               }
                             : null,
-                        onReplyMessage: widget.onReplyMessage != null
+                        onReplyMessage: _currentMessage != null && widget.onReplyMessage != null
                             ? () {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
@@ -176,7 +176,7 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                     );
                   },
                 ),
-                if (!_currentMessage.isEphemeral)
+                if (_currentMessage?.isEphemeral == false)
                   ValueListenableBuilder<bool>(
                     valueListenable: _isDisplayingDetail,
                     builder: (context, isDisplayingDetail, child) {

@@ -15,7 +15,7 @@ class StreamGalleryHeader extends StatelessWidget
   /// {@macro streamGalleryHeader}
   const StreamGalleryHeader({
     super.key,
-    required this.message,
+    this.message,
     required this.attachment,
     this.showBackButton = true,
     this.onBackPressed,
@@ -52,7 +52,7 @@ class StreamGalleryHeader extends StatelessWidget
   final VoidCallback? onImageTap;
 
   /// Message which attachments are attached to
-  final Message message;
+  final Message? message;
 
   /// The attachment that's currently in focus
   final Attachment attachment;
@@ -100,7 +100,7 @@ class StreamGalleryHeader extends StatelessWidget
       backgroundColor:
           backgroundColor ?? galleryHeaderThemeData.backgroundColor,
       actions: <Widget>[
-        if (!message.isEphemeral)
+        if (message?.isEphemeral == false)
           IconButton(
             icon: StreamSvgIcon.iconMenuPoint(
               color: galleryHeaderThemeData.iconMenuPointColor,
@@ -109,7 +109,7 @@ class StreamGalleryHeader extends StatelessWidget
           ),
       ],
       centerTitle: true,
-      title: !message.isEphemeral
+      title: message?.isEphemeral == false
           ? InkWell(
               onTap: onTitleTap,
               child: SizedBox(

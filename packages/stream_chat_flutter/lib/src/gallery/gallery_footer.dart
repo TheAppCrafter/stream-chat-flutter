@@ -253,7 +253,7 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                     return Stack(
                       children: [
                         media,
-                        if (message.user != null)
+                        if (message?.user != null)
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: Container(
@@ -272,7 +272,7 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                                 ],
                               ),
                               child: StreamUserAvatar(
-                                user: message.user!,
+                                user: message!.user!,
                                 constraints:
                                     BoxConstraints.tight(const Size(24, 24)),
                                 showOnlineStatus: false,

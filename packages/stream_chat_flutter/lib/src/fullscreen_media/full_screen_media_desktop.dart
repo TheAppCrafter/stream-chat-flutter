@@ -178,18 +178,20 @@ class _FullScreenMediaDesktopState extends State<FullScreenMediaDesktop> {
                   height: topPadding + kToolbarHeight,
                   child: StreamGalleryHeader(
                     userName: widget.userName,
-                    sentAt: context.translations.sentAtText(
-                      date: _currentAttachmentPackage.message.createdAt,
-                      time: _currentAttachmentPackage.message.createdAt,
-                    ),
+                    sentAt: _currentMessage != null ? context.translations.sentAtText(
+                      date: _currentMessage.createdAt,
+                      time: _currentMessage.createdAt,
+                    ) : '',
                     onBackPressed: Navigator.of(context).pop,
                     message: _currentMessage,
                     attachment: _currentAttachment,
                     onShowMessage: () {
-                      widget.onShowMessage?.call(
-                        _currentMessage,
-                        StreamChannel.of(context).channel,
-                      );
+                      if (_currentMessage != null && widget.onShowMessage != null) {
+                        widget.onShowMessage?.call(
+                          _currentMessage,
+                          StreamChannel.of(context).channel,
+                        );
+                      }
                     },
                     attachmentActionsModalBuilder:
                         widget.attachmentActionsModalBuilder,
@@ -197,7 +199,7 @@ class _FullScreenMediaDesktopState extends State<FullScreenMediaDesktop> {
                 );
               },
             ),
-            if (!_currentMessage.isEphemeral)
+            if (_currentMessage?.isEphemeral == false)
               ValueListenableBuilder<bool>(
                 valueListenable: _isDisplayingDetail,
                 builder: (context, isDisplayingDetail, child) {

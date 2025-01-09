@@ -16,7 +16,7 @@ class StreamAttachmentPackage {
 
   /// This is the message that the attachment belongs to
   /// The message object may have attachment(s) other than the one packaged
-  final Message message;
+  final Message? message;
 
   /// This is the channel that the message and attachment belongs to
   final Channel? channel;
