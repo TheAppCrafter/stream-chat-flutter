@@ -68,6 +68,9 @@ abstract class ChatPersistenceClient {
     PaginationParams? messagePagination,
   });
 
+  /// Get stored [Message] by providing message [id]
+  Future<Message?> getMessageById(String id);
+
   /// Get stored pinned [Message]s by providing channel [cid]
   Future<List<Message>> getPinnedMessagesByCid(
     String cid, {

@@ -199,6 +199,13 @@ class StreamChatPersistenceClient extends ChatPersistenceClient {
   }
 
   @override
+  Future<Message?> getMessageById(String id) {
+    assert(_debugIsConnected, '');
+    _logger.info('getMessageById');
+    return db!.messageDao.getMessageById(id);
+  }
+
+  @override
   Future<List<Message>> getPinnedMessagesByCid(
     String cid, {
     PaginationParams? messagePagination,
