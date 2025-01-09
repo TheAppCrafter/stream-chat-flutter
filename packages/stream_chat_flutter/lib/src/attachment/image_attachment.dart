@@ -8,7 +8,7 @@ class StreamImageAttachment extends StatelessWidget {
   /// {@macro streamImageAttachment}
   const StreamImageAttachment({
     super.key,
-    required this.message,
+    this.message,
     required this.image,
     this.shape,
     this.constraints = const BoxConstraints(),
@@ -18,7 +18,7 @@ class StreamImageAttachment extends StatelessWidget {
   });
 
   /// The [Message] that the image is attached to.
-  final Message message;
+  final Message? message;
 
   /// The [Attachment] object containing the image information.
   final Attachment image;
@@ -91,10 +91,10 @@ class StreamImageAttachment extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(8),
-              child: StreamAttachmentUploadStateBuilder(
-                message: message,
+              child: message != null ? StreamAttachmentUploadStateBuilder(
+                message: message!,
                 attachment: image,
-              ),
+              ) : const SizedBox.shrink(),
             ),
           ],
         ),
