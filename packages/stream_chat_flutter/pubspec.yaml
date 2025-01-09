@@ -11,7 +11,7 @@ environment:
 
 dependencies:
   cached_network_image: ^3.3.1
-  chewie: ^1.8.1
+  chewie: ">=1.8.1 <1.8.6" # due to The method 'withValues' isn't defined for the class 'Color'
   collection: ^1.17.2
   contextmenu: ^3.0.0
   desktop_drop: ^0.4.4
