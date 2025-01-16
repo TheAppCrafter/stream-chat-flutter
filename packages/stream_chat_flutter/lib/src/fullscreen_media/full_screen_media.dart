@@ -123,10 +123,8 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
           final _currentMessage = _currentAttachmentPackage.message;
           final _currentAttachment = _currentAttachmentPackage.attachment;
           // added _currentChannel and stream channel widget to satisfy child widget requirements while still allowing for attachments from multiple channels
-          final _currentChannel = _currentAttachmentPackage.channel ?? StreamChannel.of(context).channel;
-          return StreamChannel( 
-            channel: _currentChannel,
-              child: Stack(
+          final _currentChannel = _currentAttachmentPackage.channel;
+          return Stack(
               children: [
                 child!,
                 ValueListenableBuilder<bool>(
@@ -143,6 +141,7 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                       end: 0,
                       height: topPadding + kToolbarHeight,
                       child: StreamGalleryHeader(
+                        channel: _currentChannel,
                         userName: widget.userName,
                         sentAt: _currentAttachmentPackage.message != null ? context.translations.sentAtText(
                           date: _currentAttachmentPackage.message!.createdAt,
@@ -151,13 +150,13 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                         onBackPressed: Navigator.of(context).pop,
                         message: _currentMessage,
                         attachment: _currentAttachment,
-                        onShowMessage: _currentMessage != null && widget.onShowMessage != null
+                        onShowMessage: _currentMessage != null && _currentChannel != null && widget.onShowMessage != null
                             ? () {
                                 Navigator.pop(context);
                                 Navigator.pop(context);
                                 widget.onShowMessage?.call(
                                   _currentMessage,
-                                  StreamChannel.of(context).channel,
+                                  _currentChannel,
                                 );
                               }
                             : null,
@@ -237,8 +236,7 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                     ),
                 ],
               ],
-            )
-          );
+            );
         },
         child: InkWell(
           onTap: switchDisplayingDetail,

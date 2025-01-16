@@ -7,6 +7,7 @@ class AttachmentActionsModal extends StatelessWidget {
   const AttachmentActionsModal({
     super.key,
     required this.attachment,
+    this.channel,
     this.message,
     this.onShowMessage,
     this.onReply,
@@ -20,6 +21,9 @@ class AttachmentActionsModal extends StatelessWidget {
 
   /// The attachment object for which the actions are to be performed
   final Attachment attachment;
+
+  /// Channel which attachments are attached to
+  final Channel? channel;
 
   /// The message containing the attachments
   final Message? message;
@@ -53,6 +57,7 @@ class AttachmentActionsModal extends StatelessWidget {
   AttachmentActionsModal copyWith({
     Key? key,
     Attachment? attachment,
+    Channel? channel,
     Message? message,
     VoidCallback? onShowMessage,
     VoidCallback? onReply,
@@ -208,8 +213,7 @@ class AttachmentActionsModal extends StatelessWidget {
                         color: theme.colorTheme.accentError,
                       ),
                       () {
-                        if (message != null) {
-                          final channel = StreamChannel.of(context).channel;
+                        if (message != null && channel != null) {
                           if (message!.attachments.length > 1 ||
                               message!.text?.isNotEmpty == true) {
                             final currentAttachmentIndex =
@@ -218,14 +222,14 @@ class AttachmentActionsModal extends StatelessWidget {
                             );
                             final remainingAttachments = [...message!.attachments]
                               ..removeAt(currentAttachmentIndex);
-                            channel.updateMessage(message!.copyWith(
+                            channel!.updateMessage(message!.copyWith(
                               attachments: remainingAttachments,
                             ));
                             Navigator.of(context)
                               ..pop()
                               ..maybePop();
                           } else {
-                            channel.deleteMessage(message!);
+                            channel!.deleteMessage(message!);
                             Navigator.of(context)
                               ..pop()
                               ..maybePop();

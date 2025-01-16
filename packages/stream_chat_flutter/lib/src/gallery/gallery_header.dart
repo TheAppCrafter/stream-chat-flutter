@@ -16,6 +16,7 @@ class StreamGalleryHeader extends StatelessWidget
   const StreamGalleryHeader({
     super.key,
     this.message,
+    this.channel,
     required this.attachment,
     this.showBackButton = true,
     this.onBackPressed,
@@ -53,6 +54,9 @@ class StreamGalleryHeader extends StatelessWidget
 
   /// Message which attachments are attached to
   final Message? message;
+
+  /// Channel which attachments are attached to
+  final Channel? channel;
 
   /// The attachment that's currently in focus
   final Attachment attachment;
@@ -100,7 +104,7 @@ class StreamGalleryHeader extends StatelessWidget
       backgroundColor:
           backgroundColor ?? galleryHeaderThemeData.backgroundColor,
       actions: <Widget>[
-        if (message?.isEphemeral == false)
+
           IconButton(
             icon: StreamSvgIcon.iconMenuPoint(
               color: galleryHeaderThemeData.iconMenuPointColor,
@@ -139,11 +143,11 @@ class StreamGalleryHeader extends StatelessWidget
   final Size preferredSize;
 
   Future<void> _showMessageActionModalBottomSheet(BuildContext context) async {
-    final channel = StreamChannel.of(context).channel;
     final galleryHeaderThemeData =
         StreamChatTheme.of(context).galleryHeaderTheme;
 
     final defaultModal = AttachmentActionsModal(
+      channel: channel,
       attachment: attachment,
       message: message,
       onShowMessage: onShowMessage,
@@ -152,6 +156,7 @@ class StreamGalleryHeader extends StatelessWidget
 
     final effectiveModal = attachmentActionsModalBuilder?.call(
           context,
+          channel,
           attachment,
           defaultModal,
         ) ??
@@ -161,10 +166,7 @@ class StreamGalleryHeader extends StatelessWidget
       useRootNavigator: false,
       context: context,
       barrierColor: galleryHeaderThemeData.bottomSheetBarrierColor,
-      builder: (context) => StreamChannel(
-        channel: channel,
-        child: effectiveModal,
-      ),
+      builder: (context) => effectiveModal,
     );
 
     if (result != null) {

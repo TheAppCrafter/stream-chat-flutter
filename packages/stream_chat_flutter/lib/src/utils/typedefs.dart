@@ -100,6 +100,7 @@ typedef ViewInfoCallback = void Function(Channel);
 /// {@endtemplate}
 typedef AttachmentActionsBuilder = Widget Function(
   BuildContext context,
+  Channel? channel,
   Attachment attachment,
   AttachmentActionsModal defaultActionsModal,
 );
