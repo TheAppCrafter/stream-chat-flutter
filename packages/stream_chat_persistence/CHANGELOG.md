@@ -1,3 +1,12 @@
+## 9.1.0
+
+- Updated `stream_chat` dependency to [`9.1.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.0.0
+
+- Added support for `Poll` and `PollVote` entities in the database.
+- Updated minimum Flutter version to 3.24.5 for the SDK.
+
 ## 8.3.0
 
 - Updated `stream_chat` dependency to [`8.3.0`](https://pub.dev/packages/stream_chat/changelog).
@@ -69,8 +78,7 @@
 
 ## 6.7.0
 
-- [[#1683]](https://github.com/GetStream/stream-chat-flutter/issues/1683) Fixed SqliteException no such
-  column `messages.state`.
+- [[#1683]](https://github.com/GetStream/stream-chat-flutter/issues/1683) Fixed SqliteException no such column `messages.state`.
 - Updated `stream_chat` dependency to [`6.7.0`](https://pub.dev/packages/stream_chat/changelog).
 
 ## 6.6.0
@@ -165,8 +173,7 @@
 ## 3.0.0
 
 - Updated `stream_chat` dependency to [`3.0.0`](https://pub.dev/packages/stream_chat/changelog).
-- [[#604]](https://github.com/GetStream/stream-chat-flutter/issues/604) Fix cascade deletion by
-  enabling `pragma foreign_keys`.
+- [[#604]](https://github.com/GetStream/stream-chat-flutter/issues/604) Fix cascade deletion by enabling `pragma foreign_keys`.
 - Added a new table `PinnedMessageReactions` and dao `PinnedMessageReactionDao` specifically for pinned messages.
 
 ## 2.2.0

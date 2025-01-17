@@ -323,6 +323,20 @@ class StreamChatPersistenceClient extends ChatPersistenceClient {
   }
 
   @override
+  Future<void> updatePolls(List<Poll> polls) {
+    assert(_debugIsConnected, '');
+    _logger.info('updatePolls');
+    return db!.pollDao.updatePolls(polls);
+  }
+
+  @override
+  Future<void> deletePollsByIds(List<String> pollIds) {
+    assert(_debugIsConnected, '');
+    _logger.info('deletePollsByIds');
+    return db!.pollDao.deletePollsByIds(pollIds);
+  }
+
+  @override
   Future<void> bulkUpdateMembers(Map<String, List<Member>?> members) {
     assert(_debugIsConnected, '');
     _logger.info('bulkUpdateMembers');
@@ -341,6 +355,13 @@ class StreamChatPersistenceClient extends ChatPersistenceClient {
     assert(_debugIsConnected, '');
     _logger.info('bulkUpdatePinnedMessages');
     return db!.pinnedMessageDao.bulkUpdateMessages(messages);
+  }
+
+  @override
+  Future<void> updatePollVotes(List<PollVote> pollVotes) {
+    assert(_debugIsConnected, '');
+    _logger.info('updatePollVotes');
+    return db!.pollVoteDao.updatePollVotes(pollVotes);
   }
 
   @override
@@ -385,6 +406,13 @@ class StreamChatPersistenceClient extends ChatPersistenceClient {
     assert(_debugIsConnected, '');
     _logger.info('deleteReactionsByMessageId');
     return db!.reactionDao.deleteReactionsByMessageIds(messageIds);
+  }
+
+  @override
+  Future<void> deletePollVotesByPollIds(List<String> pollIds) {
+    assert(_debugIsConnected, '');
+    _logger.info('deletePollVotesByPollIds');
+    return db!.pollVoteDao.deletePollVotesByPollIds(pollIds);
   }
 
   @override

@@ -163,6 +163,7 @@ class StreamMessageInput extends StatefulWidget {
     this.autoCompleteExtraUsersFunction,
     this.onMentionUserTap,
     this.userMentionsWidgetBuilder,
+    this.pollConfig,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -386,6 +387,10 @@ class StreamMessageInput extends StatefulWidget {
   final void Function(BuildContext, User)? onMentionUserTap;
 
   final Widget Function(BuildContext, StreamMessageInputController)? userMentionsWidgetBuilder;
+  /// The configuration to use while creating a poll.
+  ///
+  /// If not provided, the default configuration is used.
+  final PollConfig? pollConfig;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -687,6 +692,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_hasQuotedMessage && !_isEditing)
                     // Ensure this doesn't show on web & desktop
@@ -724,6 +730,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
                               : Border.all(
                                   color: _streamChatTheme
                                       .colorTheme.textHighEmphasis
+                                      // ignore: deprecated_member_use
                                       .withOpacity(0.5),
                                   width: 2,
                                 ),
@@ -936,25 +943,83 @@ class StreamMessageInputState extends State<StreamMessageInput>
         defaultButton;
   }
 
+  Future<void> _sendPoll(Poll poll) {
+    final streamChannel = StreamChannel.of(context);
+    final channel = streamChannel.channel;
+
+    return channel.sendPoll(poll);
+  }
+
+  Future<void> _updatePoll(Poll poll) {
+    final streamChannel = StreamChannel.of(context);
+    final channel = streamChannel.channel;
+
+    return channel.updatePoll(poll);
+  }
+
+  Future<void> _deletePoll(Poll poll) {
+    final streamChannel = StreamChannel.of(context);
+    final channel = streamChannel.channel;
+
+    return channel.deletePoll(poll);
+  }
+
+  Future<void> _createOrUpdatePoll(Poll? old, Poll? current) async {
+    // If both are null or the same, return
+    if ((old == null && current == null) || old == current) return;
+
+    // If old is null, i.e., there was no poll before, create the poll.
+    if (old == null) return _sendPoll(current!);
+
+    // If current is null, i.e., the poll is removed, delete the poll.
+    if (current == null) return _deletePoll(old);
+
+    // Otherwise, update the poll.
+    return _updatePoll(current);
+  }
+
   /// Handle the platform-specific logic for selecting files.
   ///
   /// On mobile, this will open the file selection bottom sheet. On desktop,
   /// this will open the native file system and allow the user to select one
   /// or more files.
   Future<void> _onAttachmentButtonPressed() async {
-    final attachments = await showStreamAttachmentPickerModalBottomSheet(
+    final initialPoll = _effectiveController.poll;
+    final initialAttachments = _effectiveController.attachments;
+
+    // Remove AttachmentPickerType.poll if the user doesn't have the permission
+    // to send a poll or if this is a thread message.
+    final allowedTypes = [...widget.allowedAttachmentPickerTypes]
+      ..removeWhere((it) {
+        if (it != AttachmentPickerType.poll) return false;
+        if (_effectiveController.message.parentId != null) return true;
+        final channel = StreamChannel.of(context).channel;
+        if (channel.ownCapabilities.contains(PermissionType.sendPoll)) {
+          return false;
+        }
+
+        return true;
+      });
+
+    final value = await showStreamAttachmentPickerModalBottomSheet(
       context: context,
       onError: widget.onError,
-      allowedTypes: widget.allowedAttachmentPickerTypes,
-      initialAttachments: _effectiveController.attachments,
+      allowedTypes: allowedTypes,
+      pollConfig: widget.pollConfig,
+      initialPoll: initialPoll,
+      initialAttachments: initialAttachments,
       useNativeAttachmentPickerOnMobile:
           widget.useNativeAttachmentPickerOnMobile,
       customOptions: widget.filePickerCustomOptions,
     );
 
-    if (attachments != null) {
-      _effectiveController.attachments = attachments;
-    }
+    if (value == null || value is! AttachmentPickerValue) return;
+
+    // Add the attachments to the controller.
+    _effectiveController.attachments = value.attachments;
+
+    // Create or update the poll.
+    await _createOrUpdatePoll(initialPoll, value.poll);
   }
 
   Expanded _buildTextInput(BuildContext context) {

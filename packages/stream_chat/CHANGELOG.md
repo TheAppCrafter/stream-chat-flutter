@@ -1,3 +1,19 @@
+## 9.1.0
+
+✅ Added
+
+- Added support for Threads v2 feature, which allows users to query all the threads.
+
+## 9.0.0
+
+✅ Added
+
+- Added support for Polls feature, which allows users to create and vote on polls in chat messages.
+
+🔄 Changed
+
+- Updated minimum Dart version to 3.5.4 for the SDK.
+
 ## 8.3.0
 
 ✅ Added

@@ -1,3 +1,14 @@
+## 9.1.0
+
+- Added translations for new `repliedToLabel` label.
+- Added translations for new `newThreadsLabel` label.
+
+## 9.0.0
+
+- Added multiple new localization strings related to poll creation and validation.
+- Added multiple new localization strings related to poll message interactions.
+- Updated minimum Flutter version to 3.24.5 for the SDK.
+
 ## 8.3.0
 
 - Updated `stream_chat_flutter` dependency to [`8.3.0`](https://pub.dev/packages/stream_chat/changelog).

@@ -17,6 +17,7 @@ class MessageCard extends StatefulWidget {
     required this.hasQuotedMessage,
     required this.hasUrlAttachments,
     required this.hasNonUrlAttachments,
+    required this.hasPoll,
     required this.isOnlyEmoji,
     required this.isGiphy,
     required this.attachmentBuilders,
@@ -65,6 +66,9 @@ class MessageCard extends StatefulWidget {
 
   /// {@macro hasNonUrlAttachments}
   final bool hasNonUrlAttachments;
+
+  /// {@macro hasPoll}
+  final bool hasPoll;
 
   /// {@macro isOnlyEmoji}
   final bool isOnlyEmoji;
@@ -214,29 +218,33 @@ class _MessageCardState extends State<MessageCard> {
               attachmentActionsModalBuilder:
                   widget.attachmentActionsModalBuilder,
             ),
+          if (widget.hasPoll)
+            PollMessage(
+              message: widget.message,
+            ),
           if (widget.textBubbleBuilder != null)
-          widget.textBubbleBuilder!(
-            messageTheme: widget.messageTheme,
-            message: widget.message,
-            textPadding: widget.textPadding,
-            isOnlyEmoji: widget.isOnlyEmoji,
-            hasQuotedMessage: widget.hasQuotedMessage,
-            hasUrlAttachments: widget.hasUrlAttachments,
-            onLinkTap: widget.onLinkTap,
-            onMentionTap: widget.onMentionTap,
-          ),
+            widget.textBubbleBuilder!(
+              messageTheme: widget.messageTheme,
+              message: widget.message,
+              textPadding: widget.textPadding,
+              isOnlyEmoji: widget.isOnlyEmoji,
+              hasQuotedMessage: widget.hasQuotedMessage,
+              hasUrlAttachments: widget.hasUrlAttachments,
+              onLinkTap: widget.onLinkTap,
+              onMentionTap: widget.onMentionTap,
+            ),
           if (widget.textBubbleBuilder == null)
-          TextBubble(
-            messageTheme: widget.messageTheme,
-            message: widget.message,
-            textPadding: widget.textPadding,
-            textBuilder: widget.textBuilder,
-            isOnlyEmoji: widget.isOnlyEmoji,
-            hasQuotedMessage: widget.hasQuotedMessage,
-            hasUrlAttachments: widget.hasUrlAttachments,
-            onLinkTap: widget.onLinkTap,
-            onMentionTap: widget.onMentionTap,
-          ),
+            TextBubble(
+              messageTheme: widget.messageTheme,
+              message: widget.message,
+              textPadding: widget.textPadding,
+              textBuilder: widget.textBuilder,
+              isOnlyEmoji: widget.isOnlyEmoji,
+              hasQuotedMessage: widget.hasQuotedMessage,
+              hasUrlAttachments: widget.hasUrlAttachments,
+              onLinkTap: widget.onLinkTap,
+              onMentionTap: widget.onMentionTap,
+            ),
         ],
       ),
     );

@@ -641,6 +641,11 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
   bool get hasNonUrlAttachments => widget.message.attachments
       .any((it) => it.type != AttachmentType.urlPreview);
 
+  /// {@template hasPoll}
+  /// `true` if the [message] contains a poll.
+  /// {@endtemplate}
+  bool get hasPoll => widget.message.poll != null;
+
   /// {@template hasUrlAttachments}
   /// `true` if any of the [message]'s attachments are a giphy with a
   /// [Attachment.titleLink].
@@ -685,6 +690,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
   bool get shouldShowEditAction =>
       widget.showEditMessage &&
       !isDeleteFailed &&
+      !hasPoll &&
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
 
@@ -709,12 +715,6 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       widget.showCopyMessage &&
       !isFailedState &&
       widget.message.text?.trim().isNotEmpty == true;
-
-  bool get shouldShowEditMessage =>
-      widget.showEditMessage &&
-      !isDeleteFailed &&
-      !widget.message.attachments
-          .any((element) => element.type == AttachmentType.giphy);
 
   bool get shouldShowThreadReplyAction =>
       widget.showThreadReplyMessage &&
@@ -793,6 +793,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                         reverse: widget.reverse,
                         message: widget.message,
                         hasNonUrlAttachments: hasNonUrlAttachments,
+                        hasPoll: hasPoll,
                         hasQuotedMessage: hasQuotedMessage,
                         textPadding: widget.textPadding,
                         attachmentBuilders: widget.attachmentBuilders,
@@ -840,7 +841,6 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                       ),
                       if (!widget.message.state.isDeleted && isDesktopDeviceOrWeb)
                         buildActionsBar(),
-                      
                     ],
                   );
                 }),
