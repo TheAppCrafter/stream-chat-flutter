@@ -76,6 +76,7 @@ class StreamFileAttachment extends StatelessWidget {
         color: backgroundColor,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 34,
@@ -84,7 +85,7 @@ class StreamFileAttachment extends StatelessWidget {
             child: _FileTypeImage(file: file),
           ),
           const SizedBox(width: 8),
-          Expanded(
+          Flexible(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
