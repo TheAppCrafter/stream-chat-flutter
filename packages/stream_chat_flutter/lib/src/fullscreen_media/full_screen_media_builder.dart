@@ -33,6 +33,7 @@ class StreamFullScreenMediaBuilder extends StatelessWidget {
     this.onShowMessage,
     this.onReplyMessage,
     this.attachmentActionsModalBuilder,
+    this.audioAttachmentWidget,
     this.autoplayVideos = false,
   });
 
@@ -59,6 +60,9 @@ class StreamFullScreenMediaBuilder extends StatelessWidget {
   /// Auto-play videos when page is opened
   final bool autoplayVideos;
 
+  /// Widget builder for audio attachment
+  final Widget? audioAttachmentWidget;
+
   @override
   Widget build(BuildContext context) {
     if (!kIsWeb && isDesktopVideoPlayerSupported) {
@@ -80,6 +84,7 @@ class StreamFullScreenMediaBuilder extends StatelessWidget {
       onShowMessage: onShowMessage,
       onReplyMessage: onReplyMessage,
       attachmentActionsModalBuilder: attachmentActionsModalBuilder,
+      audioAttachmentWidget: audioAttachmentWidget,
       autoplayVideos: autoplayVideos,
     );
   }

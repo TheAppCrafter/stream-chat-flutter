@@ -14,6 +14,7 @@ FullScreenMediaWidget getFsm({
   ShowMessageCallback? onShowMessage,
   ReplyMessageCallback? onReplyMessage,
   AttachmentActionsBuilder? attachmentActionsModalBuilder,
+  Widget? audioAttachmentWidget,
   bool? autoplayVideos,
 }) =>
     throw UnsupportedError('Cannot create FullScreenMedia');
