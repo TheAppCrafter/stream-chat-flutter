@@ -52,7 +52,7 @@ class Attachment extends Equatable {
     Map<String, Object?> extraData = const {},
     this.file,
     UploadState? uploadState,
-  })  : id = id ?? const Uuid().v4(),
+  })  : id = id ?? extraData['attachment_id'] as String? ?? const Uuid().v4(),
         _type = type,
         title = title ?? file?.name,
         _uploadState = uploadState,
