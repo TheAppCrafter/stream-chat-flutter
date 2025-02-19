@@ -121,7 +121,7 @@ class WebSocket with TimerHelper {
     if (_webSocketChannel != null) {
       _unsubscribeFromWebSocketChannel();
       _webSocketChannel?.sink
-          .close(_manuallyClosed ? status.normalClosure : status.goingAway);
+          .close(_manuallyClosed ? status.normalClosure : status.normalClosure);
       _webSocketChannel = null;
     }
   }
