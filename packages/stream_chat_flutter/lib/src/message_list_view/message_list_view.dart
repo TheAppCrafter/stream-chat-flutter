@@ -440,11 +440,15 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 streamChannel!.channel.client.state.currentUser!.id) {
           setState(() => unreadCount = 0);
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollController?.jumpTo(
-              index: 0,
-            );
-          });
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _scrollController?.isAttached == true) {
+                _scrollController?.jumpTo(
+                  index: 0,
+                );
+              }
+            });
+          }
         }
       });
 
