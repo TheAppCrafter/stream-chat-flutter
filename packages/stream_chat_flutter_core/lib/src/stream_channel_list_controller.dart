@@ -213,6 +213,10 @@ class StreamChannelListController extends PagedValueNotifier<int, Channel> {
 
   StreamSubscription<Event>? _channelEventSubscription;
 
+  final _eventQueue = <Event>[];
+  
+  bool _isProcessingEvent = false;
+
   // Subscribes to the channel list events.
   void _subscribeToChannelListEvents() {
     if (_channelEventSubscription != null) {
@@ -226,8 +230,21 @@ class StreamChannelListController extends PagedValueNotifier<int, Channel> {
       // Returns early if the event is already handled by the listener.
       if (eventListener?.call(event) ?? false) return;
 
+      // Add event to queue and process if not already processing
+      _eventQueue.add(event);
+      _processNextEventIfNeeded();
+    });
+  }
+
+  // Process events one at a time
+  Future<void> _processNextEventIfNeeded() async {
+    if (_isProcessingEvent || _eventQueue.isEmpty) return;
+    
+    _isProcessingEvent = true;
+    try {
+      final event = _eventQueue.removeAt(0);
       final eventType = event.type;
-      if (eventType == EventType.channelDeleted) {
+        if (eventType == EventType.channelDeleted) {
         _eventHandler.onChannelDeleted(event, this);
       } else if (eventType == EventType.channelHidden) {
         _eventHandler.onChannelHidden(event, this);
@@ -236,22 +253,28 @@ class StreamChannelListController extends PagedValueNotifier<int, Channel> {
       } else if (eventType == EventType.channelUpdated) {
         _eventHandler.onChannelUpdated(event, this);
       } else if (eventType == EventType.channelVisible) {
-        _eventHandler.onChannelVisible(event, this);
+        await _eventHandler.onChannelVisible(event, this);
       } else if (eventType == EventType.connectionRecovered) {
-        _eventHandler.onConnectionRecovered(event, this);
+        await _eventHandler.onConnectionRecovered(event, this);
       } else if (eventType == EventType.messageNew) {
-        _eventHandler.onMessageNew(event, this);
+        await _eventHandler.onMessageNew(event, this);
       } else if (eventType == EventType.notificationAddedToChannel) {
-        _eventHandler.onNotificationAddedToChannel(event, this);
+        await _eventHandler.onNotificationAddedToChannel(event, this);
       } else if (eventType == EventType.notificationMessageNew) {
-        _eventHandler.onNotificationMessageNew(event, this);
+        await _eventHandler.onNotificationMessageNew(event, this);
       } else if (eventType == EventType.notificationRemovedFromChannel) {
         _eventHandler.onNotificationRemovedFromChannel(event, this);
       } else if (eventType == 'user.presence.changed' ||
           eventType == EventType.userUpdated) {
         _eventHandler.onUserPresenceChanged(event, this);
       }
-    });
+    } finally {
+      _isProcessingEvent = false;
+      // Process next event if there are any
+      if (_eventQueue.isNotEmpty) {
+        _processNextEventIfNeeded();
+      }
+    }
   }
 
   // Unsubscribes from all channel list events.

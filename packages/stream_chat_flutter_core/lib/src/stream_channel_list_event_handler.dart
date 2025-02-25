@@ -58,7 +58,7 @@ mixin class StreamChannelListEventHandler {
   /// This event is fired when a channel is made visible.
   ///
   /// By default, this adds the channel to the list of channels.
-  void onChannelVisible(
+  Future<void> onChannelVisible(
     Event event,
     StreamChannelListController controller,
   ) async {
@@ -88,11 +88,11 @@ mixin class StreamChannelListEventHandler {
   /// This event is fired when the client web-socket connection recovers.
   ///
   /// By default, this refreshes the whole channel list.
-  void onConnectionRecovered(
+  Future<void> onConnectionRecovered(
     Event event,
     StreamChannelListController controller,
-  ) {
-    controller.refresh();
+  ) async {
+    await controller.refresh();
   }
 
   /// Function which gets called for the event [EventType.messageNew].
@@ -101,7 +101,7 @@ mixin class StreamChannelListEventHandler {
   /// we are currently watching.
   ///
   /// By default, this moves the channel to the top of the list.
-  void onMessageNew(Event event, StreamChannelListController controller) async {
+  Future<void> onMessageNew(Event event, StreamChannelListController controller) async {
     final channelCid = event.cid;
     if (channelCid == null) return;
 
@@ -127,11 +127,11 @@ mixin class StreamChannelListEventHandler {
   /// This event is fired when a channel is added which we are not watching.
   ///
   /// By default, this adds the channel and moves it to the top of list.
-  void onNotificationAddedToChannel(
+  Future<void> onNotificationAddedToChannel(
     Event event,
     StreamChannelListController controller,
-  ) {
-    onChannelVisible(event, controller);
+  ) async {
+    await onChannelVisible(event, controller);
   }
 
   /// Function which gets called for the event
@@ -141,11 +141,11 @@ mixin class StreamChannelListEventHandler {
   /// which we are not currently watching.
   ///
   /// By default, this adds the channel and moves it to the top of list.
-  void onNotificationMessageNew(
+  Future<void> onNotificationMessageNew(
     Event event,
     StreamChannelListController controller,
-  ) {
-    onChannelVisible(event, controller);
+  ) async {
+    await onChannelVisible(event, controller);
   }
 
   /// Function which gets called for the event
