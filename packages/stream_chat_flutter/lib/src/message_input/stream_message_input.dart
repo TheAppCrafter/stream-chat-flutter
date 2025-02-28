@@ -51,6 +51,13 @@ typedef ActionsBuilder = List<Widget> Function(
   List<Widget> defaultActions,
 );
 
+/// Signature for the function that determines if a key event should trigger
+/// sending a message.
+typedef AsyncKeyEventPredicate = FutureOr<bool> Function(
+  FocusNode node,
+  KeyEvent event,
+);
+
 /// Inactive state:
 ///
 /// ![screenshot](https://raw.githubusercontent.com/GetStream/stream-chat-flutter/master/packages/stream_chat_flutter/screenshots/message_input.png)
@@ -148,8 +155,7 @@ class StreamMessageInput extends StatefulWidget {
     this.onQuotedMessageCleared,
     this.enableActionAnimation = true,
     this.sendMessageKeyPredicate = _defaultSendMessageKeyPredicate,
-    this.clearQuotedMessageKeyPredicate =
-        _defaultClearQuotedMessageKeyPredicate,
+    this.clearQuotedMessageKeyPredicate = _defaultClearQuotedMessageKeyPredicate,
     this.ogPreviewFilter = _defaultOgPreviewFilter,
     this.hintGetter = _defaultHintGetter,
     this.contentInsertionConfiguration,
@@ -167,10 +173,10 @@ class StreamMessageInput extends StatefulWidget {
   });
 
   /// The predicate used to send a message on desktop/web
-  final KeyEventPredicate sendMessageKeyPredicate;
+  final AsyncKeyEventPredicate? sendMessageKeyPredicate;
 
   /// The predicate used to clear the quoted message on desktop/web
-  final KeyEventPredicate clearQuotedMessageKeyPredicate;
+  final KeyEventPredicate? clearQuotedMessageKeyPredicate;
 
   /// If true the message input will animate the actions while you type
   final bool enableActionAnimation;
@@ -419,7 +425,7 @@ class StreamMessageInput extends StatefulWidget {
   static bool _defaultValidator(Message message) =>
       message.text?.isNotEmpty == true || message.attachments.isNotEmpty;
 
-  static bool _defaultSendMessageKeyPredicate(
+  static FutureOr<bool> _defaultSendMessageKeyPredicate(
     FocusNode node,
     KeyEvent event,
   ) {
@@ -1126,13 +1132,29 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
   KeyEventResult _handleKeyPressed(FocusNode node, KeyEvent event) {
     // Check for send message key.
-    if (widget.sendMessageKeyPredicate(node, event)) {
-      sendMessage();
+    if ((event is KeyUpEvent || event is KeyDownEvent) && 
+        (CurrentPlatform.isWeb ||
+        CurrentPlatform.isMacOS ||
+        CurrentPlatform.isWindows ||
+        CurrentPlatform.isLinux) &&
+        event.logicalKey == LogicalKeyboardKey.enter) {
+      
+      // Allow Shift+Enter to insert a new line
+      if (HardwareKeyboard.instance.isShiftPressed) {
+        return KeyEventResult.ignored;
+      }
+      
+      // Always handle the Enter key to prevent new lines
+      // Only send the message if it's valid and it's a KeyUpEvent
+      if (validationNotifier.value && event is KeyUpEvent) {
+        _handleSendMessageKeyPressed(node, event);
+      }
+      // Always return handled to prevent new line
       return KeyEventResult.handled;
     }
 
     // Check for clear quoted message key.
-    if (widget.clearQuotedMessageKeyPredicate(node, event)) {
+    if (widget.clearQuotedMessageKeyPredicate!(node, event)) {
       if (_hasQuotedMessage && _effectiveController.text.isEmpty) {
         widget.onQuotedMessageCleared?.call();
       }
@@ -1141,6 +1163,14 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
     // Return ignored to allow other key events to be handled.
     return KeyEventResult.ignored;
+  }
+
+  // New method to handle the async validation
+  Future<void> _handleSendMessageKeyPressed(FocusNode node, KeyEvent event) async {
+    final shouldSendMessage = await widget.sendMessageKeyPredicate!(node, event);
+    if (shouldSendMessage && mounted) {
+      sendMessage();
+    }
   }
 
   InputDecoration _getInputDecoration(BuildContext context) {
