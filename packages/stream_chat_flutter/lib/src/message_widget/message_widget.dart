@@ -756,11 +756,15 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         child: Portal(
           child: PlatformWidgetBuilder(
             mobile: (context, child) {
-              return InkWell(
-                onTap: () => widget.onMessageTap!(widget.message),
+              return GestureDetector(
                 onLongPress: widget.message.state.isDeleted
                     ? null
-                    : () => onLongPress(context),
+                    : () {
+                        // Add haptic feedback
+                        HapticFeedback.mediumImpact();
+                        onLongPress(context);
+                      },
+                behavior: HitTestBehavior.translucent, // Important for ripple effect
                 child: child,
               );
             },
