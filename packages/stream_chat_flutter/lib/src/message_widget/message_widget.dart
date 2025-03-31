@@ -838,13 +838,11 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                         onLinkTap: widget.onLinkTap,
                         onMentionTap: widget.onMentionTap,
                         onQuotedMessageTap: widget.onQuotedMessageTap,
-                        bottomRowBuilderWithDefaultWidget:
-                            widget.bottomRowBuilderWithDefaultWidget,
+                        bottomRowBuilderWithDefaultWidget: widget.bottomRowBuilderWithDefaultWidget,
                         onUserAvatarTap: widget.onUserAvatarTap,
                         userAvatarBuilder: widget.userAvatarBuilder,
+                        actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
                       ),
-                      if (!widget.message.state.isDeleted && isDesktopDeviceOrWeb)
-                        buildActionsBar(),
                     ],
                   );
                 }),
@@ -1131,28 +1129,25 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     return messageActionItems(iconSize: 24);
   }
 
-  Widget buildActionsBar() {
-    final double iconSize = 14;
+  Widget actionBar() {
+    const iconSize = 14.0;
     final items = messageActionItems(iconSize: iconSize);
     
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 0),
+      padding: EdgeInsets.zero,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final item in items)
             if (item.leading != null) // Only show items with icons
               Tooltip(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                margin: const EdgeInsets.symmetric(horizontal: 0),
-                message: item.title is Text ? (item.title as Text).data : '',
+                margin: EdgeInsets.zero,
+                message: (item.title as Text?)?.data ?? '',
                 child: IconButton(
                   visualDensity: VisualDensity.compact,
                   icon: item.leading!,
-                  //iconSize: 12,
                   onPressed: item.onClick,
-                  //splashRadius: iconSize,
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  padding: EdgeInsets.zero,
                 ),
               ),
         ],

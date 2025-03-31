@@ -77,6 +77,7 @@ class MessageWidgetContent extends StatelessWidget {
     this.bottomRowBuilderWithDefaultWidget,
     this.userAvatarBuilder,
     this.textBubbleBuilder,
+    this.actionBar,
   });
 
   /// {@macro reverse}
@@ -231,6 +232,9 @@ class MessageWidgetContent extends StatelessWidget {
 
   /// {@macro textBubbleBuilder}
   final TextBubbleBuilder? textBubbleBuilder;
+  
+  /// Builder function for the message actions bar
+  final Widget Function()? actionBar;
 
   @override
   Widget build(BuildContext context) {
@@ -245,15 +249,6 @@ class MessageWidgetContent extends StatelessWidget {
               ? AlignmentDirectional.bottomEnd
               : AlignmentDirectional.bottomStart,
           children: [
-            if (showBottomRow)
-              Padding(
-                padding: EdgeInsets.only(
-                  left: !reverse ? bottomRowPadding : 0,
-                  right: reverse ? bottomRowPadding : 0,
-                  bottom: isPinned && showPinHighlight ? 6.0 : 0.0,
-                ),
-                child: _buildBottomRow(context),
-              ),
             Padding(
               padding: EdgeInsets.only(
                 bottom: isPinned && showPinHighlight ? 8.0 : 0.0,
@@ -426,6 +421,33 @@ class MessageWidgetContent extends StatelessWidget {
                         SizedBox(width: avatarWidth + 4),
                     ],
                   ),
+                  if (showBottomRow)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: !reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 14 : 0) : 0,
+                          right: reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 14 : 0) : 0,
+                        ),
+                        child: Align(
+                          alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
+                          child: _buildBottomRow(context),
+                        ),
+                      ),
+                      if (actionBar != null)
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: !reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 4 : 0) : 0,
+                            right: reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 4 : 0) : 0,
+                          ),
+                          child: Align(
+                            alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
+                            child: actionBar!(),
+                          ),
+                        ),
+                      ],
+                    ),
                   if (isDesktopDeviceOrWeb && showReactions) ...[
                     Padding(
                       padding: showUserAvatar != DisplayWidget.gone
