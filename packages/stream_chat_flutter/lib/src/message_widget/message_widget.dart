@@ -681,7 +681,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
   /// {@endtemplate}
   bool get shouldShowReactions =>
       widget.showReactions &&
-      (widget.message.reactionCounts?.isNotEmpty == true) &&
+      ((widget.message.reactionCounts?.isNotEmpty == true) || isDesktopDeviceOrWeb) &&
       !widget.message.isDeleted;
 
   bool get shouldShowReplyAction =>
@@ -1133,26 +1133,29 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     const iconSize = 14.0;
     final items = messageActionItems(iconSize: iconSize);
     
-    return Container(
+    return showBottomRow ? Container(
       padding: EdgeInsets.zero,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Wrap(
+        spacing: 16,
         children: [
           for (final item in items)
-            if (item.leading != null) // Only show items with icons
+            if (item.leading != null)
               Tooltip(
+                height: 0,
+                padding: EdgeInsets.zero,
                 margin: EdgeInsets.zero,
                 message: (item.title as Text?)?.data ?? '',
-                child: IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: item.leading!,
-                  onPressed: item.onClick,
-                  padding: EdgeInsets.zero,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: item.onClick,
+                    child: item.leading!,
+                  ),
                 ),
               ),
         ],
       ),
-    );
+    ) : const SizedBox.shrink();
   }
 
   void showMessageReactionsModal(BuildContext context) {
