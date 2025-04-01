@@ -232,12 +232,13 @@ class MessageWidgetContent extends StatelessWidget {
 
   /// {@macro textBubbleBuilder}
   final TextBubbleBuilder? textBubbleBuilder;
-  
-  /// Builder function for the message actions bar
+
+  /// {@macro actionBar}
   final Widget Function()? actionBar;
 
   @override
   Widget build(BuildContext context) {
+    final bottomWidgetsHeight = showBottomRow ? 55.0 : 0.0;
     return Column(
       crossAxisAlignment:
           reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -269,20 +270,11 @@ class MessageWidgetContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (!reverse &&
-                          showUserAvatar == DisplayWidget.show &&
-                          message.user != null) ...[
-                        UserAvatarTransform(
-                          onUserAvatarTap: onUserAvatarTap,
-                          userAvatarBuilder: userAvatarBuilder,
-                          translateUserAvatar: translateUserAvatar,
-                          messageTheme: messageTheme,
-                          message: message,
-                        ),
+                      if (!reverse && showUserAvatar == DisplayWidget.show && message.user != null) ...[
+                        userAvatarWidget(bottomWidgetsHeight),
                         const SizedBox(width: 4),
                       ],
-                      if (showUserAvatar == DisplayWidget.hide)
-                        SizedBox(width: avatarWidth + 4),
+
                       Flexible(
                         child: PortalTarget(
                           visible: isMobileDevice && showReactions,
@@ -305,7 +297,9 @@ class MessageWidgetContent extends StatelessWidget {
                               -1,
                             ),
                           ),
-                          child: Stack(
+                          child: Align(
+                            alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Stack(
                             clipBehavior: Clip.none,
                             children: [
                               Padding(
@@ -328,17 +322,10 @@ class MessageWidgetContent extends StatelessWidget {
                                           messageTheme: messageTheme,
                                         ),
                                       )
-                                    : Wrap(
+                                    : Column(
+                                        crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          if (isDesktopDeviceOrWeb && showReactions && reverse)
-                                            Tooltip(
-                                              message: 'Reactions',
-                                              child: IconButton(
-                                                onPressed: onReactionsTap,
-                                                icon: const Icon(Icons.emoji_emotions),
-                                                iconSize: 14,
-                                              ),
-                                            ),
                                           MessageCard(
                                             message: message,
                                             isFailedState: isFailedState,
@@ -373,18 +360,19 @@ class MessageWidgetContent extends StatelessWidget {
                                             shape: shape,
                                             textBubbleBuilder: textBubbleBuilder,
                                           ),
-                                          if (isDesktopDeviceOrWeb && showReactions && !reverse)
-                                            Tooltip(
-                                              message: 'Reactions',
-                                              child: IconButton(
-                                                onPressed: onReactionsTap,
-                                                icon: const Icon(Icons.emoji_emotions),
-                                                iconSize: 14,
-                                              ),
+                                          Container(
+                                            padding: EdgeInsets.zero,
+                                            height: bottomWidgetsHeight,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                              children: bottomWidgets(context, bottomWidgetsHeight),
                                             ),
+                                          ),
                                         ],
                                   ),
                               ),
+                              /*
                               // TODO: Make tail part of the Reaction Picker.
                               if (showReactionPickerTail)
                                 Positioned(
@@ -401,74 +389,24 @@ class MessageWidgetContent extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                              */
                             ],
                           ),
                         ),
-                      ),
-                      if (reverse &&
-                          showUserAvatar == DisplayWidget.show &&
-                          message.user != null) ...[
-                        UserAvatarTransform(
-                          onUserAvatarTap: onUserAvatarTap,
-                          userAvatarBuilder: userAvatarBuilder,
-                          translateUserAvatar: translateUserAvatar,
-                          messageTheme: messageTheme,
-                          message: message,
                         ),
-                        const SizedBox(width: 4),
+                      ),
+                      if (reverse && showUserAvatar == DisplayWidget.show && message.user != null) ...[
+                          const SizedBox(width: 4),
+                          userAvatarWidget(bottomWidgetsHeight)
                       ],
-                      if (showUserAvatar == DisplayWidget.hide)
-                        SizedBox(width: avatarWidth + 4),
                     ],
                   ),
-                  if (showBottomRow)
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: !reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 14 : 0) : 0,
-                          right: reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 14 : 0) : 0,
-                        ),
-                        child: Align(
-                          alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
-                          child: _buildBottomRow(context),
-                        ),
-                      ),
-                      if (actionBar != null)
-                        Padding(
-                          padding: EdgeInsets.only(
-                            left: !reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 4 : 0) : 0,
-                            right: reverse ? (showUserAvatar != DisplayWidget.gone ? avatarWidth + 4 : 0) : 0,
-                          ),
-                          child: Align(
-                            alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
-                            child: actionBar!(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (isDesktopDeviceOrWeb && showReactions) ...[
-                    Padding(
-                      padding: showUserAvatar != DisplayWidget.gone
-                          ? EdgeInsets.only(
-                              left: avatarWidth + 4,
-                              right: avatarWidth + 4,
-                            )
-                          : EdgeInsets.zero,
-                      child: DesktopReactionsBuilder(
-                        message: message,
-                        messageTheme: messageTheme,
-                        onHover: onReactionsHover,
-                        borderSide: borderSide,
-                        reverse: reverse,
-                      ),
-                    ),
-                  ],
+                  /*
                   if (showBottomRow)
                     SizedBox(
                       height: context.textScaleFactor * 18.0,
                     ),
+                  */
                 ],
               ),
             ),
@@ -483,6 +421,92 @@ class MessageWidgetContent extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget userAvatarWidget(double bottomWidgetsHeight) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        UserAvatarTransform(
+          onUserAvatarTap: onUserAvatarTap,
+          userAvatarBuilder: userAvatarBuilder,
+          translateUserAvatar: translateUserAvatar,
+          messageTheme: messageTheme,
+          message: message,
+        ),
+        SizedBox(height: bottomWidgetsHeight),
+      ],
+    );
+  }
+
+  List<Widget> bottomWidgets(BuildContext context, double bottomWidgetsHeight){
+    return [
+      if (showBottomRow)
+        Padding(
+          padding: reverse ? const EdgeInsets.fromLTRB(0, 0, 10, 0): const EdgeInsets.fromLTRB(10, 0, 0, 0),
+          child: Align(
+            alignment: reverse ? Alignment.topRight : Alignment.topLeft,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: _buildRowChildren(context),
+            ),
+          ),
+      ),
+      const SizedBox(height: 8),
+      if (actionBar != null)
+        Padding(
+          padding: reverse ? const EdgeInsets.fromLTRB(0, 0, 10, 0): const EdgeInsets.fromLTRB(10, 0, 0, 0),
+          child: Align(
+            alignment: reverse ? Alignment.topRight : Alignment.topLeft,
+            child: actionBar!(),
+          ),
+        ),
+    ];
+  }
+
+   List<Widget> _buildRowChildren(BuildContext context) {
+    final reactionsRow = isDesktopDeviceOrWeb && showReactions
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Tooltip(
+                message: 'Reactions',
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: onReactionsTap,
+                    child: const Icon(
+                      Icons.emoji_emotions,
+                      size: 14,
+                    ),
+                  ),
+                ),
+              ),
+              DesktopReactionsBuilder(
+                message: message,
+                messageTheme: messageTheme,
+                onHover: onReactionsHover,
+                borderSide: borderSide,
+                reverse: reverse,
+              ),
+            ],
+          )
+        : const SizedBox.shrink();
+
+    if (reverse) {
+      return [
+        reactionsRow,
+        const SizedBox(width: 8),
+        _buildBottomRow(context),
+      ];
+    } else {
+      return [
+        _buildBottomRow(context),
+        const SizedBox(width: 8),
+        reactionsRow,
+      ];
+    }
   }
 
   Widget _buildBottomRow(BuildContext context) {
