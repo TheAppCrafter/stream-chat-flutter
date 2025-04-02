@@ -63,6 +63,7 @@ class MessageWidgetContent extends StatelessWidget {
     required this.showTimeStamp,
     required this.showUsername,
     required this.showEditedLabel,
+    required this.showActionBar,
     required this.messageWidget,
     required this.onThreadTap,
     this.onUserAvatarTap,
@@ -106,6 +107,9 @@ class MessageWidgetContent extends StatelessWidget {
 
   /// {@macro onReactionsTap}
   final VoidCallback onReactionsTap;
+
+  /// {@macro showActionBar}
+  final bool showActionBar;
 
   /// {@macro onReactionsHover}
   final OnReactionsHover? onReactionsHover;
@@ -238,7 +242,6 @@ class MessageWidgetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomWidgetsHeight = showBottomRow ? 55.0 : 0.0;
     return Column(
       crossAxisAlignment:
           reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -270,108 +273,94 @@ class MessageWidgetContent extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (!reverse && showUserAvatar == DisplayWidget.show && message.user != null) ...[
-                        userAvatarWidget(bottomWidgetsHeight),
-                        const SizedBox(width: 4),
-                      ],
+                      if (!reverse && showUserAvatar == DisplayWidget.show && message.user != null)
+                        SizedBox(width: avatarWidth + 4),
 
                       Flexible(
-                        child: PortalTarget(
-                          visible: isMobileDevice && showReactions,
-                          portalFollower: isMobileDevice && showReactions
-                              ? ReactionIndicator(
-                                  message: message,
-                                  messageTheme: messageTheme,
-                                  ownId: streamChat.currentUser!.id,
-                                  reverse: reverse,
-                                  onTap: onReactionsTap,
-                                )
-                              : null,
-                          anchor: Aligned(
-                            follower: Alignment(
-                              reverse ? 1 : -1,
-                              -1,
-                            ),
-                            target: Alignment(
-                              reverse ? -1 : 1,
-                              -1,
-                            ),
-                          ),
-                          child: Align(
+                        child: Align(
                             alignment: reverse ? Alignment.centerRight : Alignment.centerLeft,
                             child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              Padding(
-                                padding: showReactions
-                                    ? const EdgeInsets.only(top: 18)
-                                    : EdgeInsets.zero,
-                                child: (message.isDeleted && !isFailedState)
-                                    ? Container(
-                                        margin: EdgeInsets.symmetric(
-                                          horizontal: showUserAvatar ==
-                                                  DisplayWidget.gone
-                                              ? 0
-                                              : 4.0,
+                              if (message.isDeleted && !isFailedState)
+                                Container(
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: showUserAvatar ==
+                                              DisplayWidget.gone
+                                          ? 0
+                                          : 4.0,
+                                    ),
+                                    child: StreamDeletedMessage(
+                                      borderRadiusGeometry:
+                                          borderRadiusGeometry,
+                                      borderSide: borderSide,
+                                      shape: shape,
+                                      messageTheme: messageTheme,
+                                    ),
+                                  )
+                              else
+                                Column(
+                                    crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      PortalTarget(
+                                        visible: showUserAvatar == DisplayWidget.show && message.user != null,
+                                        portalFollower: userAvatarWidget(),
+                                        anchor: Aligned(
+                                          follower: Alignment(reverse ? -1 : 1, 1),
+                                          target: Alignment(reverse ? 1 : -1, 1),
+                                          offset: Offset(reverse ? 7 : -7, 0),
                                         ),
-                                        child: StreamDeletedMessage(
+                                        child: MessageCard(
+                                          message: message,
+                                          isFailedState: isFailedState,
+                                          showUserAvatar: DisplayWidget.gone, // Hide built-in avatar
+                                          messageTheme: messageTheme,
+                                          hasQuotedMessage: hasQuotedMessage,
+                                          hasUrlAttachments: hasUrlAttachments,
+                                          hasNonUrlAttachments:
+                                              hasNonUrlAttachments,
+                                          hasPoll: hasPoll,
+                                          isOnlyEmoji: isOnlyEmoji,
+                                          isGiphy: isGiphy,
+                                          attachmentBuilders: attachmentBuilders,
+                                          attachmentPadding: attachmentPadding,
+                                          attachmentShape: attachmentShape,
+                                          onAttachmentTap: onAttachmentTap,
+                                          onReplyTap: onReplyTap,
+                                          onShowMessage: onShowMessage,
+                                          attachmentActionsModalBuilder:
+                                              attachmentActionsModalBuilder,
+                                          textPadding: textPadding,
+                                          reverse: reverse,
+                                          onQuotedMessageTap: onQuotedMessageTap,
+                                          onMentionTap: onMentionTap,
+                                          onLinkTap: onLinkTap,
+                                          textBuilder: textBuilder,
+                                          quotedMessageBuilder:
+                                              quotedMessageBuilder,
                                           borderRadiusGeometry:
                                               borderRadiusGeometry,
                                           borderSide: borderSide,
                                           shape: shape,
-                                          messageTheme: messageTheme,
+                                          textBubbleBuilder: textBubbleBuilder,
                                         ),
-                                      )
-                                    : Column(
-                                        crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          MessageCard(
-                                            message: message,
-                                            isFailedState: isFailedState,
-                                            showUserAvatar: showUserAvatar,
-                                            messageTheme: messageTheme,
-                                            hasQuotedMessage: hasQuotedMessage,
-                                            hasUrlAttachments: hasUrlAttachments,
-                                            hasNonUrlAttachments:
-                                                hasNonUrlAttachments,
-                                            hasPoll: hasPoll,
-                                            isOnlyEmoji: isOnlyEmoji,
-                                            isGiphy: isGiphy,
-                                            attachmentBuilders: attachmentBuilders,
-                                            attachmentPadding: attachmentPadding,
-                                            attachmentShape: attachmentShape,
-                                            onAttachmentTap: onAttachmentTap,
-                                            onReplyTap: onReplyTap,
-                                            onShowMessage: onShowMessage,
-                                            attachmentActionsModalBuilder:
-                                                attachmentActionsModalBuilder,
-                                            textPadding: textPadding,
-                                            reverse: reverse,
-                                            onQuotedMessageTap: onQuotedMessageTap,
-                                            onMentionTap: onMentionTap,
-                                            onLinkTap: onLinkTap,
-                                            textBuilder: textBuilder,
-                                            quotedMessageBuilder:
-                                                quotedMessageBuilder,
-                                            borderRadiusGeometry:
-                                                borderRadiusGeometry,
-                                            borderSide: borderSide,
-                                            shape: shape,
-                                            textBubbleBuilder: textBubbleBuilder,
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.zero,
-                                            height: bottomWidgetsHeight,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                              children: bottomWidgets(context, bottomWidgetsHeight),
-                                            ),
-                                          ),
-                                        ],
-                                  ),
-                              ),
+                                      ),
+                                      BottomWidget(
+                                        showReactions: showReactions,
+                                        showActionBar: showActionBar,
+                                        showBottomRow: showBottomRow,
+                                        reverse: reverse,
+                                        onReactionsTap: onReactionsTap,
+                                        actionBar: actionBar,
+                                        buildBottomRow: _buildBottomRow(context),
+                                        messageTheme: messageTheme,
+                                        message: message,
+                                        onReactionsHover: onReactionsHover,
+                                        borderSide: borderSide,
+                                      ),
+                                    ],
+                                ),
                               /*
                               // TODO: Make tail part of the Reaction Picker.
                               if (showReactionPickerTail)
@@ -393,12 +382,9 @@ class MessageWidgetContent extends StatelessWidget {
                             ],
                           ),
                         ),
-                        ),
                       ),
-                      if (reverse && showUserAvatar == DisplayWidget.show && message.user != null) ...[
-                          const SizedBox(width: 4),
-                          userAvatarWidget(bottomWidgetsHeight)
-                      ],
+                      if (reverse && showUserAvatar == DisplayWidget.show && message.user != null)
+                        SizedBox(width: avatarWidth + 4),
                     ],
                   ),
                   /*
@@ -423,90 +409,14 @@ class MessageWidgetContent extends StatelessWidget {
     );
   }
 
-  Widget userAvatarWidget(double bottomWidgetsHeight) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        UserAvatarTransform(
-          onUserAvatarTap: onUserAvatarTap,
-          userAvatarBuilder: userAvatarBuilder,
-          translateUserAvatar: translateUserAvatar,
-          messageTheme: messageTheme,
-          message: message,
-        ),
-        SizedBox(height: bottomWidgetsHeight),
-      ],
+  Widget userAvatarWidget() {
+    return UserAvatarTransform(
+      onUserAvatarTap: onUserAvatarTap,
+      userAvatarBuilder: userAvatarBuilder,
+      translateUserAvatar: translateUserAvatar,
+      messageTheme: messageTheme,
+      message: message,
     );
-  }
-
-  List<Widget> bottomWidgets(BuildContext context, double bottomWidgetsHeight){
-    return [
-      if (showBottomRow)
-        Padding(
-          padding: reverse ? const EdgeInsets.fromLTRB(0, 0, 10, 0): const EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: Align(
-            alignment: reverse ? Alignment.topRight : Alignment.topLeft,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: _buildRowChildren(context),
-            ),
-          ),
-      ),
-      const SizedBox(height: 8),
-      if (actionBar != null)
-        Padding(
-          padding: reverse ? const EdgeInsets.fromLTRB(0, 0, 10, 0): const EdgeInsets.fromLTRB(10, 0, 0, 0),
-          child: Align(
-            alignment: reverse ? Alignment.topRight : Alignment.topLeft,
-            child: actionBar!(),
-          ),
-        ),
-    ];
-  }
-
-   List<Widget> _buildRowChildren(BuildContext context) {
-    final reactionsRow = isDesktopDeviceOrWeb && showReactions
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Tooltip(
-                message: 'Reactions',
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: onReactionsTap,
-                    child: const Icon(
-                      Icons.emoji_emotions,
-                      size: 14,
-                    ),
-                  ),
-                ),
-              ),
-              DesktopReactionsBuilder(
-                message: message,
-                messageTheme: messageTheme,
-                onHover: onReactionsHover,
-                borderSide: borderSide,
-                reverse: reverse,
-              ),
-            ],
-          )
-        : const SizedBox.shrink();
-
-    if (reverse) {
-      return [
-        reactionsRow,
-        const SizedBox(width: 8),
-        _buildBottomRow(context),
-      ];
-    } else {
-      return [
-        _buildBottomRow(context),
-        const SizedBox(width: 8),
-        reactionsRow,
-      ];
-    }
   }
 
   Widget _buildBottomRow(BuildContext context) {
@@ -539,5 +449,180 @@ class MessageWidgetContent extends StatelessWidget {
     }
 
     return defaultWidget;
+  }
+}
+
+class BottomWidget extends StatefulWidget {
+
+  const BottomWidget({
+    super.key,
+    required this.showReactions,
+    required this.showActionBar,
+    required this.showBottomRow,
+    required this.reverse,
+    required this.onReactionsTap,
+    required this.actionBar,
+    required this.buildBottomRow,
+    required this.messageTheme,
+    required this.message,
+    required this.onReactionsHover,
+    required this.borderSide,
+  });
+
+  final bool showReactions;
+  final bool showActionBar;
+  final bool showBottomRow;
+  final bool reverse;
+  final VoidCallback onReactionsTap;
+  final Widget Function()? actionBar;
+  final Widget buildBottomRow;
+  final StreamMessageThemeData messageTheme;
+  final Message message;
+  final OnReactionsHover? onReactionsHover;
+  final BorderSide? borderSide;
+  @override
+  State<BottomWidget> createState() => BottomWidgetState();
+}
+
+class BottomWidgetState extends State<BottomWidget> {
+  bool showAllReactions = false;
+  bool get isMobileDevice => CurrentPlatform.isAndroid || CurrentPlatform.isIos;
+  bool get isDesktopDeviceOrWeb => !isMobileDevice;
+
+  void toggleShowAllReactions() {
+    setState(() {
+      showAllReactions = !showAllReactions;
+    });
+  }
+
+  Widget reactionRow() {
+    return ReactionsRow(
+      message: widget.message,
+      messageTheme: widget.messageTheme,
+      onReactionsTap: widget.onReactionsTap,
+      onReactionsHover: widget.onReactionsHover,
+      borderSide: widget.borderSide,
+      reverse: widget.reverse,
+      isDesktopDeviceOrWeb: isDesktopDeviceOrWeb,
+    );
+  }
+
+  List<Widget> _buildRowChildren(BuildContext context) {
+    if (widget.reverse) {
+      return [
+        if (widget.showReactions) reactionRow(),
+        if (widget.showReactions) const SizedBox(width: 16),
+        widget.buildBottomRow,
+      ];
+    } else {
+      return [
+        widget.buildBottomRow,
+        if (widget.showReactions) const SizedBox(width: 16),
+        if (widget.showReactions) reactionRow(),
+      ];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: widget.reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        if (widget.showBottomRow)
+          Padding(
+            padding: widget.reverse ? const EdgeInsets.fromLTRB(0, 0, 8, 0): const EdgeInsets.fromLTRB(8, 0, 0, 0),
+            child: Align(
+              alignment: widget.reverse ? Alignment.centerRight : Alignment.centerLeft,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: _buildRowChildren(context),
+              ),
+            ),
+        ),
+        const SizedBox(height: 6),
+        if (widget.showActionBar && widget.actionBar != null)
+          Padding(
+            padding: widget.reverse ? const EdgeInsets.fromLTRB(0, 0, 10, 0): const EdgeInsets.fromLTRB(10, 0, 0, 0),
+            child: Align(
+              alignment: widget.reverse ? Alignment.topRight : Alignment.topLeft,
+              child: widget.actionBar!(),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// Create a separate StatefulWidget for reactions
+class ReactionsRow extends StatefulWidget {
+  const ReactionsRow({
+    Key? key,
+    required this.message,
+    required this.messageTheme,
+    required this.onReactionsTap,
+    required this.onReactionsHover,
+    required this.borderSide,
+    required this.reverse,
+    required this.isDesktopDeviceOrWeb,
+  }) : super(key: key);
+
+  final Message message;
+  final StreamMessageThemeData messageTheme;
+  final VoidCallback onReactionsTap;
+  final OnReactionsHover? onReactionsHover;
+  final BorderSide? borderSide;
+  final bool reverse;
+  final bool isDesktopDeviceOrWeb;
+
+  @override
+  State<ReactionsRow> createState() => _ReactionsRowState();
+}
+
+class _ReactionsRowState extends State<ReactionsRow> {
+  bool showAllReactions = false;
+
+  void toggleShowAllReactions() {
+    setState(() {
+      showAllReactions = !showAllReactions;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reactions = DesktopReactionsBuilder(
+      message: widget.message,
+      messageTheme: widget.messageTheme,
+      onHover: widget.onReactionsHover,
+      borderSide: widget.borderSide,
+      reverse: widget.reverse,
+      showAll: showAllReactions,
+    );
+    
+    final newReactionButton = Tooltip(
+      message: 'Reactions',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.isDesktopDeviceOrWeb ? toggleShowAllReactions : widget.onReactionsTap,
+          child: const Icon(
+            Icons.emoji_emotions,
+            size: 14,
+          ),
+        ),
+      ),
+    );
+
+    final reactionWidgetList = widget.reverse 
+        ? [if (widget.isDesktopDeviceOrWeb) newReactionButton, if (widget.isDesktopDeviceOrWeb) const SizedBox(width: 4), reactions] 
+        : [reactions, if (widget.isDesktopDeviceOrWeb) const SizedBox(width: 4), if (widget.isDesktopDeviceOrWeb) newReactionButton];
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: widget.reverse ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: reactionWidgetList,
+    );
   }
 }
