@@ -75,6 +75,7 @@ class StreamMessageWidget extends StatefulWidget {
     this.showFlagButton = true,
     this.showPinButton = true,
     this.showPinHighlight = true,
+    this.showActionBar = false,
     this.onUserAvatarTap,
     this.onLinkTap,
     this.onMessageActions,
@@ -358,6 +359,11 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final bool showReadAloudMessage;
 
+  /// {@template showActionBar}
+  /// Display Action Bar
+  /// {@endtemplate}
+  final bool showActionBar;
+
   /// {@template onReadAloudTap}
   /// The function called when tapping on Read Aloud
   /// {@endtemplate}
@@ -482,6 +488,7 @@ class StreamMessageWidget extends StatefulWidget {
     bool? showPinButton,
     bool? showPinHighlight,
     bool? showMarkUnreadMessage,
+    bool? showActionBar,
     List<StreamAttachmentWidgetBuilder>? attachmentBuilders,
     bool? translateUserAvatar,
     OnQuotedMessageTap? onQuotedMessageTap,
@@ -556,6 +563,7 @@ class StreamMessageWidget extends StatefulWidget {
       showPinHighlight: showPinHighlight ?? this.showPinHighlight,
       showMarkUnreadMessage:
           showMarkUnreadMessage ?? this.showMarkUnreadMessage,
+      showActionBar: showActionBar ?? this.showActionBar,
       attachmentBuilders: attachmentBuilders ?? this.attachmentBuilders,
       translateUserAvatar: translateUserAvatar ?? this.translateUserAvatar,
       onQuotedMessageTap: onQuotedMessageTap ?? this.onQuotedMessageTap,
@@ -841,6 +849,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                         bottomRowBuilderWithDefaultWidget: widget.bottomRowBuilderWithDefaultWidget,
                         onUserAvatarTap: widget.onUserAvatarTap,
                         userAvatarBuilder: widget.userAvatarBuilder,
+                        showActionBar: widget.showActionBar,
                         actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
                       ),
                     ],
@@ -1177,14 +1186,15 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                   ? '${widget.message.text!.substring(0, 200)}...'
                   : widget.message.text,
             ),
-            showReactions: false,
+            showReactions: true,
             showReactionTail: calculateReactionTailEnabled(
               ReactionTailType.reactions,
             ),
-            showUsername: false,
-            showTimestamp: false,
+            showUsername: true,
+            showTimestamp: true,
+            showActionBar: false,
             translateUserAvatar: false,
-            showSendingIndicator: false,
+            showSendingIndicator: true,
             padding: EdgeInsets.zero,
             showReactionPicker: widget.showReactionPicker,
             showPinHighlight: false,
@@ -1237,10 +1247,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
               showReactionTail: calculateReactionTailEnabled(
                 ReactionTailType.messageActions,
               ),
-              showUsername: false,
-              showTimestamp: false,
+              showUsername: true,
+              showTimestamp: true,
               translateUserAvatar: false,
-              showSendingIndicator: false,
+              showSendingIndicator: true,
               padding: EdgeInsets.zero,
               showPinHighlight: false,
               showUserAvatar: widget.message.user!.id ==
