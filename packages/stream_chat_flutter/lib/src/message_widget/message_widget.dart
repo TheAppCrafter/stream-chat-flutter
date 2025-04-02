@@ -1007,6 +1007,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
             }
             showModalBottomSheet(
               context: context,
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width, maxHeight: MediaQuery.of(context).size.height),
               elevation: 2,
               clipBehavior: Clip.hardEdge,
               isScrollControlled: true,
