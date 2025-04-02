@@ -21,6 +21,7 @@ class DesktopReactionsBuilder extends StatefulWidget {
     this.onHover,
     this.borderSide,
     required this.reverse,
+    this.showAll = false
   });
 
   /// The message to show reactions for.
@@ -40,6 +41,9 @@ class DesktopReactionsBuilder extends StatefulWidget {
 
   /// {@macro reverse}
   final bool reverse;
+
+  /// Whether to show all reactions or not.
+  final bool showAll;
 
   @override
   State<DesktopReactionsBuilder> createState() =>
@@ -61,6 +65,7 @@ class DesktopReactionsBuilder extends StatefulWidget {
       DiagnosticsProperty<BorderSide?>('borderSide', borderSide),
     );
     properties.add(DiagnosticsProperty<bool>('reverse', reverse));
+    properties.add(DiagnosticsProperty<bool>('showAll', showAll));
   }
 }
 
@@ -74,73 +79,148 @@ class _DesktopReactionsBuilderState extends State<DesktopReactionsBuilder> {
     final reactionIcons = StreamChatConfiguration.of(context).reactionIcons;
     final streamChatTheme = StreamChatTheme.of(context);
 
-    final reactionsMap = <String, Reaction>{};
-    widget.message.latestReactions?.forEach((element) {
-      if (!reactionsMap.containsKey(element.type) ||
-          element.user!.id == currentUser.id) {
-        reactionsMap[element.type] = element;
-      }
-    });
+    if (widget.message.latestReactions != null) {
+      final reactionTypes = widget.message.latestReactions!.map((r) => r.type).toList();
+    }
 
-    final reactionsList = reactionsMap.values.toList()
-      ..sort((a, b) => a.user!.id == currentUser.id ? 1 : -1);
-
-    return PortalTarget(
-      visible: _showReactionsPopup,
-      portalCandidateLabels: const [kPortalMessageListViewLabel],
-      anchor: Aligned(
-        target: widget.reverse ? Alignment.topRight : Alignment.topLeft,
-        follower: widget.reverse ? Alignment.bottomRight : Alignment.bottomLeft,
-        shiftToWithinBound: const AxisFlag(y: true),
-      ),
-      portalFollower: MouseRegion(
-        onEnter: (_) => _onReactionsHover(true),
-        onExit: (_) => _onReactionsHover(false),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 336,
-            maxHeight: 342,
-          ),
-          child: ReactionsCard(
-            currentUser: currentUser,
-            message: widget.message,
-            messageTheme: widget.messageTheme,
+    if (widget.showAll) {
+      // When showAll is true, show all available reaction icons from configuration
+      
+      return PortalTarget(
+        visible: _showReactionsPopup,
+        portalCandidateLabels: const [kPortalMessageListViewLabel],
+        anchor: Aligned(
+          target: widget.reverse ? Alignment.topRight : Alignment.topLeft,
+          follower: widget.reverse ? Alignment.bottomRight : Alignment.bottomLeft,
+          shiftToWithinBound: const AxisFlag(y: true),
+        ),
+        portalFollower: MouseRegion(
+          onEnter: (_) => _onReactionsHover(true),
+          onExit: (_) => _onReactionsHover(false),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 336,
+              maxHeight: 342,
+            ),
+            child: ReactionsCard(
+              currentUser: currentUser,
+              message: widget.message,
+              messageTheme: widget.messageTheme,
+            ),
           ),
         ),
-      ),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => _onReactionsHover(true),
-        onExit: (_) => _onReactionsHover(false),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: 2,
-            horizontal: widget.reverse ? 0 : 4,
-          ),
-          child: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              ...reactionsList.map((reaction) {
-                final reactionIcon = reactionIcons.firstWhereOrNull(
-                  (r) => r.type == reaction.type,
-                );
-
-                return _BottomReaction(
-                  currentUser: currentUser,
-                  reaction: reaction,
-                  message: widget.message,
-                  borderSide: widget.borderSide,
-                  messageTheme: widget.messageTheme,
-                  reactionIcon: reactionIcon,
-                  streamChatTheme: streamChatTheme,
-                );
-              }).toList(),
-            ],
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => _onReactionsHover(true),
+          onExit: (_) => _onReactionsHover(false),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: 2,
+              horizontal: widget.reverse ? 0 : 4,
+            ),
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: [
+                ...reactionIcons.map((reactionIcon) {
+                  // Check if this reaction type already exists in message reactions
+                  final existingReaction = widget.message.latestReactions?.firstWhereOrNull(
+                    (r) => r.type == reactionIcon.type,
+                  );
+                  
+                  // If the reaction exists in message, use it, otherwise create a dummy one
+                  final reaction = existingReaction ?? 
+                      Reaction(
+                        type: reactionIcon.type,
+                        score: 0,
+                        user: currentUser,
+                      );
+                  
+                  return _BottomReaction(
+                    currentUser: currentUser,
+                    reaction: reaction,
+                    message: widget.message,
+                    borderSide: widget.borderSide,
+                    messageTheme: widget.messageTheme,
+                    reactionIcon: reactionIcon,
+                    streamChatTheme: streamChatTheme,
+                  );
+                }).toList(),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      // Default behavior - show one reaction per type that exists on the message
+      final reactionsMap = <String, Reaction>{};
+      widget.message.latestReactions?.forEach((element) {
+        if (!reactionsMap.containsKey(element.type) ||
+            element.user!.id == currentUser.id) {
+          reactionsMap[element.type] = element;
+        }
+      });
+
+      final reactionsList = reactionsMap.values.toList()
+        ..sort((a, b) => a.user!.id == currentUser.id ? 1 : -1);
+
+      return PortalTarget(
+        visible: _showReactionsPopup,
+        portalCandidateLabels: const [kPortalMessageListViewLabel],
+        anchor: Aligned(
+          target: widget.reverse ? Alignment.topRight : Alignment.topLeft,
+          follower: widget.reverse ? Alignment.bottomRight : Alignment.bottomLeft,
+          shiftToWithinBound: const AxisFlag(y: true),
+        ),
+        portalFollower: MouseRegion(
+          onEnter: (_) => _onReactionsHover(true),
+          onExit: (_) => _onReactionsHover(false),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 336,
+              maxHeight: 342,
+            ),
+            child: ReactionsCard(
+              currentUser: currentUser,
+              message: widget.message,
+              messageTheme: widget.messageTheme,
+            ),
+          ),
+        ),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          onEnter: (_) => _onReactionsHover(true),
+          onExit: (_) => _onReactionsHover(false),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              vertical: 2,
+              horizontal: widget.reverse ? 0 : 4,
+            ),
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: [
+                ...reactionsList.map((reaction) {
+                  final reactionIcon = reactionIcons.firstWhereOrNull(
+                    (r) => r.type == reaction.type,
+                  );
+
+                  return _BottomReaction(
+                    currentUser: currentUser,
+                    reaction: reaction,
+                    message: widget.message,
+                    borderSide: widget.borderSide,
+                    messageTheme: widget.messageTheme,
+                    reactionIcon: reactionIcon,
+                    streamChatTheme: streamChatTheme,
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   void _onReactionsHover(bool isHovering) {
@@ -174,22 +254,27 @@ class _BottomReaction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userId = currentUser.id;
-
     final backgroundColor = messageTheme?.reactionsBackgroundColor;
+    
+    // Check if this reaction exists in the message (has a score > 0)
+    final isExistingReaction = reaction.score > 0;
+    // Check if current user has already reacted with this reaction
+    final isUserReaction = reaction.userId == userId;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if (reaction.userId == userId) {
+        if (isExistingReaction && isUserReaction) {
+          // User has already reacted, so delete the reaction
           StreamChannel.of(context).channel.deleteReaction(
                 message,
                 reaction,
               );
         } else if (reactionIcon != null) {
+          // User hasn't reacted or is adding a different reaction
           StreamChannel.of(context).channel.sendReaction(
                 message,
                 reactionIcon!.type,
-                score: reaction.score + 1,
                 enforceUnique:
                     StreamChatConfiguration.of(context).enforceUniqueReactions,
               );
@@ -219,25 +304,27 @@ class _BottomReaction extends StatelessWidget {
                 ),
                 child: reactionIcon?.builder(
                       context,
-                      reaction.user?.id == userId,
+                      isUserReaction,
                       14,
                     ) ??
                     Icon(
                       Icons.help_outline_rounded,
                       size: 14,
-                      color: reaction.user?.id == userId
+                      color: isUserReaction
                           ? streamChatTheme.colorTheme.accentPrimary
                           : streamChatTheme.colorTheme.textLowEmphasis,
                     ),
               ),
-              const SizedBox(width: 4),
-              Text(
-                '${reaction.score}',
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              if (isExistingReaction) ...[
+                const SizedBox(width: 4),
+                Text(
+                  '${reaction.score}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
