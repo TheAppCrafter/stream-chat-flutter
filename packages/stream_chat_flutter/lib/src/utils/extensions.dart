@@ -129,6 +129,24 @@ extension IterableExtension<T> on Iterable<T> {
       }).skip(1).toList(growable: false);
 }
 
+String getAttachmentType(String? mimeType) {
+  String attachmentType;
+  if (mimeType != null) {
+    if (mimeType.startsWith('image/')) {
+      attachmentType = 'image';
+    } else if (mimeType.startsWith('video/')) {
+      attachmentType = 'video';
+    } else if (mimeType.startsWith('audio/')) {
+      attachmentType = 'audio';
+    } else {
+      attachmentType = 'file';
+    }
+  } else {
+    attachmentType = 'file'; // Default to file type if no mime type is available
+  }
+  return attachmentType;
+}
+
 /// Useful extension for [PlatformFile]
 extension PlatformFileX on PlatformFile {
   /// Converts the [PlatformFile] into [AttachmentFile]
@@ -142,7 +160,7 @@ extension PlatformFileX on PlatformFile {
   }
 
   /// Converts the [PlatformFile] to a [Attachment].
-  Attachment toAttachment({required String type}) {
+  Attachment toAttachment({String? type}) {
     final file = toAttachmentFile;
     final extraDataMap = <String, Object>{};
 
@@ -152,11 +170,13 @@ extension PlatformFileX on PlatformFile {
       extraDataMap['mime_type'] = mimeType;
     }
 
+    final attachmentType = type ?? getAttachmentType(mimeType);
+
     extraDataMap['file_size'] = file.size!;
 
     final attachment = Attachment(
       file: file,
-      type: type,
+      type: attachmentType,
       extraData: extraDataMap,
     );
 
@@ -189,22 +209,7 @@ extension XFileX on XFile {
       extraDataMap['mime_type'] = mimeType;
     }
 
-    var attachmentType = type;
-    if (attachmentType == null) {
-      if (mimeType != null) {
-        if (mimeType.startsWith('image/')) {
-          attachmentType = 'image';
-        } else if (mimeType.startsWith('video/')) {
-          attachmentType = 'video';
-        } else if (mimeType.startsWith('audio/')) {
-          attachmentType = 'audio';
-        } else {
-          attachmentType = 'file';
-        }
-      } else {
-        attachmentType = 'file'; // Default to file type if no mime type is available
-      }
-    }
+    final attachmentType = type ?? getAttachmentType(mimeType);
 
     extraDataMap['file_size'] = file.size!;
 
