@@ -779,8 +779,8 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                 ),
               );
             },
-            desktop: (_, child) => MouseRegion(child: SelectionArea(child: child)),
-            web: (_, child) => MouseRegion(child: SelectionArea(child: child)),
+            desktop: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
+            web: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
             child: Padding(
               padding: widget.padding ?? const EdgeInsets.all(8),
               child: FractionallySizedBox(
