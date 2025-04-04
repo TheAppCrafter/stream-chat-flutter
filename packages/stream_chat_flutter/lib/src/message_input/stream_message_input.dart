@@ -170,6 +170,8 @@ class StreamMessageInput extends StatefulWidget {
     this.onMentionUserTap,
     this.userMentionsWidgetBuilder,
     this.pollConfig,
+    this.customMobileAttachmentPickerBuilder,
+    this.customWebOrDesktopAttachmentPickerBuilder,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -397,6 +399,12 @@ class StreamMessageInput extends StatefulWidget {
   ///
   /// If not provided, the default configuration is used.
   final PollConfig? pollConfig;
+
+  /// Custom mobile attachment picker builder
+  final MobileAttachmentPickerBuilderType? customMobileAttachmentPickerBuilder;
+
+  /// Custom web or desktop attachment picker builder
+  final WebOrDesktopAttachmentPickerBuilderType? customWebOrDesktopAttachmentPickerBuilder;
 
   static String? _defaultHintGetter(
     BuildContext context,
@@ -1017,6 +1025,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
       useNativeAttachmentPickerOnMobile:
           widget.useNativeAttachmentPickerOnMobile,
       customOptions: widget.filePickerCustomOptions,
+      customMobileAttachmentPickerBuilder: widget.customMobileAttachmentPickerBuilder,
+      customWebOrDesktopAttachmentPickerBuilder: widget.customWebOrDesktopAttachmentPickerBuilder,
     );
 
     if (value == null || value is! AttachmentPickerValue) return;
