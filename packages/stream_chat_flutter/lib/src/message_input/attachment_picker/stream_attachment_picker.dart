@@ -100,6 +100,12 @@ class StreamAttachmentPickerController
     );
   }
 
+  Future<void> addAttachments(List<Attachment> attachments) async {
+    for (final attachment in attachments) {
+      await addAttachment(attachment);
+    }
+  }
+
   /// Adds a new attachment to the message.
   Future<void> addAttachment(Attachment attachment) async {
     assert(attachment.fileSize != null, '');

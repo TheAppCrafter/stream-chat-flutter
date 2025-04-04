@@ -103,6 +103,34 @@ class StreamAttachmentHandler extends StreamAttachmentHandlerBase {
 
     return video?.toAttachment(type: 'video');
   }
+  
+  @override
+  Future<List<Attachment>> pickMultipleFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    bool allowCompression = true,
+    bool withData = true,
+    bool withReadStream = false,
+    bool lockParentWindow = true,
+  }) async {
+    final result = await _filePicker.pickFiles(
+      dialogTitle: dialogTitle,
+      initialDirectory: initialDirectory,
+      type: type,
+      allowedExtensions: allowedExtensions,
+      onFileLoading: onFileLoading,
+      allowCompression: allowCompression,
+      withData: withData,
+      withReadStream: withReadStream,
+      lockParentWindow: lockParentWindow,
+    );
+
+    return result?.files.map((file) => file.toAttachment(type: type.toAttachmentType())).toList() ?? [];
+  }
+
 
   @override
   Future<Attachment?> pickFile({

@@ -24,6 +24,21 @@ abstract class StreamAttachmentHandlerBase {
     throw UnimplementedError('pickVideo is not implemented');
   }
 
+  /// Pick multiple files from the device.
+  Future<List<Attachment>> pickMultipleFiles({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    bool allowCompression = true,
+    bool withData = true,
+    bool withReadStream = false,
+    bool lockParentWindow = true,
+  }) {
+    throw UnimplementedError('pickMultipleFiles is not implemented');
+  }
+
   /// Pick a file from the device.
   Future<Attachment?> pickFile({
     String? dialogTitle,
