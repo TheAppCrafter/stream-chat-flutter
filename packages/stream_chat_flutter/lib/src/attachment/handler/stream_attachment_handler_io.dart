@@ -123,6 +123,7 @@ class StreamAttachmentHandler extends StreamAttachmentHandlerBase {
       allowedExtensions: allowedExtensions,
       onFileLoading: onFileLoading,
       allowCompression: allowCompression,
+      allowMultiple: true,
       withData: withData,
       withReadStream: withReadStream,
       lockParentWindow: lockParentWindow,

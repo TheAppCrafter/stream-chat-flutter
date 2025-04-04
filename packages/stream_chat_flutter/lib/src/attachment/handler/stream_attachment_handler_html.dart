@@ -34,6 +34,7 @@ class StreamAttachmentHandler extends StreamAttachmentHandlerBase {
       type: type,
       allowedExtensions: allowedExtensions,
       onFileLoading: onFileLoading,
+      allowMultiple: true,
       allowCompression: allowCompression,
       withData: withData,
       withReadStream: withReadStream,
