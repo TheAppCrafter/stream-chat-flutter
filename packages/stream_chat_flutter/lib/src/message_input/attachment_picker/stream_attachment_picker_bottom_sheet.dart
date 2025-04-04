@@ -4,6 +4,34 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
+typedef MobileAttachmentPickerBuilderType = Widget Function({
+  required BuildContext context,
+  required StreamAttachmentPickerController controller,
+  Poll? initialPoll,
+  PollConfig? pollConfig,
+  Iterable<AttachmentPickerOption>? customOptions,
+  List<AttachmentPickerType>? allowedTypes,
+  ThumbnailSize? attachmentThumbnailSize,
+  ThumbnailFormat? attachmentThumbnailFormat,
+  int? attachmentThumbnailQuality,
+  double? attachmentThumbnailScale,
+  void Function(Object, StackTrace?)? onError,
+});
+
+typedef WebOrDesktopAttachmentPickerBuilderType = Widget Function({
+  required BuildContext context,
+  required StreamAttachmentPickerController controller,
+  Poll? initialPoll,
+  PollConfig? pollConfig,
+  Iterable<AttachmentPickerOption>? customOptions,
+  List<AttachmentPickerType>? allowedTypes,
+  ThumbnailSize? attachmentThumbnailSize,
+  ThumbnailFormat? attachmentThumbnailFormat,
+  int? attachmentThumbnailQuality,
+  double? attachmentThumbnailScale,
+  ErrorListener? onError,
+});
+
 /// Shows a modal material design bottom sheet.
 ///
 /// A modal bottom sheet is an alternative to a menu or a dialog and prevents
@@ -89,6 +117,8 @@ Future<T?> showStreamAttachmentPickerModalBottomSheet<T>({
   ThumbnailFormat attachmentThumbnailFormat = ThumbnailFormat.jpeg,
   int attachmentThumbnailQuality = 100,
   double attachmentThumbnailScale = 1,
+  MobileAttachmentPickerBuilderType? customMobileAttachmentPickerBuilder,
+  WebOrDesktopAttachmentPickerBuilderType? customWebOrDesktopAttachmentPickerBuilder,
 }) {
   final colorTheme = StreamChatTheme.of(context).colorTheme;
   final color = backgroundColor ?? colorTheme.inputBg;
@@ -120,7 +150,21 @@ Future<T?> showStreamAttachmentPickerModalBottomSheet<T>({
               currentPlatform == TargetPlatform.windows;
 
           if (isWebOrDesktop || useNativeAttachmentPickerOnMobile) {
-            return webOrDesktopAttachmentPickerBuilder.call(
+            
+            return customWebOrDesktopAttachmentPickerBuilder != null ? customWebOrDesktopAttachmentPickerBuilder.call(
+              context: context,
+              onError: onError,
+              controller: controller,
+              allowedTypes: allowedTypes,
+              customOptions: customOptions,
+              initialPoll: initialPoll,
+              pollConfig: pollConfig,
+              attachmentThumbnailSize: attachmentThumbnailSize,
+              attachmentThumbnailFormat: attachmentThumbnailFormat,
+              attachmentThumbnailQuality: attachmentThumbnailQuality,
+              attachmentThumbnailScale: attachmentThumbnailScale,
+            ) :
+            webOrDesktopAttachmentPickerBuilder.call(
               context: context,
               onError: onError,
               controller: controller,
@@ -135,9 +179,23 @@ Future<T?> showStreamAttachmentPickerModalBottomSheet<T>({
               attachmentThumbnailQuality: attachmentThumbnailQuality,
               attachmentThumbnailScale: attachmentThumbnailScale,
             );
+            
           }
 
-          return mobileAttachmentPickerBuilder.call(
+          return customMobileAttachmentPickerBuilder != null ? customMobileAttachmentPickerBuilder.call(
+            context: context,
+            onError: onError,
+            controller: controller,
+            allowedTypes: allowedTypes,
+            customOptions: customOptions,
+            initialPoll: initialPoll,
+            pollConfig: pollConfig,
+            attachmentThumbnailSize: attachmentThumbnailSize,
+            attachmentThumbnailFormat: attachmentThumbnailFormat,
+            attachmentThumbnailQuality: attachmentThumbnailQuality,
+            attachmentThumbnailScale: attachmentThumbnailScale,
+          )
+          : mobileAttachmentPickerBuilder(
             context: context,
             onError: onError,
             controller: controller,
