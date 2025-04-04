@@ -10,11 +10,11 @@ typedef MobileAttachmentPickerBuilderType = Widget Function({
   Poll? initialPoll,
   PollConfig? pollConfig,
   Iterable<AttachmentPickerOption>? customOptions,
-  List<AttachmentPickerType>? allowedTypes,
-  ThumbnailSize? attachmentThumbnailSize,
-  ThumbnailFormat? attachmentThumbnailFormat,
-  int? attachmentThumbnailQuality,
-  double? attachmentThumbnailScale,
+  List<AttachmentPickerType> allowedTypes,
+  ThumbnailSize attachmentThumbnailSize,
+  ThumbnailFormat attachmentThumbnailFormat,
+  int attachmentThumbnailQuality,
+  double attachmentThumbnailScale,
   void Function(Object, StackTrace?)? onError,
 });
 
@@ -24,12 +24,12 @@ typedef WebOrDesktopAttachmentPickerBuilderType = Widget Function({
   Poll? initialPoll,
   PollConfig? pollConfig,
   Iterable<AttachmentPickerOption>? customOptions,
-  List<AttachmentPickerType>? allowedTypes,
-  ThumbnailSize? attachmentThumbnailSize,
-  ThumbnailFormat? attachmentThumbnailFormat,
-  int? attachmentThumbnailQuality,
-  double? attachmentThumbnailScale,
-  ErrorListener? onError,
+  List<AttachmentPickerType> allowedTypes,
+  ThumbnailSize attachmentThumbnailSize,
+  ThumbnailFormat attachmentThumbnailFormat,
+  int attachmentThumbnailQuality,
+  double attachmentThumbnailScale,
+  void Function(Object, StackTrace?)? onError,
 });
 
 /// Shows a modal material design bottom sheet.
