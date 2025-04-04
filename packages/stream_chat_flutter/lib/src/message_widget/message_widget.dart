@@ -675,6 +675,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       showUsername ||
       showTimeStamp ||
       showInChannel ||
+      widget.showReactions ||
       showSendingIndicator ||
       isTextEdited;
 
@@ -764,20 +765,22 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         child: Portal(
           child: PlatformWidgetBuilder(
             mobile: (context, child) {
-              return GestureDetector(
-                onLongPress: widget.message.state.isDeleted
-                    ? null
-                    : () {
-                        // Add haptic feedback
-                        HapticFeedback.mediumImpact();
-                        onLongPress(context);
-                      },
-                behavior: HitTestBehavior.translucent, // Important for ripple effect
-                child: child,
+              return SelectionArea(
+                child: GestureDetector(
+                  onLongPress: widget.message.state.isDeleted
+                      ? null
+                      : () {
+                          // Add haptic feedback
+                          HapticFeedback.mediumImpact();
+                          onLongPress(context);
+                        },
+                  behavior: HitTestBehavior.translucent, // Important for ripple effect
+                  child: child,
+                ),
               );
             },
-            desktop: (_, child) => MouseRegion(child: child),
-            web: (_, child) => MouseRegion(child: child),
+            desktop: (_, child) => MouseRegion(child: SelectionArea(child: child)),
+            web: (_, child) => MouseRegion(child: SelectionArea(child: child)),
             child: Padding(
               padding: widget.padding ?? const EdgeInsets.all(8),
               child: FractionallySizedBox(
