@@ -178,7 +178,7 @@ extension XFileX on XFile {
   }
 
   /// Converts the [XFile] to a [Attachment].
-  Future<Attachment> toAttachment({required String type}) async {
+  Future<Attachment> toAttachment({String? type}) async {
     final file = await toAttachmentFile;
 
     final extraDataMap = <String, Object>{};
@@ -189,11 +189,28 @@ extension XFileX on XFile {
       extraDataMap['mime_type'] = mimeType;
     }
 
+    var attachmentType = type;
+    if (attachmentType == null) {
+      if (mimeType != null) {
+        if (mimeType.startsWith('image/')) {
+          attachmentType = 'image';
+        } else if (mimeType.startsWith('video/')) {
+          attachmentType = 'video';
+        } else if (mimeType.startsWith('audio/')) {
+          attachmentType = 'audio';
+        } else {
+          attachmentType = 'file';
+        }
+      } else {
+        attachmentType = 'file'; // Default to file type if no mime type is available
+      }
+    }
+
     extraDataMap['file_size'] = file.size!;
 
     final attachment = Attachment(
       file: file,
-      type: type,
+      type: attachmentType,
       extraData: extraDataMap,
     );
 
