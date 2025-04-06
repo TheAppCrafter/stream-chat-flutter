@@ -41,7 +41,7 @@ class StreamAttachmentHandler extends StreamAttachmentHandlerBase {
       lockParentWindow: lockParentWindow,
     );
 
-    return result?.files.map((file) => file.toAttachment(type: type.toAttachmentType())).toList() ?? [];
+    return result?.files.map((file) => file.toAttachment()).toList() ?? [];
   }
 
   @override
@@ -68,7 +68,7 @@ class StreamAttachmentHandler extends StreamAttachmentHandlerBase {
       lockParentWindow: lockParentWindow,
     );
 
-    return result?.files.first.toAttachment(type: type.toAttachmentType());
+    return result?.files.first.toAttachment();
   }
 
   @override
