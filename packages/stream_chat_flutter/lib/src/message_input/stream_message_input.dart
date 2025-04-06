@@ -1017,6 +1017,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
     final value = await showStreamAttachmentPickerModalBottomSheet(
       context: context,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.5,
+      ),
       onError: widget.onError,
       allowedTypes: allowedTypes,
       pollConfig: widget.pollConfig,
