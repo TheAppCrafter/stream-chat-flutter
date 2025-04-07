@@ -697,18 +697,19 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       widget.showReplyMessage && !isFailedState && widget.onReplyTap != null;
 
   bool get shouldShowEditAction =>
-      widget.showEditMessage &&
+      widget.showEditMessage == true &&
+      isOwner &&
       !isDeleteFailed &&
       !hasPoll &&
       !widget.message.attachments
           .any((element) => element.type == AttachmentType.giphy);
 
   bool get shouldShowHideMessageAction {
-    return widget.showHideMessage?.call(widget.message) == true && widget.onHideMessageTap != null;
+    return (widget.showHideMessage != null ? widget.showHideMessage?.call(widget.message) == true : false) && widget.onHideMessageTap != null;
   }
 
   bool get shouldShowRegenerateMessage {
-    return widget.showRegenerateMessage?.call(widget.message) == true && 
+    return (widget.showRegenerateMessage != null ? widget.showRegenerateMessage?.call(widget.message) == true : false) && 
     widget.onRegenerateTap != null;
   }
 
@@ -730,10 +731,12 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       !isFailedState &&
       widget.onThreadTap != null;
 
-  bool get shouldShowDeleteAction => widget.showDeleteMessage || isDeleteFailed;
+  bool get shouldShowDeleteAction => isOwner || isDeleteFailed;
 
   @override
   bool get wantKeepAlive => widget.message.attachments.isNotEmpty;
+
+  bool get isOwner => widget.message.extraData['owner'] == StreamChat.of(context).currentUser?.id;
 
   late StreamChatThemeData streamChatTheme;
   late StreamChatState streamChat;
