@@ -1,4 +1,85 @@
-## Upcoming
+## 9.8.0
+
+🐞 Fixed
+
+- [[#2184]](https://github.com/GetStream/stream-chat-flutter/issues/2184) Fixed messages not being
+  marked as read when scrolled to the bottom.
+- [[#2187]](https://github.com/GetStream/stream-chat-flutter/issues/2187) Fixed `MessageListView`
+  scrolling back up after reaching bottom when unread indicator or scroll to bottom button is
+  tapped.
+- [[#2085]](https://github.com/GetStream/stream-chat-flutter/issues/2085) Fixed handling of read
+  events in the Channel class.
+- [[#2150]](https://github.com/GetStream/stream-chat-flutter/issues/2150) Fixed Push notifications
+  for mentions shows user ID instead of Username.
+- [[#2203]](https://github.com/GetStream/stream-chat-flutter/issues/2203) Fixed StreamMessageInput
+  shows Poll option even if polls are disabled in channel config.
+
+## 9.7.0
+
+🐞 Fixed
+
+- [[#2118]](https://github.com/GetStream/stream-chat-flutter/issues/2118) Fixed invalid assertions
+  applied on message input command and attachment button.
+- [[#2042]](https://github.com/GetStream/stream-chat-flutter/issues/2042) Fixed `StreamMessageInput`
+  send message predicate to properly handle shift+enter for new lines and improve message text validation.
+
+✅ Added
+
+- Added support for new message moderation feature in the SDK.
+
+## 9.6.0
+
+🐞 Fixed
+
+- [[#2137]](https://github.com/GetStream/stream-chat-flutter/issues/2137) Fixed message input
+  buttons not being able to customized.
+- [[#1775]](https://github.com/GetStream/stream-chat-flutter/issues/1775) Fix incorrect message order.
+
+## 9.5.0
+
+🐞 Fixed
+
+- Fixed `StreamMessageInput` not able to edit the ogAttachments.
+- Fixed `MessageWidget` showing pinned background for deleted messages.
+
+✅ Added
+
+- Introduced `StreamMessageInput.useSystemAttachmentPicker` for system media picker support.
+- Introduced `StreamMessageThemeData.messageDeletedStyle` to style the text on a deleted message.
+
+🔄 Changed
+
+- Updated the message list view to prevent pinning messages that have restricted visibility.
+- Deprecated `StreamMessageInput.useNativeAttachmentPickerOnMobile` in favor of `StreamMessageInput.useSystemAttachmentPicker`.
+
+## 9.4.0
+
+🔄 Changed
+
+- Updated minimum Flutter version to 3.27.4 for the SDK.
+- Replaced [image_gallery_saver_plus](https://pub.dev/packages/image_gallery_saver_plus) with [gal](https://pub.dev/packages/gal)
+
+## 9.3.0
+
+✅ Added
+
+- Added support for `voiceRecording` type attachments.
+
+🔄 Changed
+
+- Deprecated `PlayListItem` in favor of `PlaylistTrack`.
+- Deprecated `StreamVoiceRecordingListPlayer` in favor of `StreamVoiceRecordingAttachmentPlaylist`.
+- Deprecated `StreamVoiceRecordingLoading` as it is no longer used.
+- Deprecated `StreamVoiceRecordingPlayer` in favor of `StreamVoiceRecordingAttachment`.
+- Deprecated `StreamVoiceRecordingSlider` in favor of `StreamAudioWaveformSlider`.
+- Deprecated `VoiceRecordingAttachmentBuilder` in favor of `VoiceRecordingAttachmentPlaylistBuilder`.
+- Deprecated `StreamVoiceRecordingTheme` in favor of `StreamVoiceRecordingAttachmentTheme`.
+
+## 9.2.0+1
+
+- Remove untracked files from the package.
+
+## 9.2.0
 
 🐞 Fixed
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/full_screen_media_widget.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/gallery_navigation_item.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:video_player/video_player.dart';
 
@@ -343,10 +344,10 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                             );
                           } 
                           else if (attachment.type == AttachmentType.audio){
-                            return widget.audioAttachmentWidget ?? const SizedBox.shrink();
+                            return widget.audioAttachmentWidget ?? const Empty();
                           }
                           else {
-                            topWidget = const SizedBox.shrink(); // Default case
+                            topWidget = const Empty(); // Default case
                           }
 
                           return Stack(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/message_input/stream_message_input_icon_button.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// A widget that displays a sending button.
@@ -10,13 +11,26 @@ class StreamMessageSendButton extends StatelessWidget {
     super.key,
     this.timeOut = 0,
     this.isIdle = true,
+    @Deprecated('Will be removed in the next major version')
     this.isCommandEnabled = false,
+    @Deprecated('Will be removed in the next major version')
     this.isEditEnabled = false,
-    this.idleSendButton,
-    this.activeSendButton,
+    Widget? idleSendIcon,
+    @Deprecated("Use 'idleSendIcon' instead") Widget? idleSendButton,
+    Widget? activeSendIcon,
+    @Deprecated("Use 'activeSendIcon' instead") Widget? activeSendButton,
     this.size = 24,
     required this.onSendMessage,
-  });
+  })  : assert(
+          idleSendIcon == null || idleSendButton == null,
+          'idleSendIcon and idleSendButton cannot be used together',
+        ),
+        idleSendIcon = idleSendIcon ?? idleSendButton,
+        assert(
+          activeSendIcon == null || activeSendButton == null,
+          'activeSendIcon and activeSendButton cannot be used together',
+        ),
+        activeSendIcon = activeSendIcon ?? activeSendButton;
 
   /// Time out related to slow mode.
   final int timeOut;
@@ -25,16 +39,26 @@ class StreamMessageSendButton extends StatelessWidget {
   final bool isIdle;
 
   /// True if a command is being sent.
+  @Deprecated('It will be removed in the next major version')
   final bool isCommandEnabled;
 
   /// True if in editing mode.
+  @Deprecated('It will be removed in the next major version')
   final bool isEditEnabled;
 
+  /// The icon to display when the button is idle.
+  final Widget? idleSendIcon;
+
   /// The widget to display when the button is disabled.
-  final Widget? idleSendButton;
+  @Deprecated("Use 'idleSendIcon' instead")
+  Widget? get idleSendButton => idleSendIcon;
+
+  /// The icon to display when the button is active.
+  final Widget? activeSendIcon;
 
   /// The widget to display when the button is enabled.
-  final Widget? activeSendButton;
+  @Deprecated("Use 'activeSendIcon' instead")
+  Widget? get activeSendButton => activeSendIcon;
 
   /// The callback to call when the button is pressed.
   final VoidCallback onSendMessage;
@@ -44,80 +68,42 @@ class StreamMessageSendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _streamChatTheme = StreamChatTheme.of(context);
+    final theme = StreamMessageInputTheme.of(context);
 
-    late Widget sendButton;
-    if (timeOut > 0) {
-      sendButton = StreamCountdownButton(count: timeOut);
-    } else if (isIdle) {
-      sendButton = idleSendButton ?? _buildIdleSendButton(context);
-    } else {
-      sendButton = activeSendButton != null
-          ? InkWell(
-              onTap: onSendMessage,
-              child: activeSendButton,
-            )
-          : _buildSendButton(context);
-    }
-
+    final button = _buildButton(context);
     return AnimatedSwitcher(
-      duration: _streamChatTheme.messageInputTheme.sendAnimationDuration!,
-      child: sendButton,
+      duration: theme.sendAnimationDuration!,
+      child: button,
     );
   }
 
-  Widget _buildIdleSendButton(BuildContext context) {
-    final _messageInputTheme = StreamMessageInputTheme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: StreamSvgIcon(
-        width: size,
-        height: size,
-        assetName: _getIdleSendIcon(),
-        color: _messageInputTheme.sendButtonIdleColor,
-      ),
-    );
-  }
-
-  Widget _buildSendButton(BuildContext context) {
-    final _messageInputTheme = StreamMessageInputTheme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: IconButton(
-        onPressed: onSendMessage,
-        padding: EdgeInsets.zero,
-        //splashRadius: 24,
-        constraints: BoxConstraints.tightFor(
-          height: size,
-          width: size,
-        ),
-        icon: StreamSvgIcon(
-          width: size,
-          height: size,
-          assetName: _getSendIcon(),
-          color: _messageInputTheme.sendButtonColor,
-        ),
-      ),
-    );
-  }
-
-  String _getIdleSendIcon() {
-    if (isCommandEnabled) {
-      return 'Icon_search.svg';
-    } else {
-      return 'Icon_circle_right.svg';
+  Widget _buildButton(BuildContext context) {
+    if (timeOut > 0) {
+      return StreamCountdownButton(
+        key: const Key('countdown_button'),
+        count: timeOut,
+      );
     }
-  }
 
-  String _getSendIcon() {
-    if (isEditEnabled) {
-      return 'Icon_circle_up.svg';
-    } else if (isCommandEnabled) {
-      return 'Icon_search.svg';
-    } else {
-      return 'Icon_circle_up.svg';
-    }
+    final idleIcon = switch (idleSendIcon) {
+      final idleIcon? => idleIcon,
+      _ => const StreamSvgIcon(icon: StreamSvgIcons.sendMessage),
+    };
+
+    final activeIcon = switch (activeSendIcon) {
+      final activeIcon? => activeIcon,
+      _ => const StreamSvgIcon(icon: StreamSvgIcons.circleUp),
+    };
+
+    final theme = StreamMessageInputTheme.of(context);
+    final icon = isIdle ? idleIcon : activeIcon;
+    final onPressed = isIdle ? null : onSendMessage;
+    return StreamMessageInputIconButton(
+      key: const Key('send_button'),
+      icon: icon,
+      color: theme.sendButtonColor,
+      disabledColor: theme.sendButtonIdleColor,
+      onPressed: onPressed,
+    );
   }
 }

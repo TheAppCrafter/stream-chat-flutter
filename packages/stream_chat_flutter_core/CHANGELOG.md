@@ -1,3 +1,51 @@
+## 9.8.0
+
+✅ Added
+
+- Added `StreamChannelState.getFirstUnreadMessage` to get the first unread message in the channel.
+- Added support for Channel pinning and archiving.
+
+## 9.7.0
+
+🐞 Fixed
+
+- Fixed issue with not being able to use a non-initialized `Channel` in `StreamChannel`
+  widget. [#2080](https://github.com/GetStream/stream-chat-flutter/issues/2080)
+
+🔄 Changed
+
+- Updated `StreamChannel` to provide proper background colors in the `defaultLoadingBuilder` and `defaultErrorBuilder`
+- Removed redundant `Material` widget wrapping in the `build` method of `StreamChannelState`
+
+## 9.6.0
+
+🔄 Changed
+
+- Increase range of allowed version `device_info_plus`.
+
+## 9.5.0
+
+🔄 Changed
+
+- Simplified the logic for setting and clearing OG attachments by removing the `_ogAttachment` field
+  and directly working with the attachments list.
+- Added proper userAgent and systemEnvironment information for better diagnostics and analytics.
+
+🐞 Fixed
+- type '_$Loading<int, Channel>' is not a subtype of type 'Success<int, Channel>' in type cast [#1894](https://github.com/GetStream/stream-chat-flutter/issues/1894)
+
+## 9.4.0
+
+- Updated minimum Flutter version to 3.27.4 for the SDK.
+
+## 9.3.0
+
+- Updated `stream_chat` dependency to [`9.3.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.2.0
+
+- Updated `stream_chat` dependency to [`9.2.0`](https://pub.dev/packages/stream_chat/changelog).
+
 ## 9.1.0
 
 ✅ Added
@@ -30,7 +78,7 @@
 - Changed minimum Flutter version to 3.22 for the SDK.
 - Updated `stream_chat` dependency to [`8.1.0`](https://pub.dev/packages/stream_chat/changelog).
 
-## 8.0.0 
+## 8.0.0
 
 🐞 Fixed
 
@@ -44,7 +92,7 @@
 
 🔄 Changed
 
-- Changed minimum Flutter version to 3.19 for the SDK. 
+- Changed minimum Flutter version to 3.19 for the SDK.
 - Updated `stream_chat` dependency to [`7.3.0`](https://pub.dev/packages/stream_chat/changelog).
 
 ## 7.2.2
@@ -53,12 +101,12 @@
 
 ## 7.2.1
 
-  - Updated `stream_chat` dependency to [`7.2.1`](https://pub.dev/packages/stream_chat/changelog).
+- Updated `stream_chat` dependency to [`7.2.1`](https://pub.dev/packages/stream_chat/changelog).
 
 ## 7.2.0-hotfix.1
 
-  - Updated `stream_chat` dependency to [`7.2.0-hotfix.1`](https://pub.dev/packages/stream_chat/changelog).
-  - Reverted the `connectivity_plus` dependency bump causing [1889](https://github.com/GetStream/stream-chat-flutter/issues/1889)
+- Updated `stream_chat` dependency to [`7.2.0-hotfix.1`](https://pub.dev/packages/stream_chat/changelog).
+- Reverted the `connectivity_plus` dependency bump causing [1889](https://github.com/GetStream/stream-chat-flutter/issues/1889)
 
 ## 7.2.0
 
@@ -87,7 +135,7 @@
 
 🐞 Fixed
 
-- Fixed video attachment uploading. [#1754](https://github.com/GetStream/stream-chat-flutter/pull/1754)
+- [[#1754]](https://github.com/GetStream/stream-chat-flutter/pull/1754) Fixed video attachment uploading.
 
 ## 6.10.0
 

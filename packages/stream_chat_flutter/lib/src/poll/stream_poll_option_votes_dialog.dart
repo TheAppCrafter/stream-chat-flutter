@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:stream_chat_flutter/src/misc/stream_svg_icon.dart';
+import 'package:stream_chat_flutter/src/icons/stream_svg_icon.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/src/scroll_view/poll_vote_scroll_view/stream_poll_vote_list_view.dart';
 import 'package:stream_chat_flutter/src/theme/poll_option_votes_dialog_theme.dart';
 import 'package:stream_chat_flutter/src/utils/extensions.dart';
@@ -26,8 +27,8 @@ Future<T?> showStreamPollOptionVotesDialog<T extends Object?>({
           valueListenable: messageNotifier,
           builder: (context, message, child) {
             final poll = message.poll;
-            if (poll == null) return const SizedBox.shrink();
-            if (option.id == null) return const SizedBox.shrink();
+            if (poll == null) return const Empty();
+            if (option.id == null) return const Empty();
 
             return StreamPollOptionVotesDialog(
               poll: poll,
@@ -123,12 +124,14 @@ class _StreamPollOptionVotesDialogState
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          spacing: 16,
           children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (isOptionWinner) ...[
-                  StreamSvgIcon.award(
+                  StreamSvgIcon(
+                    icon: StreamSvgIcons.award,
                     color: theme.pollOptionWinnerVoteCountTextStyle?.color,
                   ),
                   const SizedBox(width: 8),
@@ -163,7 +166,7 @@ class _StreamPollOptionVotesDialogState
                 ),
               ),
             ),
-          ].insertBetween(const SizedBox(height: 16)),
+          ],
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/src/message_input/clear_input_item_button.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 typedef _Builders = Map<String, QuotedMessageAttachmentThumbnailBuilder>;
@@ -196,9 +197,6 @@ class _QuotedMessage extends StatelessWidget {
       );
     }
 
-    // Add some spacing between the children.
-    children = children.insertBetween(const SizedBox(width: 8));
-
     return Container(
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
@@ -216,6 +214,7 @@ class _QuotedMessage extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(8),
       child: Row(
+        spacing: 8,
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment:
             reverse ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -257,13 +256,14 @@ class _ParseAttachments extends StatelessWidget {
     );
 
     // Return empty container if no attachment widget is returned.
-    if (attachmentWidget == null) return const SizedBox.shrink();
+    if (attachmentWidget == null) return const Empty();
 
     final colorTheme = StreamChatTheme.of(context).colorTheme;
 
     var clipBehavior = Clip.none;
     ShapeDecoration? decoration;
-    if (attachment.type != AttachmentType.file) {
+    if (attachment.type != AttachmentType.file &&
+        attachment.type != AttachmentType.voiceRecording) {
       clipBehavior = Clip.hardEdge;
       decoration = ShapeDecoration(
         shape: RoundedRectangleBorder(
@@ -341,6 +341,7 @@ class _ParseAttachments extends StatelessWidget {
       AttachmentType.video: _createMediaThumbnail,
       AttachmentType.urlPreview: _createUrlThumbnail,
       AttachmentType.file: _createFileThumbnail,
+      AttachmentType.voiceRecording: _createFileThumbnail,
     };
   }
 }

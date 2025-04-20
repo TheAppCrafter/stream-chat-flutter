@@ -1,3 +1,102 @@
+## 9.8.0
+
+✅ Added
+
+- Added support for Channel pinning and archiving.
+- Added support for 'DraftMessage' feature, which allows users to save draft messages in channels.
+  Several methods have been added to the `Client` and `Channel` class to manage draft messages:
+    - `channel.createDraft`: Saves a draft message for a specific channel.
+    - `channel.getDraft`: Retrieves a draft message for a specific channel.
+    - `channel.deleteDraft`: Deletes a draft message for a specific channel.
+    - `client.queryDrafts`: Queries draft messages created by the current user.
+
+🐞 Fixed
+
+- Fixed `channelState.unreadCount` not updating if the user is not part of the read list.
+
+🔄 Changed
+
+- Improved read event handling in the `Channel` class to properly update unread state information.
+
+## 9.7.0
+
+✅ Added
+
+- Added new helper extensions on `Channel` to provide a convenient way to check if the current user
+  has specific capabilities in a channel.
+
+  ```dart
+  final canSendMessage = channel.canSendMessage;
+  final canSendReaction = channel.canSendReaction;
+  ```
+
+- Added support for message moderation feature.
+
+- Improved user blocking functionality by updating client state when blocking/unblocking users:
+  - `client.blockUser` now updates `currentUser.blockedUserIds` list with newly blocked user IDs.
+  - `client.unblockUser` now removes the unblocked user ID from `currentUser.blockedUserIds` list.
+  - `client.queryBlockedUsers` now updates `currentUser.blockedUserIds` with the latest blocked users data.
+
+🐞 Fixed
+
+- [[#1964]](https://github.com/GetStream/stream-chat-flutter/issues/1964) Fixes `Channel.membership`
+  field not updating correctly.
+- [[#2171]](https://github.com/GetStream/stream-chat-flutter/issues/2171) Fixed [Flutter Web]
+  dynamic TypeError
+
+🔄 Changed
+
+- Deprecated `PermissionType` in favor of `ChannelCapability`.
+- Deprecated third party calls related APIs (Agora and 100ms).
+
+## 9.6.0
+
+🐞 Fixed
+
+- [[#1775]](https://github.com/GetStream/stream-chat-flutter/issues/1775) Fix incorrect message order.
+
+## 9.5.0
+
+✅ Added
+
+- [[#2101]](https://github.com/GetStream/stream-chat-flutter/issues/2101) Added support for system messages not updating `channel.lastMessageAt`.
+- Added support for sending private or restricted visibility messages.
+- Add `member.extraData` field.
+
+🐞 Fixed
+
+- [[#1774]](https://github.com/GetStream/stream-chat-flutter/issues/1774) Fixed failed to execute 'close' on 'WebSocket'.
+- [[#2016]](https://github.com/GetStream/stream-chat-flutter/issues/2016) Fix muted channel's unreadCount incorrectly updated.
+  
+🔄 Changed
+
+- Refactored identifying the `Attachment.uploadState` logic for local and remote attachments. Also updated the logic for determining the attachment type to check for ogScrapeUrl instead of `AttachmentType.giphy`.
+- Improved the `x-stream-client` header generation for better client identification and analytics.
+
+## 9.4.0
+
+🔄 Changed
+
+- Updated minimum Flutter version to 3.27.4 for the SDK.
+
+## 9.3.0
+
+✅ Added
+
+- Added support for overriding the `baseUrl` of the websocket.
+
+  ```dart
+  final client = StreamChatClient(
+    apiKey,
+    logLevel: Level.INFO,
+    baseWsUrl: 'http://localhost:8080',
+  );
+  ```
+
+## 9.2.0
+
+- Bug fixes and improvements
+
 ## 9.1.0
 
 ✅ Added

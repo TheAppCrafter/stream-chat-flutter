@@ -6,9 +6,11 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stream_chat/src/core/error/error.dart';
+import 'package:stream_chat/src/core/http/system_environment_manager.dart';
 import 'package:stream_chat/src/core/http/token_manager.dart';
 import 'package:stream_chat/src/core/models/event.dart';
 import 'package:stream_chat/src/core/models/user.dart';
+import 'package:stream_chat/src/core/util/extension.dart';
 import 'package:stream_chat/src/event_type.dart';
 import 'package:stream_chat/src/ws/connection_status.dart';
 import 'package:stream_chat/src/ws/timer_helper.dart';
@@ -34,6 +36,7 @@ class WebSocket with TimerHelper {
     required this.apiKey,
     required this.baseUrl,
     required this.tokenManager,
+    this.systemEnvironmentManager,
     this.handler,
     Logger? logger,
     this.webSocketChannelProvider,
@@ -52,8 +55,17 @@ class WebSocket with TimerHelper {
   /// WS base url
   final String baseUrl;
 
+  /// Manager responsible for handling authentication tokens.
   ///
+  /// Used to retrieve tokens for websocket connections and refreshing expired
+  /// tokens.
   final TokenManager tokenManager;
+
+  /// Manager that provides system environment information like SDK version and
+  /// platform details.
+  ///
+  /// Used to send client identification in websocket connection requests.
+  final SystemEnvironmentManager? systemEnvironmentManager;
 
   /// Functions that will be called every time a new event is received from the
   /// connection
@@ -97,7 +109,7 @@ class WebSocket with TimerHelper {
       BehaviorSubject.seeded(ConnectionStatus.disconnected);
 
   set _connectionStatus(ConnectionStatus status) =>
-      _connectionStatusController.add(status);
+      _connectionStatusController.safeAdd(status);
 
   /// The current connection status value
   ConnectionStatus get connectionStatus => _connectionStatusController.value;
@@ -120,8 +132,7 @@ class WebSocket with TimerHelper {
     _logger?.info('Closing connection with $baseUrl');
     if (_webSocketChannel != null) {
       _unsubscribeFromWebSocketChannel();
-      _webSocketChannel?.sink
-          .close(_manuallyClosed ? status.normalClosure : status.normalClosure);
+      _webSocketChannel?.sink.close(status.normalClosure, 'Closing connection');
       _webSocketChannel = null;
     }
   }
@@ -158,18 +169,36 @@ class WebSocket with TimerHelper {
       'user_token': token.rawValue,
       'server_determines_connection_id': true,
     };
+
+    final userAgent = systemEnvironmentManager?.userAgent;
     final qs = {
       'json': jsonEncode(params),
       'api_key': apiKey,
       'authorization': token.rawValue,
       'stream-auth-type': token.authType.name,
+      if (userAgent != null) 'X-Stream-Client': jsonEncode(userAgent),
       ...queryParameters,
     };
-    final scheme = baseUrl.startsWith('https') ? 'wss' : 'ws';
-    final host = baseUrl.replaceAll(RegExp(r'(^\w+:|^)\/\/'), '');
+
+    final scheme = switch (baseUrl) {
+      final url when url.startsWith(RegExp('^(ws?|http?)://')) => 'ws',
+      final url when url.startsWith(RegExp('^(wss?|https?)://')) => 'wss',
+      _ => throw const FormatException('Invalid url format'),
+    };
+
+    final address = baseUrl.replaceAll(RegExp(r'(^\w+:|^)\/\/'), '');
+    final (:host, :port) = switch (address.split(':')) {
+      [final host] => (host: host, port: null),
+      [final host, final port] => (host: host, port: int.tryParse(port)),
+      _ => throw const FormatException('Invalid address format'),
+    };
+
+    _logger?.info('[buildUri] #ws; scheme: $scheme, host: $host, port: $port');
+
     return Uri(
       scheme: scheme,
       host: host,
+      port: port,
       pathSegments: ['connect'],
       queryParameters: qs,
     );
@@ -199,6 +228,7 @@ class WebSocket with TimerHelper {
       final uri = await _buildUri(
         includeUserDetails: includeUserDetails,
       );
+      _logger?.info('[connect] #ws; uri: $uri');
       _initWebSocketChannel(uri);
     } catch (e, stk) {
       _onConnectionError(e, stk);
@@ -230,6 +260,7 @@ class WebSocket with TimerHelper {
           refreshToken: refreshToken,
           includeUserDetails: false,
         );
+        _logger?.info('[reconnect] #ws; uri: $uri');
         try {
           _initWebSocketChannel(uri);
         } catch (e, stk) {
@@ -350,7 +381,8 @@ class WebSocket with TimerHelper {
   }
 
   void _onConnectionError(error, [stacktrace]) {
-    _logger?.warning('Error occurred', error, stacktrace);
+    _logger?.warning(
+        '[onConnectionError] #ws; error occurred', error, stacktrace);
 
     StreamWebSocketError wsError;
     if (error is WebSocketChannelException) {

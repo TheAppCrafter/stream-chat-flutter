@@ -124,7 +124,8 @@ class StreamChannelInfoBottomSheet extends StatelessWidget {
         StreamOptionListTile(
           leading: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: StreamSvgIcon.user(
+            child: StreamSvgIcon(
+              icon: StreamSvgIcons.user,
               color: colorTheme.textLowEmphasis,
             ),
           ),
@@ -136,17 +137,19 @@ class StreamChannelInfoBottomSheet extends StatelessWidget {
             title: context.translations.leaveGroupLabel,
             leading: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: StreamSvgIcon.userRemove(
+              child: StreamSvgIcon(
+                icon: StreamSvgIcons.userRemove,
                 color: colorTheme.textLowEmphasis,
               ),
             ),
             onTap: onLeaveChannelTap,
           ),
-        if (channel.ownCapabilities.contains(PermissionType.deleteChannel))
+        if (channel.canDeleteChannel)
           StreamOptionListTile(
             leading: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: StreamSvgIcon.delete(
+              child: StreamSvgIcon(
+                icon: StreamSvgIcons.delete,
                 color: colorTheme.accentError,
               ),
             ),
@@ -157,7 +160,8 @@ class StreamChannelInfoBottomSheet extends StatelessWidget {
         StreamOptionListTile(
           leading: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: StreamSvgIcon.closeSmall(
+            child: StreamSvgIcon(
+              icon: StreamSvgIcons.closeSmall,
               color: colorTheme.textLowEmphasis,
             ),
           ),

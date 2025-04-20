@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'dart:async';
 
@@ -115,8 +116,8 @@ class _StreamMentionAutocompleteOptionsState
     final futureBuilder = FutureBuilder<List<List<User>>>(
       future: Future.wait([userMentionsFuture, extraUsersFuture]),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const SizedBox.shrink();
-        if (!snapshot.hasData) return const SizedBox.shrink();
+        if (snapshot.hasError) return const Empty();
+        if (!snapshot.hasData) return const Empty();
         final userList = snapshot.data!;
         final List<User> users = snapshot.data![0] as List<User>;
         final List<User> extraUsers = snapshot.data![1] as List<User>;

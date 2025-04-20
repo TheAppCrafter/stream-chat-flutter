@@ -4,8 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:stream_chat_flutter/src/icons/stream_svg_icon.dart';
 import 'package:stream_chat_flutter/src/message_input/attachment_picker/stream_attachment_picker.dart';
-import 'package:stream_chat_flutter/src/misc/stream_svg_icon.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/src/scroll_view/photo_gallery/stream_photo_gallery.dart';
 import 'package:stream_chat_flutter/src/scroll_view/photo_gallery/stream_photo_gallery_controller.dart';
 import 'package:stream_chat_flutter/src/theme/stream_chat_theme.dart';
@@ -95,7 +96,7 @@ class _StreamGalleryPickerState extends State<StreamGalleryPicker> {
     return FutureBuilder<PermissionState>(
       future: requestPermission,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
+        if (!snapshot.hasData) return const Empty();
 
         final theme = StreamChatTheme.of(context);
         final textTheme = theme.textTheme;
@@ -126,8 +127,9 @@ class _StreamGalleryPickerState extends State<StreamGalleryPicker> {
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    StreamSvgIcon.pictures(
+                    StreamSvgIcon(
                       size: 240,
+                      icon: StreamSvgIcons.pictures,
                       color: colorTheme.disabled,
                     ),
                     Text(

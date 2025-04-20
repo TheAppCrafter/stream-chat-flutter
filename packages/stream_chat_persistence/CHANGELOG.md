@@ -1,3 +1,32 @@
+## 9.8.0
+
+- Added `pinnedAt` and `archivedAt` fields on `Member`.
+
+## 9.7.0
+
+- Updated `stream_chat` dependency to [`9.7.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.6.0
+
+- Updated `stream_chat` dependency to [`9.6.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.5.0
+
+- Added support for `Message.restrictedVisibility` field.
+- Added support for `Member.extraData` field.
+
+## 9.4.0
+
+- Updated minimum Flutter version to 3.27.4 for the SDK.
+
+## 9.3.0
+
+- Updated `stream_chat` dependency to [`9.3.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.2.0
+
+- Updated `stream_chat` dependency to [`9.2.0`](https://pub.dev/packages/stream_chat/changelog).
+
 ## 9.1.0
 
 - Updated `stream_chat` dependency to [`9.1.0`](https://pub.dev/packages/stream_chat/changelog).

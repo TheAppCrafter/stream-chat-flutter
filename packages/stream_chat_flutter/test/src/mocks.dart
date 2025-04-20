@@ -15,11 +15,28 @@ class MockClientState extends Mock implements ClientState {}
 
 class MockChannel extends Mock implements Channel {
   MockChannel({
-    this.ownCapabilities = const ['send-message'],
+    this.type = 'test-chanel-type',
+    this.id = 'test-channel-id',
+    this.ownCapabilities = const [
+      ChannelCapability.sendMessage,
+      ChannelCapability.uploadFile,
+    ],
   });
 
   @override
-  final List<String> ownCapabilities;
+  final String type;
+
+  @override
+  final String? id;
+
+  @override
+  String? get cid {
+    if (id != null) return '$type:$id';
+    return null;
+  }
+
+  @override
+  final List<ChannelCapability> ownCapabilities;
 
   @override
   Future<bool> get initialized async => true;
@@ -56,8 +73,8 @@ class MockVoidCallback extends Mock {
   void call();
 }
 
-class MockVoidSingleParamCallback<T> extends Mock {
-  void call(T param);
+class MockValueChanged<T> extends Mock {
+  void call(T value);
 }
 
 class MockAttachmentHandler extends Mock implements StreamAttachmentHandler {}
@@ -78,4 +95,4 @@ class MockStreamMemberListController extends Mock
   PagedValue<int, Member> value = const PagedValue.loading();
 }
 
-class MocMessage extends Mock implements Message {}
+class MockMessage extends Mock implements Message {}

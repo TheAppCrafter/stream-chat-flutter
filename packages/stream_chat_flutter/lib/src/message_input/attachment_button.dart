@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/message_input/stream_message_input_icon_button.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-
-const double _kDefaultAttachmentButtonSize = 24;
 
 /// {@template attachmentButton}
 /// A button for adding attachments to a chat on mobile.
@@ -13,12 +12,8 @@ class AttachmentButton extends StatelessWidget {
     required this.onPressed,
     this.color,
     this.icon,
-    this.size = _kDefaultAttachmentButtonSize,
-  }) : assert(
-            (icon == null && color == null) ||
-                (icon != null && color == null) ||
-                (icon == null && color != null),
-            'Either icon or color should be provided');
+    this.size = kDefaultMessageInputIconSize,
+  });
 
   /// The color of the button.
   /// Should be set if no [icon] is provided.
@@ -54,18 +49,11 @@ class AttachmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: icon ??
-          StreamSvgIcon.attach(
-            color: color,
-          ),
-      padding: EdgeInsets.zero,
-      constraints: BoxConstraints.tightFor(
-        height: size,
-        width: size,
-      ),
-      splashRadius: size,
+    return StreamMessageInputIconButton(
+      color: color,
+      iconSize: size,
       onPressed: onPressed,
+      icon: icon ?? const StreamSvgIcon(icon: StreamSvgIcons.attach),
     );
   }
 }

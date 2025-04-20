@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// {@template streamSendingIndicator}
@@ -25,23 +26,26 @@ class StreamSendingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isMessageRead) {
-      return StreamSvgIcon.checkAll(
+      return StreamSvgIcon(
         size: size,
+        icon: StreamSvgIcons.checkAll,
         color: StreamChatTheme.of(context).colorTheme.accentPrimary,
       );
     }
     if (message.state.isCompleted) {
-      return StreamSvgIcon.check(
+      return StreamSvgIcon(
         size: size,
+        icon: StreamSvgIcons.check,
         color: StreamChatTheme.of(context).colorTheme.textLowEmphasis,
       );
     }
     if (message.state.isOutgoing) {
-      return Icon(
-        Icons.access_time,
+      return StreamSvgIcon(
         size: size,
+        icon: StreamSvgIcons.time,
+        color: StreamChatTheme.of(context).colorTheme.textLowEmphasis,
       );
     }
-    return const SizedBox();
+    return const Empty();
   }
 }
