@@ -801,9 +801,9 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
           color: isPinned && widget.showPinHighlight
-              ? _streamChatTheme.colorTheme.highlight
+              ? streamChatTheme.colorTheme.highlight
               // ignore: deprecated_member_use
-              : _streamChatTheme.colorTheme.barsBg.withOpacity(0),
+              : streamChatTheme.colorTheme.barsBg.withOpacity(0),
           child: Portal(
             child: PlatformWidgetBuilder(
               mobile: (context, child) {
@@ -824,81 +824,82 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                   child: child,
                 );
               },
-            desktop: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
-            web: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
-            child: Padding(
-              padding: widget.padding ?? const EdgeInsets.all(8),
-              child: FractionallySizedBox(
-                alignment: widget.reverse
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                widthFactor: widget.widthFactor,
-                child: Builder(builder: (context) {
-                  return MessageWidgetContent(
-                    streamChatTheme: streamChatTheme,
-                    showUsername: showUsername,
-                    showTimeStamp: showTimeStamp,
-                    showEditedLabel: showEditedLabel,
-                    showThreadReplyIndicator: showThreadReplyIndicator,
-                    showSendingIndicator: showSendingIndicator,
-                    showInChannel: showInChannel,
-                    isGiphy: isGiphy,
-                    isOnlyEmoji: isOnlyEmoji,
-                    hasUrlAttachments: hasUrlAttachments,
-                    messageTheme: widget.messageTheme,
-                    reverse: widget.reverse,
-                    message: widget.message,
-                    hasNonUrlAttachments: hasNonUrlAttachments,
-                    hasPoll: hasPoll,
-                    hasQuotedMessage: hasQuotedMessage,
-                    textPadding: widget.textPadding,
-                    attachmentBuilders: widget.attachmentBuilders,
-                    attachmentPadding: widget.attachmentPadding,
-                    attachmentShape: widget.attachmentShape,
-                    onAttachmentTap: widget.onAttachmentTap,
-                    onReplyTap: widget.onReplyTap,
-                    onThreadTap: widget.onThreadTap,
-                    onShowMessage: widget.onShowMessage,
-                    attachmentActionsModalBuilder:
-                        widget.attachmentActionsModalBuilder,
-                    avatarWidth: avatarWidth,
-                    bottomRowPadding: bottomRowPadding,
-                    isFailedState: isFailedState,
-                    isPinned: isPinned,
-                    messageWidget: widget,
-                    showBottomRow: showBottomRow,
-                    showPinHighlight: widget.showPinHighlight,
-                    showReactionPickerTail: calculateReactionTailEnabled(
-                      ReactionTailType.list,
-                    ),
-                    showReactions: showReactions,
-                    onReactionsTap: () {
-                      final message = widget.message;
-                    return switch (widget.onReactionsTap) {
-                        final onReactionsTap? => onReactionsTap(message),
-                        _ => showMessageReactionsModal(context, message),
-                    };
-                    },
-                    onReactionsHover: widget.onReactionsHover,
-                    showUserAvatar: widget.showUserAvatar,
-                    streamChat: streamChat,
-                    translateUserAvatar: widget.translateUserAvatar,
-                    shape: widget.shape,
-                    borderSide: widget.borderSide,
-                    borderRadiusGeometry: widget.borderRadiusGeometry,
-                    textBubbleBuilder: widget.textBubbleBuilder,
-                    textBuilder: widget.textBuilder,
-                    quotedMessageBuilder: widget.quotedMessageBuilder,
-                    onLinkTap: widget.onLinkTap,
-                    onMentionTap: widget.onMentionTap,
-                    onQuotedMessageTap: widget.onQuotedMessageTap,
-                    bottomRowBuilderWithDefaultWidget: widget.bottomRowBuilderWithDefaultWidget,
-                    onUserAvatarTap: widget.onUserAvatarTap,
-                    userAvatarBuilder: widget.userAvatarBuilder,
-                    showActionBar: widget.showActionBar,
-                    actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
-                  ),
-                }),
+              desktop: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
+              web: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
+              child: Padding(
+                padding: widget.padding ?? const EdgeInsets.all(8),
+                child: FractionallySizedBox(
+                  alignment: widget.reverse
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  widthFactor: widget.widthFactor,
+                  child: Builder(builder: (context) {
+                    return MessageWidgetContent(
+                      streamChatTheme: streamChatTheme,
+                      showUsername: showUsername,
+                      showTimeStamp: showTimeStamp,
+                      showEditedLabel: showEditedLabel,
+                      showThreadReplyIndicator: showThreadReplyIndicator,
+                      showSendingIndicator: showSendingIndicator,
+                      showInChannel: showInChannel,
+                      isGiphy: isGiphy,
+                      isOnlyEmoji: isOnlyEmoji,
+                      hasUrlAttachments: hasUrlAttachments,
+                      messageTheme: widget.messageTheme,
+                      reverse: widget.reverse,
+                      message: widget.message,
+                      hasNonUrlAttachments: hasNonUrlAttachments,
+                      hasPoll: hasPoll,
+                      hasQuotedMessage: hasQuotedMessage,
+                      textPadding: widget.textPadding,
+                      attachmentBuilders: widget.attachmentBuilders,
+                      attachmentPadding: widget.attachmentPadding,
+                      attachmentShape: widget.attachmentShape,
+                      onAttachmentTap: widget.onAttachmentTap,
+                      onReplyTap: widget.onReplyTap,
+                      onThreadTap: widget.onThreadTap,
+                      onShowMessage: widget.onShowMessage,
+                      attachmentActionsModalBuilder:
+                          widget.attachmentActionsModalBuilder,
+                      avatarWidth: avatarWidth,
+                      bottomRowPadding: bottomRowPadding,
+                      isFailedState: isFailedState,
+                      isPinned: isPinned,
+                      messageWidget: widget,
+                      showBottomRow: showBottomRow,
+                      showPinHighlight: widget.showPinHighlight,
+                      showReactionPickerTail: calculateReactionTailEnabled(
+                        ReactionTailType.list,
+                      ),
+                      showReactions: showReactions,
+                      onReactionsTap: () {
+                        final message = widget.message;
+                      return switch (widget.onReactionsTap) {
+                          final onReactionsTap? => onReactionsTap(message),
+                          _ => showMessageReactionsModal(context, message),
+                      };
+                      },
+                      onReactionsHover: widget.onReactionsHover,
+                      showUserAvatar: widget.showUserAvatar,
+                      streamChat: streamChat,
+                      translateUserAvatar: widget.translateUserAvatar,
+                      shape: widget.shape,
+                      borderSide: widget.borderSide,
+                      borderRadiusGeometry: widget.borderRadiusGeometry,
+                      textBubbleBuilder: widget.textBubbleBuilder,
+                      textBuilder: widget.textBuilder,
+                      quotedMessageBuilder: widget.quotedMessageBuilder,
+                      onLinkTap: widget.onLinkTap,
+                      onMentionTap: widget.onMentionTap,
+                      onQuotedMessageTap: widget.onQuotedMessageTap,
+                      bottomRowBuilderWithDefaultWidget: widget.bottomRowBuilderWithDefaultWidget,
+                      onUserAvatarTap: widget.onUserAvatarTap,
+                      userAvatarBuilder: widget.userAvatarBuilder,
+                      showActionBar: widget.showActionBar,
+                      actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
+                    );
+                  }),
+                ),
               ),
             ),
           ),
@@ -915,7 +916,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       return _buildBouncedErrorMessageDesktopOrWebActions(context, message);
     }
 
-    return _buildMessageDesktopOrWebActions(context, message);
+    return _buildMessageDesktopOrWebActions(context, message, null);
   }
 
   List<Widget> _buildBouncedErrorMessageDesktopOrWebActions(
@@ -972,13 +973,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     Message message,
     double? iconSize,
   ) {
-    final theme = StreamChatTheme.of(context);
-    final channel = StreamChannel.of(context).channel;
-
     return messageActionItems(message: message, iconSize: iconSize);
   }
 
-  List<StreamChatContextMenuItem> messageActionItems({required Message message, double? iconSize}) {
+  List<StreamChatContextMenuItem> messageActionItems({required Message message, double? iconSize = 24}) {
     if (widget.messageActionItemsBuilder != null) {
       return widget.messageActionItemsBuilder!(context);
     }
@@ -1220,7 +1218,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
 
   Widget actionBar() {
     const iconSize = 14.0;
-    final items = messageActionItems(iconSize: iconSize);
+    final items = messageActionItems(message: widget.message, iconSize: iconSize);
     
     return showBottomRow ? Container(
       padding: EdgeInsets.zero,
