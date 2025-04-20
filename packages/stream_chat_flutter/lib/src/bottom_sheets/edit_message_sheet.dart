@@ -9,11 +9,13 @@ Future<T?> showEditMessageSheet<T extends Object?>({
   required Message message,
   required Channel channel,
   EditMessageInputBuilder? editMessageInputBuilder,
+  BoxConstraints? constraints,
 }) {
   final messageInputTheme = StreamMessageInputTheme.of(context);
 
   return showModalBottomSheet<T>(
     context: context,
+    constraints: constraints,
     elevation: 2,
     isScrollControlled: true,
     clipBehavior: Clip.antiAlias,
