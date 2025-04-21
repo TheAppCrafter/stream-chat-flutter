@@ -100,155 +100,156 @@ class AttachmentActionsModal extends StatelessWidget {
         const SizedBox(height: kToolbarHeight),
         Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.5,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: SizedBox(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ...customActions
-                    .map(
-                      (e) => _buildButton(
+          child: IntrinsicWidth(
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...customActions
+                      .map(
+                        (e) => _buildButton(
+                          context,
+                          e.actionTitle,
+                          e.icon,
+                          e.onTap,
+                        ),
+                      )
+                      .toList(),
+                    if (showReply)
+                      _buildButton(
                         context,
-                        e.actionTitle,
-                        e.icon,
-                        e.onTap,
+                        context.translations.replyLabel,
+                        StreamSvgIcon.iconCurveLineLeftUp(
+                          size: 24,
+                          color: theme.colorTheme.textLowEmphasis,
+                        ),
+                        onReply,
                       ),
-                    )
-                    .toList(),
-                  if (showReply)
-                    _buildButton(
-                      context,
-                      context.translations.replyLabel,
-                      StreamSvgIcon.iconCurveLineLeftUp(
-                        size: 24,
-                        color: theme.colorTheme.textLowEmphasis,
+                    if (showShowInChat)
+                      _buildButton(
+                        context,
+                        context.translations.showInChatLabel,
+                        StreamSvgIcon.eye(
+                          size: 24,
+                          color: theme.colorTheme.textHighEmphasis,
+                        ),
+                        onShowMessage,
                       ),
-                      onReply,
-                    ),
-                  if (showShowInChat)
-                    _buildButton(
-                      context,
-                      context.translations.showInChatLabel,
-                      StreamSvgIcon.eye(
-                        size: 24,
-                        color: theme.colorTheme.textHighEmphasis,
+                    if (showSave)
+                      _buildButton(
+                        context,
+                        attachment.type == AttachmentType.video
+                            ? context.translations.saveVideoLabel
+                            : context.translations.saveImageLabel,
+                        StreamSvgIcon.iconSave(
+                          size: 24,
+                          color: theme.colorTheme.textLowEmphasis,
+                        ),
+                        () {
+                          // Closing attachment actions modal before opening
+                          // attachment download dialog
+                          Navigator.of(context).pop();
+
+                          final downloader = attachmentDownloader ??
+                              StreamAttachmentHandler.instance.downloadAttachment;
+
+                          // No need to show progress dialog in case of
+                          // web or desktop.
+                          if (isDesktopDeviceOrWeb) {
+                            downloader(attachment);
+                            return;
+                          }
+
+                          final progressNotifier =
+                              ValueNotifier<_DownloadProgress?>(
+                            _DownloadProgress.initial(),
+                          );
+
+                          final downloadedPathNotifier =
+                              ValueNotifier<String?>(null);
+
+                          downloader(
+                            attachment,
+                            onReceiveProgress: (received, total) {
+                              progressNotifier.value = _DownloadProgress(
+                                total,
+                                received,
+                              );
+                            },
+                          ).then((path) {
+                            downloadedPathNotifier.value = path;
+                          }).catchError((e, stk) {
+                            print(e);
+                            print(stk);
+                            progressNotifier.value = null;
+                          });
+
+                          showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            barrierColor: theme.colorTheme.overlay,
+                            builder: (context) => _buildDownloadProgressDialog(
+                              context,
+                              progressNotifier,
+                              downloadedPathNotifier,
+                            ),
+                          );
+                        },
                       ),
-                      onShowMessage,
-                    ),
-                  if (showSave)
-                    _buildButton(
-                      context,
-                      attachment.type == AttachmentType.video
-                          ? context.translations.saveVideoLabel
-                          : context.translations.saveImageLabel,
-                      StreamSvgIcon.iconSave(
-                        size: 24,
-                        color: theme.colorTheme.textLowEmphasis,
-                      ),
-                      () {
-                        // Closing attachment actions modal before opening
-                        // attachment download dialog
-                        Navigator.of(context).pop();
-
-                        final downloader = attachmentDownloader ??
-                            StreamAttachmentHandler.instance.downloadAttachment;
-
-                        // No need to show progress dialog in case of
-                        // web or desktop.
-                        if (isDesktopDeviceOrWeb) {
-                          downloader(attachment);
-                          return;
-                        }
-
-                        final progressNotifier =
-                            ValueNotifier<_DownloadProgress?>(
-                          _DownloadProgress.initial(),
-                        );
-
-                        final downloadedPathNotifier =
-                            ValueNotifier<String?>(null);
-
-                        downloader(
-                          attachment,
-                          onReceiveProgress: (received, total) {
-                            progressNotifier.value = _DownloadProgress(
-                              total,
-                              received,
-                            );
-                          },
-                        ).then((path) {
-                          downloadedPathNotifier.value = path;
-                        }).catchError((e, stk) {
-                          print(e);
-                          print(stk);
-                          progressNotifier.value = null;
-                        });
-
-                        showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          barrierColor: theme.colorTheme.overlay,
-                          builder: (context) => _buildDownloadProgressDialog(
-                            context,
-                            progressNotifier,
-                            downloadedPathNotifier,
-                          ),
-                        );
-                      },
-                    ),
-                  if (StreamChat.of(context).currentUser?.id ==
-                          message?.user?.id &&
-                      showDelete)
-                    _buildButton(
-                      context,
-                      context.translations.deleteLabel.capitalize(),
-                      StreamSvgIcon.delete(
-                        size: 24,
+                    if (StreamChat.of(context).currentUser?.id ==
+                            message?.user?.id &&
+                        showDelete)
+                      _buildButton(
+                        context,
+                        context.translations.deleteLabel.capitalize(),
+                        StreamSvgIcon.delete(
+                          size: 24,
+                          color: theme.colorTheme.accentError,
+                        ),
+                        () {
+                          if (message != null && channel != null) {
+                            if (message!.attachments.length > 1 ||
+                                message!.text?.isNotEmpty == true) {
+                              final currentAttachmentIndex =
+                                  message!.attachments.indexWhere(
+                                (element) => element.id == attachment.id,
+                              );
+                              final remainingAttachments = [...message!.attachments]
+                                ..removeAt(currentAttachmentIndex);
+                              channel!.updateMessage(message!.copyWith(
+                                attachments: remainingAttachments,
+                              ));
+                              Navigator.of(context)
+                                ..pop()
+                                ..maybePop();
+                            } else {
+                              channel!.deleteMessage(message!);
+                              Navigator.of(context)
+                                ..pop()
+                                ..maybePop();
+                            }
+                          }
+                        },
                         color: theme.colorTheme.accentError,
                       ),
-                      () {
-                        if (message != null && channel != null) {
-                          if (message!.attachments.length > 1 ||
-                              message!.text?.isNotEmpty == true) {
-                            final currentAttachmentIndex =
-                                message!.attachments.indexWhere(
-                              (element) => element.id == attachment.id,
-                            );
-                            final remainingAttachments = [...message!.attachments]
-                              ..removeAt(currentAttachmentIndex);
-                            channel!.updateMessage(message!.copyWith(
-                              attachments: remainingAttachments,
-                            ));
-                            Navigator.of(context)
-                              ..pop()
-                              ..maybePop();
-                          } else {
-                            channel!.deleteMessage(message!);
-                            Navigator.of(context)
-                              ..pop()
-                              ..maybePop();
-                          }
-                        }
-                      },
-                      color: theme.colorTheme.accentError,
-                    ),
-                ]
-                    .map<Widget>((e) => Align(
-                          alignment: Alignment.centerRight,
-                          child: e,
-                        ))
-                    .insertBetween(
-                      Container(
-                        height: 1,
-                        color: theme.colorTheme.borders,
+                  ]
+                      .map<Widget>((e) => Align(
+                            alignment: Alignment.centerRight,
+                            child: e,
+                          ))
+                      .insertBetween(
+                        Container(
+                          height: 1,
+                          color: theme.colorTheme.borders,
+                        ),
                       ),
-                    ),
+                ),
               ),
             ),
           ),
