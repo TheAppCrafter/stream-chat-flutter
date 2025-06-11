@@ -172,6 +172,7 @@ class StreamMessageInput extends StatefulWidget {
     this.pollConfig,
     this.customMobileAttachmentPickerBuilder,
     this.customWebOrDesktopAttachmentPickerBuilder,
+    this.enableSendButton = true,
   });
 
   /// The predicate used to send a message on desktop/web
@@ -406,6 +407,9 @@ class StreamMessageInput extends StatefulWidget {
   /// Custom web or desktop attachment picker builder
   final WebOrDesktopAttachmentPickerBuilderType? customWebOrDesktopAttachmentPickerBuilder;
 
+  /// added to control the send button idle state in addition to the validation state
+  final bool enableSendButton;
+
   static String? _defaultHintGetter(
     BuildContext context,
     HintType type,
@@ -562,16 +566,14 @@ class StreamMessageInputState extends State<StreamMessageInput>
     _updateValidationState();
     
     // Add listener to controller to trigger validation
-    _effectiveController.addListener(() {
-      _updateValidationState();
-    });
+    _effectiveController.addListener(_updateValidationState);
   }
 
   @override
   void didChangeDependencies() {
+    super.didChangeDependencies();
     _streamChatTheme = StreamChatTheme.of(context);
     _messageInputTheme = StreamMessageInputTheme.of(context);
-    super.didChangeDependencies();
   }
 
   bool _askingForPermission = false;
@@ -871,7 +873,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
         return StreamMessageSendButton(
           onSendMessage: sendMessage,
           timeOut: _timeOut,
-          isIdle: !isValid,
+          isIdle: widget.enableSendButton == false || !isValid,
           isEditEnabled: _isEditing,
           idleSendButton: widget.idleSendButton,
           activeSendButton: widget.activeSendButton,
@@ -1686,7 +1688,9 @@ class StreamMessageInputState extends State<StreamMessageInput>
   @override
   void dispose() {
     _currentValidation?.cancel();
-    _effectiveController.removeListener(_onChangedDebounced);
+    _effectiveController
+      ..removeListener(_onChangedDebounced)
+      ..removeListener(_updateValidationState);
     _controller?.dispose();
     _effectiveFocusNode.removeListener(_focusNodeListener);
     _focusNode?.dispose();
