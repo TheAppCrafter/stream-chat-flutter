@@ -9,7 +9,6 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
   /// Constructor for creating a [StreamMentionAutocompleteOptions].
   StreamMentionAutocompleteOptions({
     super.key,
-    this.autoCompleteExtraUsersFunction,
     required this.query,
     required this.channel,
     this.mentionedUsers = const [],
@@ -29,9 +28,6 @@ class StreamMentionAutocompleteOptions extends StatefulWidget {
 
   /// Query for searching users.
   final String query;
-
-  /// Function to add extra users to autocomplete.
-  final Future<List<User>> Function(String)? autoCompleteExtraUsersFunction;
 
   /// Limit applied on user search results.
   final int limit;
@@ -71,7 +67,6 @@ class _StreamMentionAutocompleteOptionsState
   void initState() {
     super.initState();
     userMentionsFuture = queryMentions(widget.query);
-    extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
   }
 
   @override
@@ -86,7 +81,6 @@ class _StreamMentionAutocompleteOptionsState
       if (mounted) {
         setState(() {
           userMentionsFuture = queryMentions(widget.query);
-          extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
         });
       }
     });
@@ -101,7 +95,6 @@ class _StreamMentionAutocompleteOptionsState
         widget.mentionAllAppUsers != oldWidget.mentionAllAppUsers ||
         widget.limit != oldWidget.limit) {
       userMentionsFuture = queryMentions(widget.query);
-      extraUsersFuture = widget.autoCompleteExtraUsersFunction?.call(widget.query) ?? Future.value([]);
     }
     
     // Debounce query changes

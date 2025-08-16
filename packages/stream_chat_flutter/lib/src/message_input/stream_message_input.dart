@@ -166,7 +166,6 @@ class StreamMessageInput extends StatefulWidget {
     this.containsCommandFunction,
     this.prefixIconWidget,
     this.onAttachmentRemovePressed,
-    this.autoCompleteExtraUsersFunction,
     this.onMentionUserTap,
     this.userMentionsWidgetBuilder,
     this.pollConfig,
@@ -390,8 +389,6 @@ class StreamMessageInput extends StatefulWidget {
   final bool useNativeAttachmentPickerOnMobile;
 
   final Future<void> Function(Attachment)? onAttachmentRemovePressed;
-
-  final Future<List<User>> Function(String)? autoCompleteExtraUsersFunction;
 
   final void Function(BuildContext, User)? onMentionUserTap;
 
@@ -825,7 +822,6 @@ class StreamMessageInputState extends State<StreamMessageInput>
                   return StreamMentionAutocompleteOptions(
                     client: StreamChat.of(context).client,
                     query: query,
-                    autoCompleteExtraUsersFunction: widget.autoCompleteExtraUsersFunction,
                     channel: StreamChannel.of(context).channel,
                     mentionedUsers: _effectiveController.message.mentionedUsers,
                     mentionAllAppUsers: widget.mentionAllAppUsers,
