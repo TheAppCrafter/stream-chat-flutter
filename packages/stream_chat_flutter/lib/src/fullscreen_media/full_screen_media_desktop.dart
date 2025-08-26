@@ -324,13 +324,17 @@ class _FullScreenMediaDesktopState extends State<FullScreenMediaDesktop> {
                           return PhotoView.customChild(
                             maxScale: PhotoViewComputedScale.covered,
                             minScale: PhotoViewComputedScale.contained,
+                            initialScale: PhotoViewComputedScale.contained,
                             backgroundDecoration: const BoxDecoration(
                               color: Colors.transparent,
                             ),
-                            child: StreamMediaAttachmentThumbnail(
-                              media: attachment,
-                              width: double.infinity,
-                              height: double.infinity,
+                            child: SizedBox.expand(
+                              child: StreamMediaAttachmentThumbnail(
+                                media: attachment,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           );
                         } else if (attachment.type == AttachmentType.video) {
