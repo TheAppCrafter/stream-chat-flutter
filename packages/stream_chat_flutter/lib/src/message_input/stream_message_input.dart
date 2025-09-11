@@ -473,7 +473,7 @@ class StreamMessageInput extends StatefulWidget {
 /// State of [StreamMessageInput]
 class StreamMessageInputState extends State<StreamMessageInput>
     with RestorationMixin<StreamMessageInput>, WidgetsBindingObserver {
-  bool get _commandEnabled => _effectiveController.message.command != null || _effectiveController.message.extraData['customCommand'] != null;
+  bool get _commandEnabled => _effectiveController.message.command != null || _effectiveController.message.extraData['customCommandId'] != null;
 
   bool _actionsShrunk = false;
 
@@ -1575,7 +1575,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
       return;
     }
 
-    final containsCommand = message.command != null || message.extraData['customCommand'] != null;
+    final containsCommand = message.command != null || message.extraData['customCommandId'] != null;
     // If the message contains command we should prepend it to the text before sending it.
     if (containsCommand) {
       widget.containsCommandFunction != null ? 
