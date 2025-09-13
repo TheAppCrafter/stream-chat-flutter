@@ -454,10 +454,16 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
 
       _userReadListener =
           streamChannel!.channel.state?.readStream.listen((event) {
-        setState(() {
-          unreadCount = streamChannel!.channel.state?.unreadCount ?? 0;
-          _userRead = streamChannel!.channel.state?.currentUserRead;
-        });
+        final nextUnread = streamChannel!.channel.state?.unreadCount ?? 0;
+        final currentUserRead = streamChannel!.channel.state?.currentUserRead;
+        final hasUnreadChanged = nextUnread != unreadCount;
+        final hasReadChanged = currentUserRead?.lastReadMessageId != _userRead?.lastReadMessageId;
+        if (hasUnreadChanged || hasReadChanged) {
+          setState(() {
+            unreadCount = nextUnread;
+            _userRead = currentUserRead;
+          });
+        }
       });
 
       if (_isThreadConversation) {
@@ -1495,8 +1501,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       }
     }
     if (mounted) {
-      if (_showScrollToBottom.value == _isFirstItemVisible) {
-        _showScrollToBottom.value = !_isFirstItemVisible;
+      final prev = _showScrollToBottom.value;
+      final next = !_isFirstItemVisible;
+      if (prev != next) {
+        _showScrollToBottom.value = next;
       }
     }
   }
