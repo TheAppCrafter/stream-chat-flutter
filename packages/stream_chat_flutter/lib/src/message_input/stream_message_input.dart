@@ -925,14 +925,10 @@ class StreamMessageInputState extends State<StreamMessageInput>
   }
 
   List<Widget> _actionsList() {
-    final channel = StreamChannel.of(context).channel;
     final defaultActions = <Widget>[
       if (!widget.disableAttachments)
         _buildAttachmentButton(context),
-      if (widget.showCommandsButton &&
-          !_isEditing &&
-          channel.state != null &&
-          channel.config?.commands.isNotEmpty == true)
+      if (widget.showCommandsButton)
         _buildCommandButton(context),
     ];
     if (widget.actionsBuilder != null) {
