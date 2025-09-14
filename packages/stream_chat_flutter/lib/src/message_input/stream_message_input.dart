@@ -166,6 +166,7 @@ class StreamMessageInput extends StatefulWidget {
     this.streamCommandAutoCompleteOptionsBuilder,
     this.containsCommandFunction,
     this.prefixIconWidget,
+    this.suffixIconWidget,
     this.onAttachmentRemovePressed,
     this.onMentionUserTap,
     this.userMentionsWidgetBuilder,
@@ -385,7 +386,9 @@ class StreamMessageInput extends StatefulWidget {
 
   final Widget Function(BuildContext, StreamMessageInputController)? prefixIconWidget;
 
-    /// Forces use of native attachment picker on mobile instead of the custom
+  final Widget Function(BuildContext, StreamMessageInputController)? suffixIconWidget;
+
+  /// Forces use of native attachment picker on mobile instead of the custom
   /// Stream attachment picker.
   final bool useNativeAttachmentPickerOnMobile;
 
@@ -1129,19 +1132,13 @@ class StreamMessageInputState extends State<StreamMessageInput>
                             contentInsertionConfiguration:
                                 widget.contentInsertionConfiguration,
                           ),
-                          if (_commandEnabled)
+                          if (_commandEnabled && widget.suffixIconWidget != null)
                             Positioned(
                               right: 0,
-                              top: 0,
-                              bottom: 0,
-                              child: IconButton(
-                                icon: StreamSvgIcon.closeSmall(size: closeIconSize),
-                                visualDensity: VisualDensity.compact,
-                                splashRadius: closeIconSize,
-                                padding: EdgeInsets.zero,
-                                onPressed: _effectiveController.clear,
-                              ),
-                            ),
+                              top: -2,
+                              bottom: 2,
+                              child: widget.suffixIconWidget!(context, _effectiveController)
+                            )
                         ],
                       ),
                     ),
@@ -1237,52 +1234,12 @@ class StreamMessageInputState extends State<StreamMessageInput>
       // fully control the layout without extra end insets from InputDecorator
       isCollapsed: true,
       prefixIcon: _commandEnabled ? 
-          widget.prefixIconWidget != null ? 
-          widget.prefixIconWidget!(context, _effectiveController) :
-          Padding(
-              // Remove vertical padding to better center the command badge vertically
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: 64, 
-                  maxWidth: 100, 
-                  minHeight: 24, 
-                  maxHeight: 48,
-                ),
-                child: IntrinsicWidth(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: _streamChatTheme.colorTheme.accentPrimary,
-                    ),
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          StreamSvgIcon.lightning(
-                            color: Theme.of(context).colorScheme.surface,
-                            size: 16,
-                          ),
-                          Flexible(
-                            child: Text(
-                              _effectiveController.message.command!.toUpperCase(),
-                              style: _streamChatTheme.textTheme.footnoteBold.copyWith(
-                                color: Theme.of(context).colorScheme.surface,
-                              ),
-                              maxLines: 2, 
-                              overflow: TextOverflow.ellipsis, 
-                              softWrap: true, 
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
+          (widget.prefixIconWidget != null ? 
+          Transform.translate(
+            offset: const Offset(0, -2), 
+            child: widget.prefixIconWidget!(context, _effectiveController)
+          ) :
+          null)
           : (widget.actionsLocation == ActionsLocation.leftInside
               ? Row(
                   mainAxisSize: MainAxisSize.min,
