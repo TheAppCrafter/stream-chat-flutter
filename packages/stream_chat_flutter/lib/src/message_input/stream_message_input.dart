@@ -17,6 +17,7 @@ import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 const _kCommandTrigger = '/';
 const _kMentionTrigger = '@';
+const double closeIconSize = 28.0;
 
 /// Signature for the function that determines if a [matchedUri] should be
 /// previewed as an OG Attachment.
@@ -116,7 +117,7 @@ class StreamMessageInput extends StatefulWidget {
     this.disableAttachments = false,
     this.messageInputController,
     this.actionsBuilder,
-    this.spaceBetweenActions = 8,
+    this.spaceBetweenActions = 0,
     this.actionsLocation = ActionsLocation.left,
     this.attachmentListBuilder,
     this.fileAttachmentListBuilder,
@@ -1108,23 +1109,40 @@ class StreamMessageInputState extends State<StreamMessageInput>
                         onKeyEvent: _handleKeyPressed,
                         child: child!,
                       ),
-                      child: StreamMessageTextField(
-                        key: const Key('messageInputText'),
-                        maxLines: widget.maxLines,
-                        minLines: widget.minLines,
-                        textInputAction: widget.textInputAction,
-                        onSubmitted: (_) => sendMessage(),
-                        keyboardType: widget.keyboardType,
-                        controller: _effectiveController,
-                        focusNode: _effectiveFocusNode,
-                        style: _messageInputTheme.inputTextStyle,
-                        autofocus: widget.autofocus,
-                        textAlignVertical: TextAlignVertical.center,
-                        decoration: _getInputDecoration(context),
-                        textCapitalization: widget.textCapitalization,
-                        autocorrect: widget.autoCorrect,
-                        contentInsertionConfiguration:
-                            widget.contentInsertionConfiguration,
+                      child: Stack(
+                        children: [
+                          StreamMessageTextField(
+                            key: const Key('messageInputText'),
+                            maxLines: widget.maxLines,
+                            minLines: widget.minLines,
+                            textInputAction: widget.textInputAction,
+                            onSubmitted: (_) => sendMessage(),
+                            keyboardType: widget.keyboardType,
+                            controller: _effectiveController,
+                            focusNode: _effectiveFocusNode,
+                            style: _messageInputTheme.inputTextStyle,
+                            autofocus: widget.autofocus,
+                            textAlignVertical: TextAlignVertical.center,
+                            decoration: _getInputDecoration(context),
+                            textCapitalization: widget.textCapitalization,
+                            autocorrect: widget.autoCorrect,
+                            contentInsertionConfiguration:
+                                widget.contentInsertionConfiguration,
+                          ),
+                          if (_commandEnabled)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              child: IconButton(
+                                icon: StreamSvgIcon.closeSmall(size: closeIconSize),
+                                visualDensity: VisualDensity.compact,
+                                splashRadius: closeIconSize,
+                                padding: EdgeInsets.zero,
+                                onPressed: _effectiveController.clear,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -1213,12 +1231,17 @@ class StreamMessageInputState extends State<StreamMessageInput>
           color: Colors.transparent,
         ),
       ),
-      contentPadding: const EdgeInsets.fromLTRB(16, 12, 13, 11),
+      // Reserve extra space on the right only when the close icon is overlaid
+      contentPadding: EdgeInsets.fromLTRB(16, 12, _commandEnabled ? closeIconSize + 8 : 16, 12),
+      // Collapse internal decoration padding so our contentPadding and constraints
+      // fully control the layout without extra end insets from InputDecorator
+      isCollapsed: true,
       prefixIcon: _commandEnabled ? 
           widget.prefixIconWidget != null ? 
           widget.prefixIconWidget!(context, _effectiveController) :
           Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              // Remove vertical padding to better center the command badge vertically
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
                   minWidth: 64, 
@@ -1266,32 +1289,26 @@ class StreamMessageInputState extends State<StreamMessageInput>
                   children: [_buildExpandActionsButton(context)],
                 )
               : null),
-      suffixIconConstraints: const BoxConstraints.tightFor(height: 40),
+      // Use tight constraints only when showing right-inside actions; otherwise reserve no width
+      suffixIconConstraints: ((_commandEnabled == false && widget.actionsLocation == ActionsLocation.rightInside) ||
+              (widget.sendButtonLocation == SendButtonLocation.inside))
+          ? const BoxConstraints.tightFor(width: 28, height: 40)
+          : const BoxConstraints.tightFor(width: 0, height: 40),
+      // Keep prefix tight on height only so the command chip sizes itself naturally
       prefixIconConstraints: const BoxConstraints.tightFor(height: 40),
-      suffixIcon: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (_commandEnabled)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                icon: StreamSvgIcon.closeSmall(),
-                splashRadius: 24,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(
-                  height: 24,
-                  width: 24,
-                ),
-                onPressed: _effectiveController.clear,
-              ),
-            ),
-          if (!_commandEnabled &&
-              widget.actionsLocation == ActionsLocation.rightInside)
-            _buildExpandActionsButton(context),
-          if (widget.sendButtonLocation == SendButtonLocation.inside)
-            _buildSendButton(context),
-        ],
-      ),
+      suffixIcon: (!_commandEnabled && widget.actionsLocation == ActionsLocation.rightInside) ||
+              (widget.sendButtonLocation == SendButtonLocation.inside)
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!_commandEnabled &&
+                    widget.actionsLocation == ActionsLocation.rightInside)
+                  _buildExpandActionsButton(context),
+                if (widget.sendButtonLocation == SendButtonLocation.inside)
+                  _buildSendButton(context),
+              ],
+            )
+          : null,
     ).merge(passedDecoration);
   }
 
@@ -1300,6 +1317,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
       var value = _effectiveController.text;
       if (!mounted) return;
       value = value.trim();
+      // ignore: avoid_print
+      print('⌨️ _onChangedDebounced textLen=' + value.length.toString());
 
       final channel = StreamChannel.of(context).channel;
       if (value.isNotEmpty &&
@@ -1321,7 +1340,12 @@ class StreamMessageInputState extends State<StreamMessageInput>
       if (widget.showCommandsButton) actionsLength += 1;
       if (!widget.disableAttachments) actionsLength += 1;
 
-      setState(() => _actionsShrunk = widget.actionsShrunkFunction?.call(_effectiveController, actionsLength) ?? (value.isNotEmpty && actionsLength > 1));
+      final nextShrink = widget.actionsShrunkFunction?.call(_effectiveController, actionsLength) ?? (value.isNotEmpty && actionsLength > 1);
+      if (_actionsShrunk != nextShrink) {
+        // ignore: avoid_print
+        print('🎛️ actionsShrunk flip: prev=' + _actionsShrunk.toString() + ' next=' + nextShrink.toString());
+      }
+      setState(() => _actionsShrunk = nextShrink);
 
       _checkContainsUrl(value, context);
     },
