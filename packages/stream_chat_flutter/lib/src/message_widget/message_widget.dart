@@ -80,6 +80,8 @@ class StreamMessageWidget extends StatefulWidget {
     this.showPinButton = true,
     this.showPinHighlight = true,
     this.showActionBar = false,
+    this.contextMenuActionIconSize = 24,
+    this.actionBarIconSize = 14,
     this.onUserAvatarTap,
     this.onLinkTap,
     this.onMessageActions,
@@ -378,6 +380,12 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final bool showActionBar;
 
+  /// Size to use for icons shown in desktop and web context menus.
+  final double contextMenuActionIconSize;
+
+  /// Size to use for icons shown in the action bar below the message bubble.
+  final double actionBarIconSize;
+
   /// {@template onReadAloudTap}
   /// The function called when tapping on Read Aloud
   /// {@endtemplate}
@@ -528,6 +536,8 @@ class StreamMessageWidget extends StatefulWidget {
     bool Function(Message)? showRegenerateMessage,
     bool? showReadAloudMessage,
     TextBubbleBuilder? textBubbleBuilder,
+    double? contextMenuActionIconSize,
+    double? actionBarIconSize,
     List<StreamChatContextMenuItem> Function(BuildContext context)? messageActionItemsBuilder,
     Widget Function(BuildContext context, Widget child)? conditionalActionsBuilder,
   }) {
@@ -610,6 +620,9 @@ class StreamMessageWidget extends StatefulWidget {
       showRegenerateMessage: showRegenerateMessage ?? this.showRegenerateMessage,
       showReadAloudMessage: showReadAloudMessage ?? this.showReadAloudMessage,
       textBubbleBuilder: textBubbleBuilder ?? this.textBubbleBuilder,
+      contextMenuActionIconSize:
+          contextMenuActionIconSize ?? this.contextMenuActionIconSize,
+      actionBarIconSize: actionBarIconSize ?? this.actionBarIconSize,
       messageActionItemsBuilder: messageActionItemsBuilder ?? this.messageActionItemsBuilder,
       conditionalActionsBuilder: conditionalActionsBuilder ?? this.conditionalActionsBuilder,
     );
@@ -792,7 +805,11 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         // context menu actions.
         if (message.state.isDeleted || message.state.isOutgoing) return child;
 
-        final menuItems = _buildDesktopOrWebActions(context, message);
+        final menuItems = _buildDesktopOrWebActions(
+          context,
+          message,
+          widget.contextMenuActionIconSize,
+        );
         if (menuItems.isEmpty) return child;
 
         return ContextMenuRegion(
@@ -808,9 +825,9 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         child: AnimatedContainer(
           duration: const Duration(seconds: 1),
           color: isPinned && widget.showPinHighlight
-              ? _streamChatTheme.colorTheme.highlight
+              ? streamChatTheme.colorTheme.highlight
               // ignore: deprecated_member_use
-              : _streamChatTheme.colorTheme.barsBg.withOpacity(0),
+              : streamChatTheme.colorTheme.barsBg.withOpacity(0),
           child: Portal(
             child: PlatformWidgetBuilder(
               mobile: (context, child) {
@@ -841,7 +858,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                       : Alignment.centerLeft,
                   widthFactor: widget.widthFactor,
                   child: Builder(builder: (context) {
-                    MessageWidgetContent(
+                    return MessageWidgetContent(
                       streamChatTheme: streamChatTheme,
                       showUsername: showUsername,
                       showTimeStamp: showTimeStamp,
@@ -883,7 +900,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
                         final message = widget.message;
                         return switch (widget.onReactionsTap) {
                           final onReactionsTap? => onReactionsTap(message),
-                          _ => _showMessageReactionsModal(context, message),
+                          _ => _showMessageReactionsModal(context),
                         };
                       },
                       onReactionsHover: widget.onReactionsHover,
@@ -916,20 +933,22 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     );
   }
 
-  List<Widget> _buildDesktopOrWebActions(
+  List<StreamChatContextMenuItem> _buildDesktopOrWebActions(
     BuildContext context,
     Message message,
+    double iconSize,
   ) {
     if (isBouncedWithError) {
-      return _buildBouncedErrorMessageDesktopOrWebActions(context, message);
+      return _buildBouncedErrorMessageDesktopOrWebActions(context, message, iconSize);
     }
 
-    return _buildMessageDesktopOrWebActions(context, message);
+    return _buildMessageDesktopOrWebActions(context, message, iconSize);
   }
 
-  List<Widget> _buildBouncedErrorMessageDesktopOrWebActions(
+  List<StreamChatContextMenuItem> _buildBouncedErrorMessageDesktopOrWebActions(
     BuildContext context,
     Message message,
+    double iconSize,
   ) {
     final theme = StreamChatTheme.of(context);
     final channel = StreamChannel.of(context).channel;
@@ -939,6 +958,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         leading: StreamSvgIcon(
           icon: StreamSvgIcons.circleUp,
           color: theme.colorTheme.accentPrimary,
+          size: iconSize,
         ),
         title: Text(context.translations.sendAnywayLabel),
         onClick: () {
@@ -947,7 +967,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         },
       ),
       StreamChatContextMenuItem(
-        leading: const StreamSvgIcon(icon: StreamSvgIcons.edit),
+        leading: StreamSvgIcon(icon: StreamSvgIcons.edit, size: iconSize),
         title: Text(context.translations.editMessageLabel),
         onClick: () {
           Navigator.of(context, rootNavigator: true).pop();
@@ -963,6 +983,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         leading: StreamSvgIcon(
           icon: StreamSvgIcons.delete,
           color: theme.colorTheme.accentError,
+          size: iconSize,
         ),
         title: Text(
           context.translations.deleteMessageLabel,
@@ -976,9 +997,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     ];
   }
 
-  List<Widget> _buildMessageDesktopOrWebActions(
+  List<StreamChatContextMenuItem> _buildMessageDesktopOrWebActions(
     BuildContext context,
     Message message,
+    double iconSize,
   ) {
     final theme = StreamChatTheme.of(context);
     final channel = StreamChannel.of(context).channel;
@@ -1023,7 +1045,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowReplyAction) ...[
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.reply, size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.reply,
+            size: iconSize
+          ),
           title: Text(context.translations.replyLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
@@ -1035,7 +1060,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       ],
       if (shouldShowThreadReplyAction)
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.threadReply, size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.threadReply, 
+            size: iconSize
+          ),
           title: Text(context.translations.threadReplyLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
@@ -1063,7 +1091,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (widget.showMarkUnreadMessage)
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.messageUnread, size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.messageUnread,
+            size: iconSize
+          ),
           title: Text(context.translations.markAsUnreadLabel),
           onClick: () async {
             Navigator.of(context, rootNavigator: true).pop();
@@ -1085,7 +1116,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowCopyAction)
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.copy, size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.copy,
+            size: iconSize,
+          ),
           title: Text(context.translations.copyMessageLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
@@ -1099,7 +1133,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowEditAction) ...[
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.edit, size: iconSize),
+          leading: StreamSvgIcon(icon: StreamSvgIcons.edit, size: iconSize),
           title: Text(context.translations.editMessageLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
@@ -1131,7 +1165,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (widget.showPinButton)
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.pin, size: iconSize),
+          leading: StreamSvgIcon(icon: StreamSvgIcons.pin, size: iconSize),
           title: Text(
             context.translations.togglePinUnpinText(pinned: isPinned),
           ),
@@ -1151,7 +1185,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowResendAction)
         StreamChatContextMenuItem(
-          leading: const StreamSvgIcon(icon: StreamSvgIcons.sendMessage, size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.sendMessage,
+            size: iconSize
+          ),
           title: Text(
             context.translations.toggleResendOrResendEditedMessage(
               isUpdateFailed: message.state.isUpdatingFailed,
@@ -1209,13 +1246,9 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     ];
   }
 
-  List<Widget> buildContextMenu() {
-    return messageActionItems(iconSize: 24);
-  }
-
   Widget actionBar() {
-    const iconSize = 14.0;
-    final items = messageActionItems(iconSize: iconSize);
+    final iconSize = widget.actionBarIconSize;
+    final items = _buildDesktopOrWebActions(context, widget.message, iconSize);
     
     return showBottomRow ? Container(
       padding: EdgeInsets.zero,
@@ -1244,6 +1277,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
 
   void _showMessageReactionsModal(BuildContext context) {
     final channel = StreamChannel.of(context).channel;
+    final message = widget.message;
 
     showDialog(
       useRootNavigator: false,

@@ -636,6 +636,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
 
   // Add a new ValueNotifier to track validation state
   late final ValueNotifier<bool> validationNotifier = ValueNotifier(false);
+
+  bool get _isInputValid => validationNotifier.value;
   
   CancelableOperation<bool>? _currentValidation;
 
@@ -1071,6 +1073,8 @@ class StreamMessageInputState extends State<StreamMessageInput>
   }
 
   List<Widget> _actionsList() {
+    final channel = StreamChannel.maybeOf(context)?.channel;
+    if (channel == null) return const [];
     final defaultActions = <Widget>[
       if (!widget.disableAttachments && channel.canUploadFile)
         _buildAttachmentButton(context),
@@ -1671,7 +1675,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
   /// Sends the current message
   Future<void> sendMessage() async {
     if (_effectiveController.isSlowModeActive) return;
-    if (!widget.validator(_effectiveController.message)) return;
+    if (!_isInputValid) return;
 
     final streamChannel = StreamChannel.maybeOf(context);
     if (streamChannel == null) return;
@@ -1785,7 +1789,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     if (channel == null) return;
 
     final message = _effectiveController.message;
-    final isMessageValid = widget.validator.call(message);
+    final isMessageValid = _isInputValid;
 
     // If the message is valid, we need to create or update it as a draft
     // message for the channel or thread.
@@ -1804,8 +1808,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
     final draftMessage = message.toDraftMessage();
 
     // If the draft message is not valid, we don't need to update it.
-    final isDraftValid = widget.validator.call(draftMessage.toMessage());
-    if (!isDraftValid) return;
+    if (!_isInputValid) return;
 
     // If the draft message didn't change, we don't need to update it.
     if (draft?.message == draftMessage) return;
