@@ -235,6 +235,12 @@ Il file è troppo grande per essere caricato. Il limite è di $limitInMB MB.''';
   String get copyMessageLabel => 'Copia messaggio';
 
   @override
+  String get regenerateMessageLabel => 'Rigenera il messaggio';
+
+  @override
+  String get readAloudMessageLabel => 'Leggi ad alta voce';
+
+  @override
   String get editMessageLabel => 'Modifica messaggio';
 
   @override

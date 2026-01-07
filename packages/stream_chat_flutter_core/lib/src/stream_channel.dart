@@ -235,10 +235,10 @@ class StreamChannelState extends State<StreamChannel> {
     int limit = 30,
     bool preferOffline = false,
   }) async {
-    if (_bottomPaginationEnded ||
-        _queryBottomMessagesController.value ||
-        channel.state == null ||
-        channel.state!.isUpToDate) return;
+    if (channel.state == null) return;
+    if (_bottomPaginationEnded) return;
+    if (_queryBottomMessagesController.value) return;
+
     _queryBottomMessagesController.safeAdd(true);
 
     if (channel.state!.messages.isEmpty) {
@@ -286,9 +286,10 @@ class StreamChannelState extends State<StreamChannel> {
     int limit = 30,
     bool preferOffline = false,
   }) async {
-    if (_topPaginationEnded ||
-        _queryTopMessagesController.value ||
-        channel.state == null) return;
+    if (channel.state == null) return;
+    if (_topPaginationEnded) return;
+    if (_queryTopMessagesController.value) return;
+
     _queryTopMessagesController.safeAdd(true);
 
     final threadReplies = channel.state!.threads[parentId];
@@ -813,41 +814,11 @@ class StreamChannelState extends State<StreamChannel> {
   @override
   void initState() {
     super.initState();
-    _populateFutures();
-  }
-
-  void _populateFutures() {
-    _futures = [widget.channel.initialized];
-    if (initialMessageId != null) {
-      _futures.add(_loadChannelAtMessage);
-    } else if (channel.state != null && channel.state!.unreadCount > 0) {
-      final read = channel.state!.read.firstWhereOrNull(
-        (it) => it.user.id == channel.client.state.currentUser?.id,
-      );
-
-      if (read == null) return;
-
-      final messages = channel.state!.messages;
-      final lastRead = read.lastRead;
-
-      final hasNewMessages =
-          messages.any((it) => it.createdAt.isAfter(lastRead));
-      final hasOldMessages =
-          messages.any((it) => it.createdAt.isBeforeOrEqualTo(lastRead));
-
-      // Only load messages if the unread message is in-between the messages.
-      // Otherwise, we can just load the channel normally.
-      if (hasNewMessages && hasOldMessages) {
-        _futures.add(_loadChannelAtTimestamp(lastRead));
-      }
-    }
+    _channelInitFuture = [_maybeInitChannel(), channel.initialized].wait;
   }
 
   @override
-  void didUpdateWidget(covariant StreamChannel oldWidget) {
-    if (oldWidget.initialMessageId != initialMessageId) {
-      _populateFutures();
-    }
+  void didUpdateWidget(StreamChannel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.channel.cid != widget.channel.cid ||
         oldWidget.initialMessageId != widget.initialMessageId) {
@@ -865,12 +836,8 @@ class StreamChannelState extends State<StreamChannel> {
 
   @override
   Widget build(BuildContext context) {
-    Widget child = FutureBuilder<List<bool>>(
-      future: Future.wait(_futures),
-      initialData: [
-        channel.state != null,
-        _futures.length == 1,
-      ],
+    return FutureBuilder<void>(
+      future: _channelInitFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           final error = snapshot.error!;
@@ -878,22 +845,12 @@ class StreamChannelState extends State<StreamChannel> {
           return widget.errorBuilder(context, error, stackTrace);
         }
 
-        final dataLoaded = snapshot.data?.every((it) => it) == true;
-        if (widget.showLoading && !dataLoaded) {
-          return widget.loadingBuilder(context);
+        if (snapshot.connectionState != ConnectionState.done) {
+          if (widget.showLoading) return widget.loadingBuilder(context);
         }
+
         return widget.child;
       },
     );
-    if (_futures.length > 1) {
-      child = Material(child: child);
-    }
-    return child;
-  }
-}
-
-extension on DateTime {
-  bool isBeforeOrEqualTo(DateTime other) {
-    return isBefore(other) || isAtSameMomentAs(other);
   }
 }

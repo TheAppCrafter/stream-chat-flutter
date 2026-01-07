@@ -408,7 +408,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                       await channel!.watch();
                       return message;
                     },
-                    onMessageSent: (m) {
+                    onMessageSent: (context, m) {
                       GoRouter.of(context).goNamed(
                         Routes.CHANNEL_PAGE.name,
                         pathParameters: Routes.CHANNEL_PAGE.params(channel!),

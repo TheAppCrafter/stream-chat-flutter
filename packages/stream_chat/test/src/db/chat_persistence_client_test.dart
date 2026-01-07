@@ -103,6 +103,9 @@ class TestPersistenceClient extends ChatPersistenceClient {
       [];
 
   @override
+  Future<Message?> getMessageById(String id) async => null;
+
+  @override
   Future<List<Message>> getPinnedMessagesByCid(String cid,
           {PaginationParams? messagePagination}) async =>
       [];

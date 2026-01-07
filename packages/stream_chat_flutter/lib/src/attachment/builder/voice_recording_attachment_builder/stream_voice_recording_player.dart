@@ -9,6 +9,8 @@ import 'package:rxdart/rxdart.dart';
 import 'package:stream_chat_flutter/src/attachment/builder/voice_recording_attachment_builder/stream_voice_recording_slider.dart';
 import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
+
 
 /// {@template StreamVoiceRecordingPlayer}
 /// Embedded player for audio messages. It displays the data for the audio
@@ -236,19 +238,6 @@ class _StreamVoiceRecordingPlayerState
     );
   }
 
-  Widget _fileSizeWidget(int? fileSize) {
-    final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
-
-    if (fileSize != null) {
-      return Text(
-        fileSize.toHumanReadableSize(),
-        style: theme.fileSizeTextStyle,
-      );
-    } else {
-      return const Empty();
-    }
-  }
-
   Widget _timer(Duration totalDuration, double fontSize) {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
 
@@ -278,14 +267,14 @@ class _StreamVoiceRecordingPlayerState
   Widget _fileSizeWidget(int? fileSize, double fontSize) {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
 
-    final fileSizeTextStyle = theme.fileSizeTextStyle ?? TextStyle();
+    final fileSizeTextStyle = theme.fileSizeTextStyle ?? const TextStyle();
     if (fileSize != null) {
       return Text(
         fileSize.toHumanReadableSize(),
         style: fileSizeTextStyle.copyWith(fontSize: fontSize),
       );
     } else {
-      return const SizedBox.shrink();
+      return const Empty();
     }
   }
 

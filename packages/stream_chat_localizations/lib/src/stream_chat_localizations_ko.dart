@@ -218,6 +218,12 @@ class StreamChatLocalizationsKo extends GlobalStreamChatLocalizations {
   String get copyMessageLabel => '메시지를 복사합니다.';
 
   @override
+  String get regenerateMessageLabel => '메시지 재생성';
+
+  @override
+  String get readAloudMessageLabel => '소리내어 읽기';
+
+  @override
   String get editMessageLabel => '메시지를 편집합니다.';
 
   @override

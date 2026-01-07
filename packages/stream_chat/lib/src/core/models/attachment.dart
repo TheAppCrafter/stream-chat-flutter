@@ -38,7 +38,7 @@ class Attachment extends Equatable {
     this.originalHeight,
     Map<String, Object?> extraData = const {},
     this.file,
-    UploadState? uploadState,
+    this.uploadState = const UploadState.preparing(),
   })  : id = id ?? extraData['attachment_id'] as String? ?? const Uuid().v4(),
         _type = switch (type) {
           String() => AttachmentType(type),

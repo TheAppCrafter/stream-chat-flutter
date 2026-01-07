@@ -232,6 +232,12 @@ class StreamChatLocalizationsCa extends GlobalStreamChatLocalizations {
   String get copyMessageLabel => 'Copia el missatge';
 
   @override
+  String get regenerateMessageLabel => 'Regenera el missatge';
+
+  @override
+  String get readAloudMessageLabel => 'Llegeix en veu alta';
+
+  @override
   String get editMessageLabel => 'Edita el missatge';
 
   @override

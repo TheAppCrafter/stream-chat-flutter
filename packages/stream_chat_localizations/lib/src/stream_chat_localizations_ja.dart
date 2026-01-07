@@ -219,6 +219,12 @@ class StreamChatLocalizationsJa extends GlobalStreamChatLocalizations {
   String get copyMessageLabel => 'メッセージをコピーする';
 
   @override
+  String get regenerateMessageLabel => 'メッセージを再生成';
+
+  @override
+  String get readAloudMessageLabel => '読み上げる';
+
+  @override
   String get editMessageLabel => 'メッセージを編集する';
 
   @override

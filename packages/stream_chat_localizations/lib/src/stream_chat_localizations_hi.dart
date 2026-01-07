@@ -226,6 +226,12 @@ class StreamChatLocalizationsHi extends GlobalStreamChatLocalizations {
   String get copyMessageLabel => 'संदेश कॉपी करें';
 
   @override
+  String get regenerateMessageLabel => 'संदेश फिर से उत्पन्न करें';
+
+  @override
+  String get readAloudMessageLabel => 'जोर से पढ़ें';
+
+  @override
   String get editMessageLabel => 'संदेश एडिट करें';
 
   @override
