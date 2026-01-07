@@ -297,6 +297,10 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                       color: isDisplayingDetail
                           ? StreamChannelHeaderTheme.of(context).color
                           : Colors.black,
+                      padding: EdgeInsetsDirectional.only(
+                        top: padding.top + kToolbarHeight,
+                        bottom: padding.bottom + kToolbarHeight,
+                      ),
                       child: Builder(
                         builder: (context) {
                           Widget topWidget;
@@ -355,10 +359,10 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                             );
                           } 
                           else if (attachment.type == AttachmentType.audio){
-                            return widget.audioAttachmentWidget ?? const SizedBox.shrink();
+                            return widget.audioAttachmentWidget ?? const Empty();
                           }
                           else {
-                            topWidget = const SizedBox.shrink(); // Default case
+                            topWidget = const Empty(); // Default case
                           }
 
                           return Stack(
