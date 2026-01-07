@@ -14,7 +14,7 @@ class EditMessageButton extends StatelessWidget {
   });
 
   /// The callback to perform when the button is tapped.
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,8 @@ class EditMessageButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
         child: Row(
           children: [
-            StreamSvgIcon.edit(
+            StreamSvgIcon(
+              icon: StreamSvgIcons.edit,
               color: streamChatThemeData.primaryIconTheme.color,
             ),
             const SizedBox(width: 16),

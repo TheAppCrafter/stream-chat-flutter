@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/full_screen_media_widget.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/gallery_navigation_item.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:video_player/video_player.dart';
 
@@ -289,6 +290,8 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                 return ValueListenableBuilder(
                   valueListenable: _isDisplayingDetail,
                   builder: (context, isDisplayingDetail, child) {
+                    final padding = MediaQuery.paddingOf(context);
+
                     return AnimatedContainer(
                       duration: kThemeChangeDuration,
                       color: isDisplayingDetail

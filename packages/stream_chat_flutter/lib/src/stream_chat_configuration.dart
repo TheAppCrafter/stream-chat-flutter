@@ -114,6 +114,8 @@ class StreamChatConfigurationData {
     Widget Function(BuildContext, User)? placeholderUserImage,
     List<StreamReactionIcon>? reactionIcons,
     bool? enforceUniqueReactions,
+    bool draftMessagesEnabled = false,
+    MessagePreviewFormatter? messagePreviewFormatter,
   }) {
     return StreamChatConfigurationData._(
       loadingIndicator: loadingIndicator,
@@ -121,6 +123,9 @@ class StreamChatConfigurationData {
       placeholderUserImage: placeholderUserImage,
       reactionIcons: reactionIcons ?? _defaultReactionIcons,
       enforceUniqueReactions: enforceUniqueReactions ?? true,
+      draftMessagesEnabled: draftMessagesEnabled,
+      messagePreviewFormatter:
+          messagePreviewFormatter ?? MessagePreviewFormatter(),
     );
   }
 
@@ -130,6 +135,8 @@ class StreamChatConfigurationData {
     required this.placeholderUserImage,
     required this.reactionIcons,
     required this.enforceUniqueReactions,
+    required this.draftMessagesEnabled,
+    required this.messagePreviewFormatter,
   });
 
   /// Copies the configuration options from one [StreamChatConfigurationData] to
@@ -140,6 +147,8 @@ class StreamChatConfigurationData {
     Widget Function(BuildContext, User)? placeholderUserImage,
     List<StreamReactionIcon>? reactionIcons,
     bool? enforceUniqueReactions,
+    bool? draftMessagesEnabled,
+    MessagePreviewFormatter? messagePreviewFormatter,
   }) {
     return StreamChatConfigurationData(
       reactionIcons: reactionIcons ?? this.reactionIcons,
@@ -148,8 +157,16 @@ class StreamChatConfigurationData {
       loadingIndicator: loadingIndicator ?? this.loadingIndicator,
       enforceUniqueReactions:
           enforceUniqueReactions ?? this.enforceUniqueReactions,
+      draftMessagesEnabled: draftMessagesEnabled ?? this.draftMessagesEnabled,
+      messagePreviewFormatter:
+          messagePreviewFormatter ?? this.messagePreviewFormatter,
     );
   }
+
+  /// If True, the user will be able to send draft messages.
+  ///
+  /// Defaults to False.
+  final bool draftMessagesEnabled;
 
   /// The widget that will be shown to indicate loading.
   final Widget loadingIndicator;
@@ -166,12 +183,18 @@ class StreamChatConfigurationData {
   /// Whether a new reaction should replace the existing one.
   final bool enforceUniqueReactions;
 
+  /// The formatter used for message previews throughout the application.
+  ///
+  /// Defaults to [MessagePreviewFormatter].
+  final MessagePreviewFormatter messagePreviewFormatter;
+
   static final _defaultReactionIcons = [
     StreamReactionIcon(
       type: 'love',
       builder: (context, highlighted, size) {
         final theme = StreamChatTheme.of(context);
-        return StreamSvgIcon.loveReaction(
+        return StreamSvgIcon(
+          icon: StreamSvgIcons.loveReaction,
           color: highlighted
               ? theme.colorTheme.accentPrimary
               : theme.primaryIconTheme.color,
@@ -183,7 +206,8 @@ class StreamChatConfigurationData {
       type: 'like',
       builder: (context, highlighted, size) {
         final theme = StreamChatTheme.of(context);
-        return StreamSvgIcon.thumbsUpReaction(
+        return StreamSvgIcon(
+          icon: StreamSvgIcons.thumbsUpReaction,
           color: highlighted
               ? theme.colorTheme.accentPrimary
               : theme.primaryIconTheme.color,
@@ -195,7 +219,8 @@ class StreamChatConfigurationData {
       type: 'sad',
       builder: (context, highlighted, size) {
         final theme = StreamChatTheme.of(context);
-        return StreamSvgIcon.thumbsDownReaction(
+        return StreamSvgIcon(
+          icon: StreamSvgIcons.thumbsDownReaction,
           color: highlighted
               ? theme.colorTheme.accentPrimary
               : theme.primaryIconTheme.color,
@@ -207,7 +232,8 @@ class StreamChatConfigurationData {
       type: 'haha',
       builder: (context, highlighted, size) {
         final theme = StreamChatTheme.of(context);
-        return StreamSvgIcon.lolReaction(
+        return StreamSvgIcon(
+          icon: StreamSvgIcons.lolReaction,
           color: highlighted
               ? theme.colorTheme.accentPrimary
               : theme.primaryIconTheme.color,
@@ -219,7 +245,8 @@ class StreamChatConfigurationData {
       type: 'wow',
       builder: (context, highlighted, size) {
         final theme = StreamChatTheme.of(context);
-        return StreamSvgIcon.wutReaction(
+        return StreamSvgIcon(
+          icon: StreamSvgIcons.wutReaction,
           color: highlighted
               ? theme.colorTheme.accentPrimary
               : theme.primaryIconTheme.color,

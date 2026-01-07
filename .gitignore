@@ -46,6 +46,7 @@ GeneratedPluginRegistrant.*
 **/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+**/android/app/.cxx
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -82,6 +83,17 @@ Podfile.lock
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 
+# macOS-related
+**/macos/**/Pods/
+**/macos/**/xcuserdata
+**/macos/**/Flutter/ephemeral
+
+# Windows-related
+**/windows/flutter/ephemeral/
+
+# Linux-related
+**/linux/flutter/ephemeral/
+
 # Generated files
 *.dart.js
 *.info.json
@@ -89,6 +101,7 @@ Podfile.lock
 *.js_
 *.js.deps
 *.js.map
+*.wasm
 **/lcov.info
 
 # Other ignored files
@@ -112,7 +125,16 @@ gradle-wrapper.jar
 **/test/**/failures/**/*.*
 !**/test/**/goldens/ci/*.*
 
+# Fastlane related
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
 # Exceptions to the above rules
 !/pubspec.lock
 !**/example/web/sql-wasm.js
 !**/example/web/sql-wasm.wasm
+!/sample_app/web/sql-wasm.js
+!/sample_app/web/sql-wasm.wasm
+!/sample_app/android/app/google-services.json

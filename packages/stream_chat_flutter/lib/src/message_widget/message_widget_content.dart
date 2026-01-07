@@ -262,9 +262,7 @@ class MessageWidgetContent extends StatelessWidget {
                     reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (message.pinned &&
-                      message.pinnedBy != null &&
-                      showPinHighlight)
+                  if (isPinned && message.pinnedBy != null && showPinHighlight)
                     PinnedMessage(
                       pinnedBy: message.pinnedBy!,
                       currentUser: streamChat.currentUser!,
@@ -401,7 +399,10 @@ class MessageWidgetContent extends StatelessWidget {
                 right: reverse ? 0 : null,
                 left: reverse ? null : 0,
                 bottom: showBottomRow ? 18 : -2,
-                child: StreamSvgIcon.error(size: 20),
+                child: StreamSvgIcon(
+                  icon: StreamSvgIcons.error,
+                  color: streamChatTheme.colorTheme.accentError,
+                ),
               ),
           ],
         ),

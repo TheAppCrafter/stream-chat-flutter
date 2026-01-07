@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/src/message_input/attachment_picker/options/options.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// The default maximum size for media attachments.
@@ -467,7 +468,7 @@ class _StreamMobileAttachmentPickerBottomSheetState
             Expanded(
               child: _currentOption.optionViewBuilder
                       ?.call(context, widget.controller) ??
-                  const SizedBox.shrink(),
+                  const Empty(),
             ),
           ],
         );
@@ -542,10 +543,11 @@ class _AttachmentPickerOptions extends StatelessWidget {
                 }
 
                 return IconButton(
-                  iconSize: 22,
                   color: colorTheme.accentPrimary,
                   disabledColor: colorTheme.disabled,
-                  icon: StreamSvgIcon.emptyCircleLeft().toIconThemeSvgIcon(),
+                  icon: const StreamSvgIcon(
+                    icon: StreamSvgIcons.emptyCircleRight,
+                  ),
                   onPressed: onPressed,
                 );
               },
@@ -634,7 +636,7 @@ class _EndOfFrameCallbackWidgetState extends State<EndOfFrameCallbackWidget> {
     _error = null;
     _stackTrace = null;
 
-    return widget.child ?? const SizedBox.shrink();
+    return widget.child ?? const Empty();
   }
 }
 
@@ -702,7 +704,7 @@ class OptionDrawer extends StatelessWidget {
       height = 40.0;
     }
 
-    final leading = title ?? const SizedBox.shrink();
+    final leading = title ?? const Empty();
 
     Widget trailing;
     if (actions.isNotEmpty) {
@@ -713,7 +715,7 @@ class OptionDrawer extends StatelessWidget {
         children: actions,
       );
     } else {
-      trailing = const SizedBox.shrink();
+      trailing = const Empty();
     }
 
     return Card(
@@ -770,7 +772,7 @@ Widget mobileAttachmentPickerBuilder({
         if (customOptions != null) ...customOptions,
         AttachmentPickerOption(
           key: 'gallery-picker',
-          icon: StreamSvgIcon.pictures().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.pictures),
           supportedTypes: [
             AttachmentPickerType.images,
             AttachmentPickerType.videos,
@@ -800,7 +802,7 @@ Widget mobileAttachmentPickerBuilder({
         ),
         AttachmentPickerOption(
           key: 'file-picker',
-          icon: StreamSvgIcon.files().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.files),
           supportedTypes: [AttachmentPickerType.files],
           optionViewBuilder: (context, controller) {
             return StreamFilePicker(
@@ -820,7 +822,7 @@ Widget mobileAttachmentPickerBuilder({
         ),
         AttachmentPickerOption(
           key: 'image-picker',
-          icon: StreamSvgIcon.camera().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.camera),
           supportedTypes: [AttachmentPickerType.images],
           optionViewBuilder: (context, controller) {
             return StreamImagePicker(
@@ -842,7 +844,7 @@ Widget mobileAttachmentPickerBuilder({
         ),
         AttachmentPickerOption(
           key: 'video-picker',
-          icon: StreamSvgIcon.record().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.record),
           supportedTypes: [AttachmentPickerType.videos],
           optionViewBuilder: (context, controller) {
             return StreamVideoPicker(
@@ -864,7 +866,7 @@ Widget mobileAttachmentPickerBuilder({
         ),
         AttachmentPickerOption(
           key: 'poll-creator',
-          icon: StreamSvgIcon.polls().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.polls),
           supportedTypes: [AttachmentPickerType.poll],
           optionViewBuilder: (context, controller) {
             final initialPoll = controller.value.poll;
@@ -912,25 +914,25 @@ Widget webOrDesktopAttachmentPickerBuilder({
         WebOrDesktopAttachmentPickerOption(
           key: 'image-picker',
           type: AttachmentPickerType.images,
-          icon: StreamSvgIcon.pictures().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.pictures),
           title: context.translations.uploadAPhotoLabel,
         ),
         WebOrDesktopAttachmentPickerOption(
           key: 'video-picker',
           type: AttachmentPickerType.videos,
-          icon: StreamSvgIcon.record().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.record),
           title: context.translations.uploadAVideoLabel,
         ),
         WebOrDesktopAttachmentPickerOption(
           key: 'file-picker',
           type: AttachmentPickerType.files,
-          icon: StreamSvgIcon.files().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.files),
           title: context.translations.uploadAFileLabel,
         ),
         WebOrDesktopAttachmentPickerOption(
           key: 'poll-creator',
           type: AttachmentPickerType.poll,
-          icon: StreamSvgIcon.polls().toIconThemeSvgIcon(),
+          icon: const StreamSvgIcon(icon: StreamSvgIcons.polls),
           title: context.translations.createPollLabel(isNew: true),
         ),
       }.where((option) => option.supportedTypes.every(allowedTypes.contains)),

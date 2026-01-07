@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'dart:async';
 
@@ -108,13 +109,12 @@ class _StreamMentionAutocompleteOptionsState
     final futureBuilder = FutureBuilder<List<List<User>>>(
       future: Future.wait([userMentionsFuture, extraUsersFuture]),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const SizedBox.shrink();
-        if (!snapshot.hasData) return const SizedBox.shrink();
-        final userList = snapshot.data!;
-        final List<User> users = snapshot.data![0] as List<User>;
-        final List<User> extraUsers = snapshot.data![1] as List<User>;
-        final List<User> allUsers = [...users, ...extraUsers];
-        final Set<User> usersSet = Set.from(allUsers)..removeAll(widget.mentionedUsers);
+        if (snapshot.hasError) return const Empty();
+        if (!snapshot.hasData) return const Empty();
+        final users = snapshot.data![0];
+        final extraUsers = snapshot.data![1];
+        final allUsers = <User>[...users, ...extraUsers];
+        final usersSet = Set<User>.from(allUsers)..removeAll(widget.mentionedUsers);
 
         final autocompleteOptions = StreamAutocompleteOptions<User>(
           options: usersSet.toList(),
@@ -192,10 +192,10 @@ class _StreamMentionAutocompleteOptionsState
       filter: query.isEmpty
           ? const Filter.empty()
           : Filter.or([
-                Filter.autoComplete('id', query),
-                Filter.autoComplete('name', query),
-              ]),
-      sort: [const SortOption('id', direction: SortOption.ASC)],
+              Filter.autoComplete('id', query),
+              Filter.autoComplete('name', query),
+            ]),
+      sort: [const SortOption.asc('id')],
     );
     return response.users;
   }

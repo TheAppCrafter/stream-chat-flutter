@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:record/record.dart';
 import 'package:stream_chat_flutter/src/message_actions_modal/message_actions_modal.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
+import '../fakes.dart';
 import '../mocks.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUpAll(() {
     registerFallbackValue(
-        MaterialPageRoute(builder: (context) => const SizedBox()));
+      MaterialPageRoute(builder: (context) => const SizedBox()),
+    );
+
     registerFallbackValue(Message());
   });
+
+  final originalRecordPlatform = RecordPlatform.instance;
+  setUp(() => RecordPlatform.instance = FakeRecordPlatform());
+  tearDown(() => RecordPlatform.instance = originalRecordPlatform);
 
   testWidgets(
     'it should show the all actions',
@@ -71,7 +81,10 @@ void main() {
       final client = MockClient();
       final clientState = MockClientState();
       final channel = MockChannel(
-        ownCapabilities: ['send-message', 'send-reaction'],
+        ownCapabilities: [
+          ChannelCapability.sendMessage,
+          ChannelCapability.sendReaction,
+        ],
       );
 
       when(() => client.state).thenReturn(clientState);
@@ -386,6 +399,7 @@ void main() {
       when(() => client.state).thenReturn(clientState);
       when(() => clientState.currentUser).thenReturn(OwnUser(id: 'user-id'));
       when(() => channel.state).thenReturn(channelState);
+      when(channel.getRemainingCooldown).thenReturn(0);
 
       final themeData = ThemeData();
       final streamTheme = StreamChatThemeData.fromTheme(themeData);
@@ -398,10 +412,10 @@ void main() {
             child: child,
           ),
           theme: themeData,
-          home: StreamChannel(
-            showLoading: false,
-            channel: channel,
-            child: SizedBox(
+          home: Builder(
+            builder: (context) => StreamChannel(
+              showLoading: false,
+              channel: channel,
               child: MessageActionsModal(
                 messageWidget: const Text('test'),
                 message: Message(
@@ -411,6 +425,11 @@ void main() {
                   ),
                 ),
                 messageTheme: streamTheme.ownMessageTheme,
+                onEditMessageTap: (message) => showEditMessageSheet(
+                  context: context,
+                  message: message,
+                  channel: channel,
+                ),
               ),
             ),
           ),

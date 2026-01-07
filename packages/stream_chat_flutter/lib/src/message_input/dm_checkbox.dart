@@ -4,6 +4,7 @@ import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 /// {@template dmCheckbox}
 /// Prompts the user to send a reply to a message thread as a DM.
 /// {@endtemplate}
+@Deprecated("Use 'DmCheckboxListTile' instead.")
 class DmCheckbox extends StatelessWidget {
   /// {@macro dmCheckbox}
   const DmCheckbox({
@@ -46,8 +47,9 @@ class DmCheckbox extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   reverseDuration: const Duration(milliseconds: 300),
                   crossFadeState: crossFadeState,
-                  firstChild: StreamSvgIcon.check(
+                  firstChild: StreamSvgIcon(
                     size: 16,
+                    icon: StreamSvgIcons.check,
                     color: _streamChatTheme.colorTheme.barsBg,
                   ),
                   secondChild: const SizedBox(

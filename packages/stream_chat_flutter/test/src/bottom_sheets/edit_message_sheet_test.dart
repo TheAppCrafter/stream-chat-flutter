@@ -1,42 +1,31 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:record/record.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
+import '../fakes.dart';
 import '../material_app_wrapper.dart';
 import '../mocks.dart';
 
 void main() {
-  group('EditMessageSheet tests', () {
-    const methodChannel =
-        MethodChannel('dev.fluttercommunity.plus/connectivity_status');
-    setUp(() {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(methodChannel,
-              (MethodCall methodCall) async {
-        if (methodCall.method == 'listen') {
-          try {
-            await TestDefaultBinaryMessengerBinding
-                .instance.defaultBinaryMessenger
-                .handlePlatformMessage(
-              methodChannel.name,
-              methodChannel.codec.encodeSuccessEnvelope(['wifi']),
-              (_) {},
-            );
-          } catch (e) {
-            print(e);
-          }
-        }
-        return null;
-      });
-    });
+  TestWidgetsFlutterBinding.ensureInitialized();
 
+  final originalRecordPlatform = RecordPlatform.instance;
+  setUp(() => RecordPlatform.instance = FakeRecordPlatform());
+  tearDown(() => RecordPlatform.instance = originalRecordPlatform);
+
+  group('EditMessageSheet tests', () {
     testWidgets('appears on tap', (tester) async {
+      final channel = MockChannel();
+      when(channel.getRemainingCooldown).thenReturn(0);
+
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) => StreamChat(
             client: MockClient(),
+            connectivityStream: Stream.value([ConnectivityResult.wifi]),
             child: child,
           ),
           home: Scaffold(
@@ -48,7 +37,7 @@ void main() {
                     onPressed: () => showModalBottomSheet(
                       context: context,
                       builder: (_) => EditMessageSheet(
-                        channel: MockChannel(),
+                        channel: channel,
                         message: Message(id: 'msg123', text: 'Hello World!'),
                       ),
                     ),
@@ -72,23 +61,24 @@ void main() {
       'golden test for EditMessageSheet',
       fileName: 'edit_message_sheet_0',
       constraints: const BoxConstraints.tightFor(width: 300, height: 300),
-      builder: () => MaterialAppWrapper(
-        builder: (context, child) => StreamChat(
-          client: MockClient(),
-          child: child,
-        ),
-        home: Scaffold(
-          bottomSheet: EditMessageSheet(
-            channel: MockChannel(),
-            message: Message(id: 'msg123', text: 'Hello World!'),
-          ),
-        ),
-      ),
-    );
+      builder: () {
+        final channel = MockChannel();
+        when(channel.getRemainingCooldown).thenReturn(0);
 
-    tearDown(() {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(methodChannel, null);
-    });
+        return MaterialAppWrapper(
+          builder: (context, child) => StreamChat(
+            client: MockClient(),
+            connectivityStream: Stream.value([ConnectivityResult.wifi]),
+            child: child,
+          ),
+          home: Scaffold(
+            bottomSheet: EditMessageSheet(
+              channel: channel,
+              message: Message(id: 'msg123', text: 'Hello World!'),
+            ),
+          ),
+        );
+      },
+    );
   });
 }

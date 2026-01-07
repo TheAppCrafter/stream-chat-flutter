@@ -16,8 +16,8 @@ version: 1.0.0+1
 #   2. Add it to the melos.yaml file for future updates.
 
 environment:
-  sdk: ^3.5.4
-  flutter: ">=3.24.5"
+  sdk: ^3.6.2
+  flutter: ">=3.27.4"
 
 dependencies:
   collection: ^1.17.2
@@ -25,18 +25,9 @@ dependencies:
   flutter:
     sdk: flutter
   responsive_builder: ^0.7.0
-  stream_chat_flutter:
-    git:
-      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
-      path: packages/stream_chat_flutter
-  stream_chat_localizations:
-    git:
-      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
-      path: packages/stream_chat_localizations
-  stream_chat_persistence:
-    git:
-      url: https://github.com/TheAppCrafter/stream-chat-flutter.git
-      path: packages/stream_chat_persistence
+  stream_chat_flutter: ^9.22.0
+  stream_chat_localizations: ^9.22.0
+  stream_chat_persistence: ^9.22.0
 
 flutter:
   uses-material-design: true

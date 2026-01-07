@@ -9,10 +9,12 @@ import 'package:stream_chat/src/core/api/guest_api.dart';
 import 'package:stream_chat/src/core/api/message_api.dart';
 import 'package:stream_chat/src/core/api/moderation_api.dart';
 import 'package:stream_chat/src/core/api/polls_api.dart';
+import 'package:stream_chat/src/core/api/reminders_api.dart';
 import 'package:stream_chat/src/core/api/threads_api.dart';
 import 'package:stream_chat/src/core/api/user_api.dart';
 import 'package:stream_chat/src/core/http/connection_id_manager.dart';
 import 'package:stream_chat/src/core/http/stream_http_client.dart';
+import 'package:stream_chat/src/core/http/system_environment_manager.dart';
 import 'package:stream_chat/src/core/http/token_manager.dart';
 
 export 'device_api.dart' show PushProvider;
@@ -26,6 +28,7 @@ class StreamChatApi {
     StreamHttpClientOptions? options,
     TokenManager? tokenManager,
     ConnectionIdManager? connectionIdManager,
+    SystemEnvironmentManager? systemEnvironmentManager,
     AttachmentFileUploaderProvider attachmentFileUploaderProvider =
         StreamAttachmentFileUploader.new,
     Logger? logger,
@@ -38,6 +41,7 @@ class StreamChatApi {
               options: options,
               tokenManager: tokenManager,
               connectionIdManager: connectionIdManager,
+              systemEnvironmentManager: systemEnvironmentManager,
               logger: logger,
               interceptors: interceptors,
               httpClientAdapter: httpClientAdapter,
@@ -70,7 +74,9 @@ class StreamChatApi {
   ThreadsApi? _threads;
 
   /// Api dedicated to call operations
+  @Deprecated('Will be removed in the next major version')
   CallApi get call => _call ??= CallApi(_client);
+  @Deprecated('Will be removed in the next major version')
   CallApi? _call;
 
   /// Api dedicated to channel operations
@@ -84,6 +90,10 @@ class StreamChatApi {
   /// Api dedicated to moderation operations
   ModerationApi get moderation => _moderation ??= ModerationApi(_client);
   ModerationApi? _moderation;
+
+  /// Api dedicated to message reminders operations
+  RemindersApi get reminders => _reminders ??= RemindersApi(_client);
+  RemindersApi? _reminders;
 
   /// Api dedicated to general operations
   GeneralApi get general => _general ??= GeneralApi(_client);

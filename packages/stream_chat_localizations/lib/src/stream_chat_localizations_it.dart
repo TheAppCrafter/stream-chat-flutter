@@ -88,7 +88,10 @@ class StreamChatLocalizationsIt extends GlobalStreamChatLocalizations {
   String get messageDeletedText => 'Questo messaggio è stato eliminato';
 
   @override
-  String get messageDeletedLabel => 'Messaggio cancellato';
+  String get messageDeletedLabel => 'Messaggio eliminato';
+
+  @override
+  String get systemMessageLabel => 'Messaggio di sistema';
 
   @override
   String get editedMessageLabel => 'Modificato';
@@ -560,7 +563,21 @@ Attenzione: il limite massimo di $limit file è stato superato.
   String get enterYourCommentLabel => 'Inserisci il tuo commento';
 
   @override
+  String get endVoteConfirmationText =>
+      'Sei sicuro di voler terminare il voto?';
+
+  @override
+  String get deletePollOptionLabel => "Elimina l'opzione";
+
+  @override
+  String get deletePollOptionQuestion =>
+      'Sei sicuro di voler eliminare questa opzione?';
+
+  @override
   String get createLabel => 'Crea';
+
+  @override
+  String get endLabel => 'Fine';
 
   @override
   String pollVotingModeLabel(PollVotingMode votingMode) {
@@ -618,4 +635,55 @@ Attenzione: il limite massimo di $limit file è stato superato.
     if (count == 1) return '1 nuovo thread';
     return '$count nuovi thread';
   }
+
+  @override
+  String get slideToCancelLabel => 'Scorri per annullare';
+
+  @override
+  String get holdToRecordLabel =>
+      'Tieni premuto per registrare, rilascia per inviare';
+
+  @override
+  String get sendAnywayLabel => 'Invia comunque';
+
+  @override
+  String get moderatedMessageBlockedText =>
+      'Messaggio bloccato dalle politiche di moderazione';
+
+  @override
+  String get moderationReviewModalTitle => 'Sei sicuro?';
+
+  @override
+  String get moderationReviewModalDescription =>
+      '''Considera come il tuo commento potrebbe far sentire gli altri e assicurati di seguire le nostre Linee guida della community.''';
+
+  @override
+  String get emptyMessagePreviewText => '';
+
+  @override
+  String get voiceRecordingText => 'Registrazione vocale';
+
+  @override
+  String get audioAttachmentText => 'Audio';
+
+  @override
+  String get imageAttachmentText => 'Immagine';
+
+  @override
+  String get videoAttachmentText => 'Video';
+
+  @override
+  String get pollYouVotedText => 'Hai votato';
+
+  @override
+  String pollSomeoneVotedText(String username) => '$username ha votato';
+
+  @override
+  String get pollYouCreatedText => 'Hai creato';
+
+  @override
+  String pollSomeoneCreatedText(String username) => '$username ha creato';
+
+  @override
+  String get draftLabel => 'Bozza';
 }

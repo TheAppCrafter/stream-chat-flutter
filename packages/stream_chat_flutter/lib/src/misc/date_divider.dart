@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/src/misc/timestamp.dart';
+import 'package:stream_chat_flutter/src/utils/date_formatter.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// {@template streamDateDivider}
@@ -10,6 +12,7 @@ class StreamDateDivider extends StatelessWidget {
     super.key,
     required this.dateTime,
     this.uppercase = false,
+    this.formatter,
   });
 
   /// [DateTime] to display
@@ -18,24 +21,11 @@ class StreamDateDivider extends StatelessWidget {
   /// If text is uppercase
   final bool uppercase;
 
+  /// Custom formatter for the date
+  final DateFormatter? formatter;
+
   @override
   Widget build(BuildContext context) {
-    final createdAt = Jiffy.parseFromDateTime(dateTime);
-    final now = Jiffy.parseFromDateTime(DateTime.now());
-
-    var dayInfo = createdAt.MMMd;
-    if (createdAt.isSame(now, unit: Unit.day)) {
-      dayInfo = context.translations.todayLabel;
-    } else if (createdAt.isSame(now.subtract(days: 1), unit: Unit.day)) {
-      dayInfo = context.translations.yesterdayLabel;
-    } else if (createdAt.isAfter(now.subtract(days: 7), unit: Unit.day)) {
-      dayInfo = createdAt.EEEE;
-    } else if (createdAt.isAfter(now.subtract(years: 1), unit: Unit.day)) {
-      dayInfo = createdAt.MMMd;
-    }
-
-    if (uppercase) dayInfo = dayInfo.toUpperCase();
-
     final chatThemeData = StreamChatTheme.of(context);
     return Center(
       child: Container(
@@ -44,11 +34,29 @@ class StreamDateDivider extends StatelessWidget {
           color: chatThemeData.colorTheme.overlayDark,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(
-          dayInfo,
+        child: StreamTimestamp(
+          date: dateTime.toLocal(),
           style: chatThemeData.textTheme.footnote.copyWith(
             color: chatThemeData.colorTheme.barsBg,
           ),
+          formatter: (context, date) {
+            if (formatter case final formatter?) {
+              final timestamp = formatter.call(context, date);
+              if (uppercase) return timestamp.toUpperCase();
+              return timestamp;
+            }
+
+            final timestamp = switch (date) {
+              _ when date.isToday => context.translations.todayLabel,
+              _ when date.isYesterday => context.translations.yesterdayLabel,
+              _ when date.isWithinAWeek => Jiffy.parseFromDateTime(date).EEEE,
+              _ when date.isWithinAYear => Jiffy.parseFromDateTime(date).MMMd,
+              _ => Jiffy.parseFromDateTime(date).yMMMd,
+            };
+
+            if (uppercase) return timestamp.toUpperCase();
+            return timestamp;
+          },
         ),
       ),
     );

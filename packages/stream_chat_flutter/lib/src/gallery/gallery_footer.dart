@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -86,8 +85,9 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
               else
                 IconButton(
                   key: shareButtonKey,
-                  icon: StreamSvgIcon.iconShare(
+                  icon: StreamSvgIcon(
                     size: 24,
+                    icon: StreamSvgIcons.share,
                     color: galleryFooterThemeData.shareIconColor,
                   ),
                   onPressed: () async {
@@ -114,13 +114,15 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                     final position =
                         (box! as RenderBox).localToGlobal(Offset.zero);
 
-                    await Share.shareXFiles(
-                      [XFile(filePath)],
-                      sharePositionOrigin: Rect.fromLTWH(
-                        position.dx,
-                        position.dy,
-                        size?.width ?? 50,
-                        (size?.height ?? 2) / 2,
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        files: [XFile(filePath)],
+                        sharePositionOrigin: Rect.fromLTWH(
+                          position.dx,
+                          position.dy,
+                          size?.width ?? 50,
+                          (size?.height ?? 2) / 2,
+                        ),
                       ),
                     );
                   },
@@ -144,7 +146,8 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                 ),
               ),
               IconButton(
-                icon: StreamSvgIcon.iconGrid(
+                icon: StreamSvgIcon(
+                  icon: StreamSvgIcons.grid,
                   color: galleryFooterThemeData.gridIconButtonColor,
                 ),
                 onPressed: () => _showPhotosModal(context),
@@ -194,7 +197,8 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: IconButton(
-                      icon: StreamSvgIcon.close(
+                      icon: StreamSvgIcon(
+                        icon: StreamSvgIcons.close,
                         color: galleryFooterThemeData.bottomSheetCloseIconColor,
                       ),
                       onPressed: () => Navigator.of(context).maybePop(),
@@ -239,10 +243,8 @@ class _StreamGalleryFooterState extends State<StreamGalleryFooter> {
                           onTap: () => widget.mediaSelectedCallBack!(index),
                           child: AspectRatio(
                             aspectRatio: 1,
-                            child: CachedNetworkImage(
-                              imageUrl: attachment.imageUrl ??
-                                  attachment.assetUrl ??
-                                  attachment.thumbUrl!,
+                            child: StreamImageAttachmentThumbnail(
+                              image: attachment,
                               fit: BoxFit.cover,
                             ),
                           ),
