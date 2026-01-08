@@ -382,6 +382,18 @@ class _FullScreenMediaDesktopState extends State<FullScreenMediaDesktop> {
                           controller: package.controller,
                         ),
                       );
+                    } else if (attachment.type == AttachmentType.file ||
+                        attachment.type == AttachmentType.audio ||
+                        attachment.type == AttachmentType.voiceRecording) {
+                      final mediaType = attachment.title?.mediaType;
+                      final iconSize =
+                          MediaQuery.of(context).size.shortestSide / 2;
+                      return Center(
+                        child: getFileTypeImage(
+                          mediaType?.mimeType,
+                          iconSize,
+                        ),
+                      );
                     }
 
                     return const Empty();

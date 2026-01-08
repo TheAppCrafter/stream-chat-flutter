@@ -331,9 +331,14 @@ String fileSize(dynamic size, [int round = 2]) {
 
 // TODO: Use file extension instead of mime type to get the file type icon.
 /// Returns a [StreamSvgIcon] based on the [mimeType] of the file.
-StreamSvgIcon getFileTypeImage([String? mimeType]) {
+StreamSvgIcon getFileTypeImage([
+  String? mimeType,
+  double? size,
+  Color? color,
+]) {
   return StreamSvgIcon(
-    size: 40,
+    size: size ?? 40,
+    color: color,
     icon: switch (mimeType) {
       'audio/mpeg' => StreamSvgIcons.filetypeAudioMp3,
       'audio/aac' => StreamSvgIcons.filetypeAudioAac,

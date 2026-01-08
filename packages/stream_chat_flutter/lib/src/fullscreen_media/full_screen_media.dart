@@ -349,19 +349,21 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                                 ),
                               );
                             }
-                          } else if (attachment.type == AttachmentType.file) {
-                            final mediaType = attachment.title?.mediaType;
-                            topWidget = Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              margin: const EdgeInsets.all(50),
-                              child: getFileTypeImage(mediaType?.mimeType),
-                            );
-                          } 
-                          else if (attachment.type == AttachmentType.audio){
-                            return widget.audioAttachmentWidget ?? const Empty();
-                          }
-                          else {
+                          } else if (attachment.type == AttachmentType.file ||
+                              attachment.type == AttachmentType.audio ||
+                              attachment.type == AttachmentType.voiceRecording) {
+                            if (attachment.type != AttachmentType.file &&
+                                widget.audioAttachmentWidget != null) {
+                              topWidget = widget.audioAttachmentWidget!;
+                            } else {
+                              final mediaType = attachment.title?.mediaType;
+                              final iconSize = MediaQuery.of(context).size.shortestSide / 2;
+                              topWidget = getFileTypeImage(
+                                mediaType?.mimeType,
+                                iconSize,
+                              );
+                            }
+                          } else {
                             topWidget = const Empty(); // Default case
                           }
 
