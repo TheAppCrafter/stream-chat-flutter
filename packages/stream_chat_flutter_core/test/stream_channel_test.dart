@@ -438,6 +438,74 @@ void main() {
   );
 
   testWidgets(
+    'should not automatically initialize when autoInitialize is false',
+    (tester) async {
+      final mockChannel = MockChannel();
+      when(() => mockChannel.cid).thenReturn('test:channel');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StreamChannel(
+            channel: mockChannel,
+            autoInitialize: false,
+            child: const Text('Channel Content'),
+          ),
+        ),
+      );
+
+      // Should show the child directly, without loading
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Channel Content'), findsOneWidget);
+
+      // Verify watch was never called
+      verifyNever(mockChannel.watch);
+    },
+  );
+
+  testWidgets(
+    'should manually initialize when autoInitialize is false and initialize() is called',
+    (tester) async {
+      final mockChannel = NonInitializedMockChannel();
+      when(() => mockChannel.cid).thenReturn('test:channel');
+      when(mockChannel.watch).thenAnswer((_) async => const ChannelState());
+
+      StreamChannelState? streamChannelState;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StreamChannel(
+            channel: mockChannel,
+            autoInitialize: false,
+            child: Builder(
+              builder: (context) {
+                streamChannelState = StreamChannel.of(context);
+                return const Text('Channel Content');
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Channel Content'), findsOneWidget);
+      verifyNever(mockChannel.watch);
+
+      // Manually initialize
+      final initFuture = streamChannelState!.initialize();
+
+      // Should show loading now
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await initFuture;
+      await tester.pumpAndSettle();
+
+      // Should show child again and watch should have been called
+      expect(find.text('Channel Content'), findsOneWidget);
+      verify(mockChannel.watch).called(1);
+    },
+  );
+
+  testWidgets(
     'should reinitialize and query again when initialMessageId changes',
     (tester) async {
       final mockChannel = MockChannel();

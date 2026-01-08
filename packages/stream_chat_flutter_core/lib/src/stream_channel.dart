@@ -45,6 +45,7 @@ class StreamChannel extends StatefulWidget {
     this.initialMessageId,
     this.errorBuilder = _defaultErrorBuilder,
     this.loadingBuilder = _defaultLoadingBuilder,
+    this.autoInitialize = true,
   });
 
   /// The child of the widget
@@ -64,6 +65,11 @@ class StreamChannel extends StatefulWidget {
 
   /// Widget builder used in case an error occurs while building the channel.
   final ErrorWidgetBuilder errorBuilder;
+
+  /// Whether to automatically initialize the channel.
+  ///
+  /// Defaults to `true`.
+  final bool autoInitialize;
 
   static Widget _defaultLoadingBuilder(BuildContext context) {
     final backgroundColor = _getDefaultBackgroundColor(context);
@@ -764,6 +770,15 @@ class StreamChannelState extends State<StreamChannel> {
   /// Reloads the channel with latest message
   Future<void> reloadChannel() => _queryAtMessage();
 
+  /// Manually initializes the channel.
+  Future<void> initialize() {
+    final future = [_maybeInitChannel(), channel.initialized].wait;
+    setState(() {
+      _channelInitFuture = future;
+    });
+    return future;
+  }
+
   Future<void> _maybeInitChannel() async {
     // If the channel doesn't have an CID yet, it hasn't been created on the
     // server so we don't need to initialize it.
@@ -809,21 +824,28 @@ class StreamChannelState extends State<StreamChannel> {
     if (channel.state?.isUpToDate == false) return loadChannelAtMessage(null);
   }
 
-  late Future<List<void>> _channelInitFuture;
+  Future<void>? _channelInitFuture;
 
   @override
   void initState() {
     super.initState();
-    _channelInitFuture = [_maybeInitChannel(), channel.initialized].wait;
+    if (widget.autoInitialize) {
+      _channelInitFuture = [_maybeInitChannel(), channel.initialized].wait;
+    }
   }
 
   @override
   void didUpdateWidget(StreamChannel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.channel.cid != widget.channel.cid ||
-        oldWidget.initialMessageId != widget.initialMessageId) {
-      // Re-initialize channel if the channel CID or initial message ID changes.
-      _channelInitFuture = [_maybeInitChannel(), channel.initialized].wait;
+        oldWidget.initialMessageId != widget.initialMessageId ||
+        oldWidget.autoInitialize != widget.autoInitialize) {
+      if (widget.autoInitialize) {
+        // Re-initialize channel if the channel CID or initial message ID changes.
+        _channelInitFuture = [_maybeInitChannel(), channel.initialized].wait;
+      } else {
+        _channelInitFuture = null;
+      }
     }
   }
 
@@ -836,8 +858,11 @@ class StreamChannelState extends State<StreamChannel> {
 
   @override
   Widget build(BuildContext context) {
+    final channelInitFuture = _channelInitFuture;
+    if (channelInitFuture == null) return widget.child;
+
     return FutureBuilder<void>(
-      future: _channelInitFuture,
+      future: channelInitFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           final error = snapshot.error!;
