@@ -450,14 +450,26 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   /// Remains true until explicitly reset.
   bool _preservingPosition = false;
   
+  /// Flag to track if preservation was triggered externally (via isContentUpdating).
+  /// When true, position is preserved regardless of scroll position (_inBetweenList).
+  bool _externallyTriggered = false;
+  
   /// Timer to reset position preservation after content updates stabilize
   Timer? _preservePositionTimer;
   
   /// Callback for ScrollPhysics to check if position should be preserved.
   /// This is called at runtime, avoiding the Flutter physics caching issue.
   bool _shouldPreservePosition() {
-    final result = _preservingPosition && _inBetweenList && widget.maintainPositionOnUpdate;
-    return result;
+    if (!widget.maintainPositionOnUpdate) return false;
+    if (!_preservingPosition) return false;
+    
+    // For external triggers (e.g., Riverpod state updates), preserve position
+    // regardless of scroll position. This allows preserving even when at bottom.
+    if (_externallyTriggered) return true;
+    
+    // For internal detection (message list rebuilds), only preserve when
+    // user is scrolled away from bottom.
+    return _inBetweenList;
   }
 
   /// Handler for external content update notifications.
@@ -465,15 +477,19 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   void _handleExternalContentUpdate() {
     final isUpdating = widget.isContentUpdating?.value ?? false;
     
-    // Only activate preservation when content is updating AND user is scrolled away
-    if (isUpdating && _inBetweenList && widget.maintainPositionOnUpdate) {
+    // For external triggers, activate preservation regardless of scroll position.
+    // This is important for AI streaming where we want to preserve position
+    // even when the user is at the bottom of the list.
+    if (isUpdating && widget.maintainPositionOnUpdate) {
       _preservingPosition = true;
+      _externallyTriggered = true;
       
       // Reset the timer on each update signal
       _preservePositionTimer?.cancel();
       _preservePositionTimer = Timer(const Duration(milliseconds: 500), () {
         if (mounted) {
           _preservingPosition = false;
+          _externallyTriggered = false;
         }
       });
     }
