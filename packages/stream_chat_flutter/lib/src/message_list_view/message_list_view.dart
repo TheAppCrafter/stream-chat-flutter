@@ -9,6 +9,7 @@ import 'package:stream_chat_flutter/scrollable_positioned_list/scrollable_positi
 import 'package:stream_chat_flutter/src/message_list_view/floating_date_divider.dart';
 import 'package:stream_chat_flutter/src/message_list_view/loading_indicator.dart';
 import 'package:stream_chat_flutter/src/message_list_view/mlv_utils.dart';
+import 'package:stream_chat_flutter/src/message_list_view/position_preserving_scroll_physics.dart';
 import 'package:stream_chat_flutter/src/message_list_view/thread_separator.dart';
 import 'package:stream_chat_flutter/src/message_list_view/unread_indicator_button.dart';
 import 'package:stream_chat_flutter/src/message_list_view/unread_messages_separator.dart';
@@ -132,6 +133,7 @@ class StreamMessageListView extends StatefulWidget {
     this.paginationLoadingIndicatorBuilder,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag,
     this.spacingWidgetBuilder = _defaultSpacingWidgetBuilder,
+    this.maintainPositionOnUpdate = true,
   });
 
   /// [ScrollViewKeyboardDismissBehavior] the defines how this [PositionedList] will
@@ -341,6 +343,29 @@ class StreamMessageListView extends StatefulWidget {
   /// {@macro spacingWidgetBuilder}
   final SpacingWidgetBuilder spacingWidgetBuilder;
 
+  /// Whether to maintain scroll position when message content updates while
+  /// the user is scrolled away from the bottom.
+  ///
+  /// When true (default), prevents the list from jumping when streaming
+  /// messages grow vertically (e.g., AI assistant responses). The position
+  /// is only preserved when specific safety conditions are met:
+  /// - User is not actively scrolling
+  /// - No scroll animation is running
+  /// - Viewport size hasn't changed (keyboard/rotation handled normally)
+  /// - Content change is small (pagination handled normally)
+  ///
+  /// When false, uses the default Flutter scroll behavior where the list
+  /// may adjust position to keep items visible as they grow.
+  ///
+  /// This feature is particularly useful for chat applications with AI
+  /// assistants that stream responses character-by-character.
+  ///
+  /// Defaults to true.
+  ///
+  /// See also:
+  /// - [PositionPreservingScrollPhysics], which implements this behavior
+  final bool maintainPositionOnUpdate;
+
   static Widget _defaultSpacingWidgetBuilder(
     BuildContext context,
     List<SpacingType> spacingTypes,
@@ -381,6 +406,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   bool get _isThreadConversation => widget.parentMessage != null;
 
   bool _bottomPaginationActive = false;
+
+  /// Flag to indicate if we should preserve scroll position during this rebuild.
+  /// Set to true when message content updates (same count) and user is scrolled away.
+  bool _preservingPosition = false;
 
   int initialIndex = 0;
   double initialAlignment = 0;
@@ -558,6 +587,16 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       }
     }
 
+    // Detect content updates (message sizes changing, not count changing)
+    // This happens during AI message streaming where text grows character by character
+    final isContentUpdate = _messageListLength != null &&
+        newMessagesListLength == _messageListLength &&
+        _inBetweenList &&
+        widget.maintainPositionOnUpdate;
+
+    // Set flag to enable position preservation in scroll physics
+    _preservingPosition = isContentUpdate;
+
     _messageListLength = newMessagesListLength;
 
     final itemCount = messages.length + // total messages
@@ -621,7 +660,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                   itemPositionsListener: _itemPositionListener,
                   initialScrollIndex: initialIndex,
                   initialAlignment: initialAlignment,
-                  physics: widget.scrollPhysics,
+                  physics: PositionPreservingScrollPhysics(
+                    parent: widget.scrollPhysics,
+                    preservePosition: _preservingPosition,
+                  ),
                   itemScrollController: _scrollController,
                   reverse: widget.reverse,
                   shrinkWrap: widget.shrinkWrap,
