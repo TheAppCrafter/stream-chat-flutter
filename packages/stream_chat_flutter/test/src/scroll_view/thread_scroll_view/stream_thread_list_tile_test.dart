@@ -1,6 +1,10 @@
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+
+import '../../mocks.dart';
 
 void main() {
   final user1 = User(id: 'uid1', name: 'User 1');
@@ -69,24 +73,89 @@ void main() {
       ),
     );
   }
+
+  group('Formatter Tests', () {
+    testWidgets(
+      'StreamThreadListTile displays custom formatted timestamp',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrapWithMaterialApp(
+            StreamThreadListTileTheme(
+              data: StreamThreadListTileThemeData(
+                threadLatestReplyTimestampFormatter: (context, timestamp) {
+                  return 'CUSTOM_FORMAT_20_07_2021';
+                },
+              ),
+              child: StreamThreadListTile(thread: thread, currentUser: user2),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Verify the custom formatted text is visible
+        expect(find.text('CUSTOM_FORMAT_20_07_2021'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'StreamThreadListTile inner theme overrides outer theme',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrapWithMaterialApp(
+            StreamThreadListTileTheme(
+              data: StreamThreadListTileThemeData(
+                threadLatestReplyTimestampFormatter: (context, timestamp) {
+                  return 'OUTER_FORMATTER';
+                },
+              ),
+              child: StreamThreadListTileTheme(
+                data: StreamThreadListTileThemeData(
+                  threadLatestReplyTimestampFormatter: (context, timestamp) {
+                    return 'INNER_FORMATTER';
+                  },
+                ),
+                child: StreamThreadListTile(thread: thread, currentUser: user2),
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Inner formatter should be used
+        expect(find.text('INNER_FORMATTER'), findsOneWidget);
+        expect(find.text('OUTER_FORMATTER'), findsNothing);
+      },
+    );
+  });
 }
 
 Widget _wrapWithMaterialApp(
   Widget widget, {
   Brightness? brightness,
 }) {
+  final client = MockClient();
+  final clientState = MockClientState();
+  final currentUser = OwnUser(id: 'current-user-id', name: 'Current User');
+
+  when(() => client.state).thenReturn(clientState);
+  when(() => clientState.currentUser).thenReturn(currentUser);
+
   return MaterialApp(
-    home: StreamChatConfiguration(
-      data: StreamChatConfigurationData(),
-      child: StreamChatTheme(
-        data: StreamChatThemeData(brightness: brightness),
-        child: Builder(builder: (context) {
+    home: StreamChat(
+      client: client,
+      streamChatConfigData: StreamChatConfigurationData(),
+      connectivityStream: Stream.value([ConnectivityResult.wifi]),
+      streamChatThemeData: StreamChatThemeData(brightness: brightness),
+      child: Builder(
+        builder: (context) {
           final theme = StreamChatTheme.of(context);
           return Scaffold(
             backgroundColor: theme.colorTheme.appBg,
             body: Center(child: widget),
           );
-        }),
+        },
       ),
     ),
   );

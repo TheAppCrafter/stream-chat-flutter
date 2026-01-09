@@ -1,3 +1,106 @@
+## 9.22.0
+
+✅ Added
+
+- Added support for `ChannelModel.filterTags` field.
+
+## 9.21.0
+
+- Updated `stream_chat` dependency to [`9.21.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.20.0
+
+✅ Added
+
+- Added support for `Read.lastDeliveredAt` and `Read.lastDeliveredMessageId` fields to track message
+  delivery receipts.
+
+## 9.19.0
+
+- Updated `stream_chat` dependency to [`9.19.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.18.0
+
+✅ Added
+
+- Added support for `Message.channelRole` field.
+- Added support for `client.flush()` method to clear database.
+- Added support for `Channel.messageCount` field.
+
+## 9.17.0
+
+- Updated `stream_chat` dependency to [`9.17.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.16.0
+
+- Updated `stream_chat` dependency to [`9.16.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.15.0
+
+🐞 Fixed
+
+- Fixed draft message retrieval logic where channel drafts were incorrectly attached to all messages
+  instead of only thread drafts being attached to their respective parent messages.
+
+✅ Added
+
+- Added support for `User.avgResponseTime` field.
+
+## 9.14.0
+
+- Updated `stream_chat` dependency to [`9.14.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.13.0
+
+- Updated `stream_chat` dependency to [`9.13.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.12.0
+
+- Updated `stream_chat` dependency to [`9.12.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.11.0
+
+- Added support for `Message.reactionGroups` field.
+
+## 9.10.0
+
+- Fixed an issue in the `getChannelStates` method where `paginationParams.offset` greater than the
+  available channel count would cause an exception. The method now properly handles this edge case.
+
+## 9.9.0
+
+- Added support for `User.teamsRole` field.
+
+## 9.8.0
+
+- Added `pinnedAt` and `archivedAt` fields on `Member`.
+- Added support for DraftMessages.
+
+## 9.7.0
+
+- Updated `stream_chat` dependency to [`9.7.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.6.0
+
+- Updated `stream_chat` dependency to [`9.6.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.5.0
+
+- Added support for `Message.restrictedVisibility` field.
+- Added support for `Member.extraData` field.
+
+## 9.4.0
+
+- Updated minimum Flutter version to 3.27.4 for the SDK.
+
+## 9.3.0
+
+- Updated `stream_chat` dependency to [`9.3.0`](https://pub.dev/packages/stream_chat/changelog).
+
+## 9.2.0
+
+- Updated `stream_chat` dependency to [`9.2.0`](https://pub.dev/packages/stream_chat/changelog).
+
 ## 9.1.0
 
 - Updated `stream_chat` dependency to [`9.1.0`](https://pub.dev/packages/stream_chat/changelog).

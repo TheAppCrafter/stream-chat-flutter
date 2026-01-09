@@ -7,7 +7,7 @@ part 'own_user.g.dart';
 /// The class that defines the own user model.
 ///
 /// This object can be found in [Event].
-@JsonSerializable(createToJson: false)
+@JsonSerializable(includeIfNull: false)
 class OwnUser extends User {
   /// Constructor used for json serialization.
   OwnUser({
@@ -17,6 +17,9 @@ class OwnUser extends User {
     this.unreadChannels = 0,
     this.channelMutes = const [],
     this.unreadThreads = 0,
+    this.blockedUserIds = const [],
+    this.pushPreferences,
+    this.privacySettings,
     required super.id,
     super.role,
     super.name,
@@ -30,6 +33,9 @@ class OwnUser extends User {
     super.banExpires,
     super.teams,
     super.language,
+    super.invisible,
+    super.teamsRole,
+    super.avgResponseTime,
   });
 
   /// Create a new instance from json.
@@ -38,21 +44,7 @@ class OwnUser extends User {
       );
 
   /// Create a new instance from [User] object.
-  factory OwnUser.fromUser(User user) => OwnUser(
-        id: user.id,
-        role: user.role,
-        // Using extraData value in order to not use id as name.
-        name: user.extraData['name'] as String?,
-        image: user.image,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        lastActive: user.lastActive,
-        online: user.online,
-        banned: user.banned,
-        extraData: user.extraData,
-        teams: user.teams,
-        language: user.language,
-      );
+  factory OwnUser.fromUser(User user) => OwnUser.fromJson(user.toJson());
 
   /// Creates a copy of [OwnUser] with specified attributes overridden.
   @override
@@ -72,10 +64,16 @@ class OwnUser extends User {
     List<ChannelMute>? channelMutes,
     List<Device>? devices,
     List<Mute>? mutes,
+    List<String>? blockedUserIds,
     int? totalUnreadCount,
     int? unreadChannels,
     int? unreadThreads,
     String? language,
+    bool? invisible,
+    Map<String, String>? teamsRole,
+    int? avgResponseTime,
+    PushPreference? pushPreferences,
+    PrivacySettings? privacySettings,
   }) =>
       OwnUser(
         id: id ?? this.id,
@@ -99,7 +97,13 @@ class OwnUser extends User {
         totalUnreadCount: totalUnreadCount ?? this.totalUnreadCount,
         unreadChannels: unreadChannels ?? this.unreadChannels,
         unreadThreads: unreadThreads ?? this.unreadThreads,
+        blockedUserIds: blockedUserIds ?? this.blockedUserIds,
         language: language ?? this.language,
+        invisible: invisible ?? this.invisible,
+        teamsRole: teamsRole ?? this.teamsRole,
+        avgResponseTime: avgResponseTime ?? this.avgResponseTime,
+        pushPreferences: pushPreferences ?? this.pushPreferences,
+        privacySettings: privacySettings ?? this.privacySettings,
       );
 
   /// Returns a new [OwnUser] that is a combination of this ownUser
@@ -124,34 +128,49 @@ class OwnUser extends User {
       totalUnreadCount: other.totalUnreadCount,
       unreadChannels: other.unreadChannels,
       unreadThreads: other.unreadThreads,
+      blockedUserIds: other.blockedUserIds,
       updatedAt: other.updatedAt,
       language: other.language,
+      invisible: other.invisible,
+      teamsRole: other.teamsRole,
+      avgResponseTime: other.avgResponseTime,
+      pushPreferences: other.pushPreferences,
+      privacySettings: other.privacySettings,
     );
   }
 
   /// List of user devices.
-  @JsonKey(includeIfNull: false)
   final List<Device> devices;
 
   /// List of users muted by the user.
-  @JsonKey(includeIfNull: false)
   final List<Mute> mutes;
 
   /// List of channels muted by the user.
-  @JsonKey(includeIfNull: false)
   final List<ChannelMute> channelMutes;
 
   /// Total unread messages by the user.
-  @JsonKey(includeIfNull: false)
   final int totalUnreadCount;
 
   /// Total unread channels by the user.
-  @JsonKey(includeIfNull: false)
   final int unreadChannels;
 
   /// Total unread threads by the user.
-  @JsonKey(includeIfNull: false)
   final int unreadThreads;
+
+  /// List of user ids that are blocked by the user.
+  final List<String> blockedUserIds;
+
+  /// Push preferences for the user if set.
+  final PushPreference? pushPreferences;
+
+  /// Privacy settings for the user if set.
+  final PrivacySettings? privacySettings;
+
+  /// Convert instance to json.
+  @override
+  Map<String, dynamic> toJson() {
+    return Serializer.moveFromExtraDataToRoot(_$OwnUserToJson(this));
+  }
 
   /// Known top level fields.
   ///
@@ -163,6 +182,36 @@ class OwnUser extends User {
     'unread_channels',
     'channel_mutes',
     'unread_threads',
+    'blocked_user_ids',
+    'push_preferences',
+    'privacy_settings',
     ...User.topLevelFields,
   ];
+}
+
+/// Extension methods for [OwnUser] related to privacy settings.
+extension PrivacySettingsExtension on OwnUser {
+  /// Whether typing indicators are enabled for the user.
+  bool get isTypingIndicatorsEnabled {
+    final typingIndicators = privacySettings?.typingIndicators;
+    if (typingIndicators == null) return true;
+
+    return typingIndicators.enabled;
+  }
+
+  /// Whether read receipts are enabled for the user.
+  bool get isReadReceiptsEnabled {
+    final readIndicators = privacySettings?.readReceipts;
+    if (readIndicators == null) return true;
+
+    return readIndicators.enabled;
+  }
+
+  /// Whether delivery receipts are enabled for the user.
+  bool get isDeliveryReceiptsEnabled {
+    final deliveryIndicators = privacySettings?.deliveryReceipts;
+    if (deliveryIndicators == null) return true;
+
+    return deliveryIndicators.enabled;
+  }
 }

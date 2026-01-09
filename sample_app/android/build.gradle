@@ -1,0 +1,31 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.layout.buildDirectory = "../build"
+subprojects {
+    project.layout.buildDirectory = rootProject.layout.buildDirectory.dir(project.name)
+
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            // Set the namespace for all subprojects if not set
+            if (android.namespace == null) {
+                android.namespace = project.group
+            }
+
+            // Align the compileSdkVersion with Flutter's compileSdkVersion
+            android.compileSdkVersion = flutter.compileSdkVersion
+        }
+    }
+
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.layout.buildDirectory
+}

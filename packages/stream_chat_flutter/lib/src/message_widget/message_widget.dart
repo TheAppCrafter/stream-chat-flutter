@@ -1,14 +1,17 @@
-import 'package:contextmenu/contextmenu.dart';
 import 'package:flutter/material.dart' hide ButtonStyle;
 import 'package:flutter/services.dart';
 import 'package:flutter_portal/flutter_portal.dart';
 import 'package:stream_chat_flutter/conditional_parent_builder/conditional_parent_builder.dart';
 import 'package:stream_chat_flutter/platform_widget_builder/platform_widget_builder.dart';
+import 'package:stream_chat_flutter/src/context_menu/context_menu.dart';
+import 'package:stream_chat_flutter/src/context_menu/context_menu_region.dart';
 import 'package:stream_chat_flutter/src/context_menu_items/context_menu_reaction_picker.dart';
 import 'package:stream_chat_flutter/src/context_menu_items/stream_chat_context_menu_item.dart';
 import 'package:stream_chat_flutter/src/dialogs/dialogs.dart';
 import 'package:stream_chat_flutter/src/message_actions_modal/message_actions_modal.dart';
+import 'package:stream_chat_flutter/src/message_actions_modal/moderated_message_actions_modal.dart';
 import 'package:stream_chat_flutter/src/message_widget/message_widget_content.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// The display behaviour of a widget
@@ -50,6 +53,7 @@ class StreamMessageWidget extends StatefulWidget {
     this.attachmentShape,
     this.onMentionTap,
     this.onMessageTap,
+    this.onMessageLongPress,
     this.onReactionsTap,
     this.onReactionsHover,
     this.showReactionPicker = true,
@@ -76,9 +80,12 @@ class StreamMessageWidget extends StatefulWidget {
     this.showPinButton = true,
     this.showPinHighlight = true,
     this.showActionBar = false,
+    this.contextMenuActionIconSize = 24,
+    this.actionBarIconSize = 14,
     this.onUserAvatarTap,
     this.onLinkTap,
     this.onMessageActions,
+    this.onBouncedErrorMessageActions,
     this.onShowMessage,
     this.userAvatarBuilder,
     this.quotedMessageBuilder,
@@ -142,9 +149,18 @@ class StreamMessageWidget extends StatefulWidget {
   final Widget Function(BuildContext, Message)? textBuilder;
 
   /// {@template onMessageActions}
-  /// Function called on long press
+  /// Function called when a message is long-pressed to show actions.
+  /// If provided, this callback will be called instead of showing the default
+  /// message actions modal dialog.
   /// {@endtemplate}
   final void Function(BuildContext, Message)? onMessageActions;
+
+  /// {@template onBouncedErrorMessageActions}
+  /// Function called when a message that has bounced with an error is long
+  /// pressed. If provided, this callback will be called instead of showing the
+  /// default bounced error message actions dialog.
+  /// {@endtemplate}
+  final void Function(BuildContext, Message)? onBouncedErrorMessageActions;
 
   /// {@template bottomRowBuilderWithDefaultWidget}
   /// Widget builder for building a bottom row below the message.
@@ -364,6 +380,12 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final bool showActionBar;
 
+  /// Size to use for icons shown in desktop and web context menus.
+  final double contextMenuActionIconSize;
+
+  /// Size to use for icons shown in the action bar below the message bubble.
+  final double actionBarIconSize;
+
   /// {@template onReadAloudTap}
   /// The function called when tapping on Read Aloud
   /// {@endtemplate}
@@ -387,7 +409,10 @@ class StreamMessageWidget extends StatefulWidget {
   final OnQuotedMessageTap? onQuotedMessageTap;
 
   /// {@macro onMessageTap}
-  final void Function(Message)? onMessageTap;
+  final OnMessageTap? onMessageTap;
+
+  /// {@macro onMessageLongPress}
+  final OnMessageLongPress? onMessageLongPress;
 
   /// {@macro onReactionsTap}
   ///
@@ -451,6 +476,7 @@ class StreamMessageWidget extends StatefulWidget {
     Widget Function(BuildContext, Message)? quotedMessageBuilder,
     BottomRowBuilderWithDefaultWidget? bottomRowBuilderWithDefaultWidget,
     void Function(BuildContext, Message)? onMessageActions,
+    void Function(BuildContext, Message)? onBouncedErrorMessageActions,
     Message? message,
     StreamMessageThemeData? messageTheme,
     bool? reverse,
@@ -492,7 +518,8 @@ class StreamMessageWidget extends StatefulWidget {
     List<StreamAttachmentWidgetBuilder>? attachmentBuilders,
     bool? translateUserAvatar,
     OnQuotedMessageTap? onQuotedMessageTap,
-    void Function(Message)? onMessageTap,
+    OnMessageTap? onMessageTap,
+    OnMessageLongPress? onMessageLongPress,
     OnReactionsTap? onReactionsTap,
     OnReactionsHover? onReactionsHover,
     List<StreamMessageAction>? customActions,
@@ -509,6 +536,8 @@ class StreamMessageWidget extends StatefulWidget {
     bool Function(Message)? showRegenerateMessage,
     bool? showReadAloudMessage,
     TextBubbleBuilder? textBubbleBuilder,
+    double? contextMenuActionIconSize,
+    double? actionBarIconSize,
     List<StreamChatContextMenuItem> Function(BuildContext context)? messageActionItemsBuilder,
     Widget Function(BuildContext context, Widget child)? conditionalActionsBuilder,
   }) {
@@ -525,6 +554,8 @@ class StreamMessageWidget extends StatefulWidget {
       bottomRowBuilderWithDefaultWidget: bottomRowBuilderWithDefaultWidget ??
           this.bottomRowBuilderWithDefaultWidget,
       onMessageActions: onMessageActions ?? this.onMessageActions,
+      onBouncedErrorMessageActions:
+          onBouncedErrorMessageActions ?? this.onBouncedErrorMessageActions,
       message: message ?? this.message,
       messageTheme: messageTheme ?? this.messageTheme,
       reverse: reverse ?? this.reverse,
@@ -568,6 +599,7 @@ class StreamMessageWidget extends StatefulWidget {
       translateUserAvatar: translateUserAvatar ?? this.translateUserAvatar,
       onQuotedMessageTap: onQuotedMessageTap ?? this.onQuotedMessageTap,
       onMessageTap: onMessageTap ?? this.onMessageTap,
+      onMessageLongPress: onMessageLongPress ?? this.onMessageLongPress,
       onReactionsTap: onReactionsTap ?? this.onReactionsTap,
       onReactionsHover: onReactionsHover ?? this.onReactionsHover,
       customActions: customActions ?? this.customActions,
@@ -588,6 +620,9 @@ class StreamMessageWidget extends StatefulWidget {
       showRegenerateMessage: showRegenerateMessage ?? this.showRegenerateMessage,
       showReadAloudMessage: showReadAloudMessage ?? this.showReadAloudMessage,
       textBubbleBuilder: textBubbleBuilder ?? this.textBubbleBuilder,
+      contextMenuActionIconSize:
+          contextMenuActionIconSize ?? this.contextMenuActionIconSize,
+      actionBarIconSize: actionBarIconSize ?? this.actionBarIconSize,
       messageActionItemsBuilder: messageActionItemsBuilder ?? this.messageActionItemsBuilder,
       conditionalActionsBuilder: conditionalActionsBuilder ?? this.conditionalActionsBuilder,
     );
@@ -626,10 +661,14 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
 
   bool get isDeleteFailed => widget.message.state.isDeletingFailed;
 
+  bool get isBouncedWithError => widget.message.isBouncedWithError;
+
   /// {@template isFailedState}
-  /// Whether the message has failed to be sent, updated, or deleted.
+  /// Whether the message has failed to be sent, updated, deleted or is bounced
+  /// back with the message type as error.
   /// {@endtemplate}
-  bool get isFailedState => isSendFailed || isUpdateFailed || isDeleteFailed;
+  bool get isFailedState =>
+      isSendFailed || isUpdateFailed || isDeleteFailed || isBouncedWithError;
 
   /// {@template isGiphy}
   /// `true` if any of the [message]'s attachments are a giphy.
@@ -682,7 +721,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
   /// {@template isPinned}
   /// Whether [StreamMessageWidget.message] is pinned or not.
   /// {@endtemplate}
-  bool get isPinned => widget.message.pinned;
+  bool get isPinned => widget.message.pinned && !widget.message.isDeleted;
 
   /// {@template shouldShowReactions}
   /// Should show message reactions if [StreamMessageWidget.showReactions] is
@@ -690,7 +729,7 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
   /// {@endtemplate}
   bool get shouldShowReactions =>
       widget.showReactions &&
-      ((widget.message.reactionCounts?.isNotEmpty == true) || isDesktopDeviceOrWeb) &&
+      ((widget.message.latestReactions?.isNotEmpty == true) || isDesktopDeviceOrWeb) &&
       !widget.message.isDeleted;
 
   bool get shouldShowReplyAction =>
@@ -758,148 +797,236 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
 
     final showReactions = shouldShowReactions;
 
-    final child = Material(
-      type: MaterialType.transparency,
-      child: AnimatedContainer(
-        duration: const Duration(seconds: 1),
-        color: widget.message.pinned && widget.showPinHighlight
-            ? streamChatTheme.colorTheme.highlight
-            : streamChatTheme.colorTheme.barsBg.withOpacity(0),
-        child: Portal(
-          child: PlatformWidgetBuilder(
-            mobile: (context, child) {
-              return SelectionArea(
-                child: GestureDetector(
-                  onLongPress: widget.message.state.isDeleted
-                      ? null
-                      : () {
-                          // Add haptic feedback
-                          HapticFeedback.mediumImpact();
-                          onLongPress(context);
-                        },
-                  behavior: HitTestBehavior.translucent, // Important for ripple effect
+    return ConditionalParentBuilder(
+      builder: (context, child) {
+        final message = widget.message;
+
+        // If the message is deleted or not yet sent, we don't want to show any
+        // context menu actions.
+        if (message.state.isDeleted || message.state.isOutgoing) return child;
+
+        final menuItems = _buildDesktopOrWebActions(
+          context,
+          message,
+          widget.contextMenuActionIconSize,
+        );
+        if (menuItems.isEmpty) return child;
+
+        return ContextMenuRegion(
+          contextMenuBuilder: (_, anchor) => ContextMenu(
+            anchor: anchor,
+            menuItems: menuItems,
+          ),
+          child: child,
+        );
+      },
+      child: Material(
+        type: MaterialType.transparency,
+        child: AnimatedContainer(
+          duration: const Duration(seconds: 1),
+          color: isPinned && widget.showPinHighlight
+              ? streamChatTheme.colorTheme.highlight
+              // ignore: deprecated_member_use
+              : streamChatTheme.colorTheme.barsBg.withOpacity(0),
+          child: Portal(
+            child: PlatformWidgetBuilder(
+              mobile: (context, child) {
+                final message = widget.message;
+                return InkWell(
+                  onTap: switch (widget.onMessageTap) {
+                    final onTap? => () => onTap(message),
+                    _ => null,
+                  },
+                  onLongPress: switch (widget.onMessageLongPress) {
+                    final onLongPress? => () => onLongPress(message),
+                    // If the message is not yet sent or deleted, we don't want
+                    // to handle long press events by default.
+                    _ when message.state.isDeleted => null,
+                    _ when message.state.isOutgoing => null,
+                    _ => () => _onMessageLongPressed(context, message),
+                  },
                   child: child,
-                ),
-              );
-            },
-            desktop: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
-            web: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const SizedBox.shrink())),
-            child: Padding(
-              padding: widget.padding ?? const EdgeInsets.all(8),
-              child: FractionallySizedBox(
-                alignment: widget.reverse
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                widthFactor: widget.widthFactor,
-                child: Builder(builder: (context) {
-                  return Column(
-                    crossAxisAlignment: widget.reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      MessageWidgetContent(
-                        streamChatTheme: streamChatTheme,
-                        showUsername: showUsername,
-                        showTimeStamp: showTimeStamp,
-                        showEditedLabel: showEditedLabel,
-                        showThreadReplyIndicator: showThreadReplyIndicator,
-                        showSendingIndicator: showSendingIndicator,
-                        showInChannel: showInChannel,
-                        isGiphy: isGiphy,
-                        isOnlyEmoji: isOnlyEmoji,
-                        hasUrlAttachments: hasUrlAttachments,
-                        messageTheme: widget.messageTheme,
-                        reverse: widget.reverse,
-                        message: widget.message,
-                        hasNonUrlAttachments: hasNonUrlAttachments,
-                        hasPoll: hasPoll,
-                        hasQuotedMessage: hasQuotedMessage,
-                        textPadding: widget.textPadding,
-                        attachmentBuilders: widget.attachmentBuilders,
-                        attachmentPadding: widget.attachmentPadding,
-                        attachmentShape: widget.attachmentShape,
-                        onAttachmentTap: widget.onAttachmentTap,
-                        onReplyTap: widget.onReplyTap,
-                        onThreadTap: widget.onThreadTap,
-                        onShowMessage: widget.onShowMessage,
-                        attachmentActionsModalBuilder:
-                            widget.attachmentActionsModalBuilder,
-                        avatarWidth: avatarWidth,
-                        bottomRowPadding: bottomRowPadding,
-                        isFailedState: isFailedState,
-                        isPinned: isPinned,
-                        messageWidget: widget,
-                        showBottomRow: showBottomRow,
-                        showPinHighlight: widget.showPinHighlight,
-                        showReactionPickerTail: calculateReactionTailEnabled(
-                          ReactionTailType.list,
-                        ),
-                        showReactions: showReactions,
-                        onReactionsTap: () {
-                          widget.onReactionsTap != null
-                              ? widget.onReactionsTap!(widget.message)
-                              : showMessageReactionsModal(context);
-                        },
-                        onReactionsHover: widget.onReactionsHover,
-                        showUserAvatar: widget.showUserAvatar,
-                        streamChat: streamChat,
-                        translateUserAvatar: widget.translateUserAvatar,
-                        shape: widget.shape,
-                        borderSide: widget.borderSide,
-                        borderRadiusGeometry: widget.borderRadiusGeometry,
-                        textBubbleBuilder: widget.textBubbleBuilder,
-                        textBuilder: widget.textBuilder,
-                        quotedMessageBuilder: widget.quotedMessageBuilder,
-                        onLinkTap: widget.onLinkTap,
-                        onMentionTap: widget.onMentionTap,
-                        onQuotedMessageTap: widget.onQuotedMessageTap,
-                        bottomRowBuilderWithDefaultWidget: widget.bottomRowBuilderWithDefaultWidget,
-                        onUserAvatarTap: widget.onUserAvatarTap,
-                        userAvatarBuilder: widget.userAvatarBuilder,
-                        showActionBar: widget.showActionBar,
-                        actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
+                );
+              },
+              desktop: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const Empty())),
+              web: (_, child) => MouseRegion(child: SelectionArea(child: child ?? const Empty())),
+              child: Padding(
+                padding: widget.padding ?? const EdgeInsets.all(8),
+                child: FractionallySizedBox(
+                  alignment: widget.reverse
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  widthFactor: widget.widthFactor,
+                  child: Builder(builder: (context) {
+                    return MessageWidgetContent(
+                      streamChatTheme: streamChatTheme,
+                      showUsername: showUsername,
+                      showTimeStamp: showTimeStamp,
+                      showEditedLabel: showEditedLabel,
+                      showThreadReplyIndicator: showThreadReplyIndicator,
+                      showSendingIndicator: showSendingIndicator,
+                      showInChannel: showInChannel,
+                      isGiphy: isGiphy,
+                      isOnlyEmoji: isOnlyEmoji,
+                      hasUrlAttachments: hasUrlAttachments,
+                      messageTheme: widget.messageTheme,
+                      reverse: widget.reverse,
+                      message: widget.message,
+                      hasNonUrlAttachments: hasNonUrlAttachments,
+                      hasPoll: hasPoll,
+                      hasQuotedMessage: hasQuotedMessage,
+                      textPadding: widget.textPadding,
+                      attachmentBuilders: widget.attachmentBuilders,
+                      attachmentPadding: widget.attachmentPadding,
+                      attachmentShape: widget.attachmentShape,
+                      onAttachmentTap: widget.onAttachmentTap,
+                      onReplyTap: widget.onReplyTap,
+                      onThreadTap: widget.onThreadTap,
+                      onShowMessage: widget.onShowMessage,
+                      attachmentActionsModalBuilder:
+                          widget.attachmentActionsModalBuilder,
+                      avatarWidth: avatarWidth,
+                      bottomRowPadding: bottomRowPadding,
+                      isFailedState: isFailedState,
+                      isPinned: isPinned,
+                      messageWidget: widget,
+                      showBottomRow: showBottomRow,
+                      showPinHighlight: widget.showPinHighlight,
+                      showReactionPickerTail: calculateReactionTailEnabled(
+                        ReactionTailType.list,
                       ),
-                    ],
-                  );
-                }),
+                      showReactions: showReactions,
+                      onReactionsTap: () {
+                        final message = widget.message;
+                        return switch (widget.onReactionsTap) {
+                          final onReactionsTap? => onReactionsTap(message),
+                          _ => _showMessageReactionsModal(context),
+                        };
+                      },
+                      onReactionsHover: widget.onReactionsHover,
+                      showUserAvatar: widget.showUserAvatar,
+                      streamChat: streamChat,
+                      translateUserAvatar: widget.translateUserAvatar,
+                      shape: widget.shape,
+                      borderSide: widget.borderSide,
+                      borderRadiusGeometry: widget.borderRadiusGeometry,
+                      textBubbleBuilder: widget.textBubbleBuilder,
+                      textBuilder: widget.textBuilder,
+                      quotedMessageBuilder: widget.quotedMessageBuilder,
+                      onLinkTap: widget.onLinkTap,
+                      onMentionTap: widget.onMentionTap,
+                      onQuotedMessageTap: widget.onQuotedMessageTap,
+                      bottomRowBuilderWithDefaultWidget: 
+                        widget.bottomRowBuilderWithDefaultWidget,
+                      onUserAvatarTap: widget.onUserAvatarTap,
+                      userAvatarBuilder: widget.userAvatarBuilder,
+                      showActionBar: widget.showActionBar,
+                      actionBar: !widget.message.state.isDeleted && isDesktopDeviceOrWeb ? actionBar : null,
+                    );
+                  }),
+                ),
               ),
             ),
           ),
         ),
       ),
     );
-
-    return ConditionalParentBuilder(
-      builder: widget.conditionalActionsBuilder ?? (context, child) {
-        if (!widget.message.state.isDeleted && !isDesktopDeviceOrWeb) {
-          return ContextMenuArea(
-            verticalPadding: 0,
-            builder: (_) {
-              return buildContextMenu();
-            },
-            child: child,
-          );
-        }
-        return child;
-      },
-      child: child
-    );
   }
 
-  List<StreamChatContextMenuItem> messageActionItems({double? iconSize}) {
-    if (widget.messageActionItemsBuilder != null) {
-      return widget.messageActionItemsBuilder!(context);
+  List<StreamChatContextMenuItem> _buildDesktopOrWebActions(
+    BuildContext context,
+    Message message,
+    double iconSize,
+  ) {
+    if (isBouncedWithError) {
+      return _buildBouncedErrorMessageDesktopOrWebActions(context, message, iconSize);
     }
 
+    return _buildMessageDesktopOrWebActions(context, message, iconSize);
+  }
+
+  List<StreamChatContextMenuItem> _buildBouncedErrorMessageDesktopOrWebActions(
+    BuildContext context,
+    Message message,
+    double iconSize,
+  ) {
+    final theme = StreamChatTheme.of(context);
     final channel = StreamChannel.of(context).channel;
+
+    return [
+      StreamChatContextMenuItem(
+        leading: StreamSvgIcon(
+          icon: StreamSvgIcons.circleUp,
+          color: theme.colorTheme.accentPrimary,
+          size: iconSize,
+        ),
+        title: Text(context.translations.sendAnywayLabel),
+        onClick: () {
+          Navigator.of(context, rootNavigator: true).pop();
+          channel.sendMessage(message).ignore();
+        },
+      ),
+      StreamChatContextMenuItem(
+        leading: StreamSvgIcon(icon: StreamSvgIcons.edit, size: iconSize),
+        title: Text(context.translations.editMessageLabel),
+        onClick: () {
+          Navigator.of(context, rootNavigator: true).pop();
+          showEditMessageSheet(
+            context: context,
+            channel: channel,
+            message: message,
+            editMessageInputBuilder: widget.editMessageInputBuilder,
+          );
+        },
+      ),
+      StreamChatContextMenuItem(
+        leading: StreamSvgIcon(
+          icon: StreamSvgIcons.delete,
+          color: theme.colorTheme.accentError,
+          size: iconSize,
+        ),
+        title: Text(
+          context.translations.deleteMessageLabel,
+          style: TextStyle(color: theme.colorTheme.accentError),
+        ),
+        onClick: () {
+          Navigator.of(context, rootNavigator: true).pop();
+          channel.deleteMessage(message, hard: true).ignore();
+        },
+      ),
+    ];
+  }
+
+  List<StreamChatContextMenuItem> _buildMessageDesktopOrWebActions(
+    BuildContext context,
+    Message message,
+    double iconSize,
+  ) {
+    final theme = StreamChatTheme.of(context);
+    final channel = StreamChannel.of(context).channel;
+
     return [
       if (widget.showReactionPicker)
         StreamChatContextMenuItem(
           child: StreamChannel(
             channel: channel,
-            child: ContextMenuReactionPicker(
-              message: widget.message,
-            ),
+            child: ContextMenuReactionPicker(message: message),
           ),
+        ),
+      if (shouldShowRegenerateMessage)
+        StreamChatContextMenuItem(
+          leading: Icon(
+            Icons.autorenew,
+            color: Colors.grey,
+            size: iconSize,
+          ),
+          title: Text(context.translations.regenerateMessageLabel),
+          onClick: () {
+            if (!isDesktopDeviceOrWeb) {
+              Navigator.of(context, rootNavigator: true).pop();
+            }
+            widget.onRegenerateTap!(widget.message);
+          },
         ),
       if (shouldShowRegenerateMessage)
         StreamChatContextMenuItem(
@@ -918,19 +1045,25 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowReplyAction) ...[
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.reply(size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.reply,
+            size: iconSize
+          ),
           title: Text(context.translations.replyLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
               Navigator.of(context, rootNavigator: true).pop();
             }
-            widget.onReplyTap!(widget.message);
+            widget.onReplyTap?.call(widget.message);
           },
         ),
       ],
       if (shouldShowThreadReplyAction)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.thread(size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.threadReply, 
+            size: iconSize
+          ),
           title: Text(context.translations.threadReplyLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
@@ -958,11 +1091,15 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (widget.showMarkUnreadMessage)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.messageUnread(size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.messageUnread,
+            size: iconSize
+          ),
           title: Text(context.translations.markAsUnreadLabel),
           onClick: () async {
+            Navigator.of(context, rootNavigator: true).pop();
             try {
-              await channel.markUnread(widget.message.id);
+              await channel.markUnread(message.id);
             } catch (ex) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -979,57 +1116,34 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowCopyAction)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.copy(size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.copy,
+            size: iconSize,
+          ),
           title: Text(context.translations.copyMessageLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
               Navigator.of(context, rootNavigator: true).pop();
             }
-            var messageToCopy = widget.message.text;
-            for (final user in widget.message.mentionedUsers.toSet()) {
-              final userId = user.id;
-              final userName = user.name;
-              messageToCopy = messageToCopy?.replaceAll(
-                    RegExp('@($userId|$userName)'),
-                    '@$userName',
-                  ) ??
-                  '';
-            }
-
-            if (messageToCopy != null) {
-              Clipboard.setData(
-                ClipboardData(text: messageToCopy),
-              );
+            final copiedMessage = message.replaceMentions(linkify: false);
+            if (copiedMessage.text case final text?) {
+              Clipboard.setData(ClipboardData(text: text));
             }
           },
         ),
       if (shouldShowEditAction) ...[
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.edit(color: Colors.grey, size: iconSize),
+          leading: StreamSvgIcon(icon: StreamSvgIcons.edit, size: iconSize),
           title: Text(context.translations.editMessageLabel),
           onClick: () {
             if (!isDesktopDeviceOrWeb) {
               Navigator.of(context, rootNavigator: true).pop();
             }
-            showModalBottomSheet(
+            showEditMessageSheet(
               context: context,
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width, maxHeight: MediaQuery.of(context).size.height),
-              elevation: 2,
-              clipBehavior: Clip.hardEdge,
-              isScrollControlled: true,
-              backgroundColor:
-                  StreamMessageInputTheme.of(context).inputBackgroundColor,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              builder: (_) => EditMessageSheet(
-                message: widget.message,
-                channel: StreamChannel.of(context).channel,
-                editMessageInputBuilder: widget.editMessageInputBuilder,
-              ),
+              channel: channel,
+              message: message,
+              editMessageInputBuilder: widget.editMessageInputBuilder,
             );
           },
         ),
@@ -1051,25 +1165,19 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (widget.showPinButton)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.pin(
-            color: Colors.grey,
-            size: iconSize,
-          ),
+          leading: StreamSvgIcon(icon: StreamSvgIcons.pin, size: iconSize),
           title: Text(
-            context.translations.togglePinUnpinText(
-              pinned: widget.message.pinned,
-            ),
+            context.translations.togglePinUnpinText(pinned: isPinned),
           ),
           onClick: () async {
             if (!isDesktopDeviceOrWeb) {
               Navigator.of(context, rootNavigator: true).pop();
             }
             try {
-              if (!widget.message.pinned) {
-                await channel.pinMessage(widget.message);
-              } else {
-                await channel.unpinMessage(widget.message);
-              }
+              await switch (isPinned) {
+                true => channel.unpinMessage(message),
+                false => channel.pinMessage(message),
+              };
             } catch (e) {
               throw Exception(e);
             }
@@ -1077,31 +1185,32 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         ),
       if (shouldShowResendAction)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.iconSendMessage(size: iconSize),
+          leading: StreamSvgIcon(
+            icon: StreamSvgIcons.sendMessage,
+            size: iconSize
+          ),
           title: Text(
             context.translations.toggleResendOrResendEditedMessage(
-              isUpdateFailed: widget.message.state.isUpdatingFailed,
+              isUpdateFailed: message.state.isUpdatingFailed,
             ),
           ),
-          onClick: () {
+          onClick: () async {
             if (!isDesktopDeviceOrWeb) {
               Navigator.of(context, rootNavigator: true).pop();
             }
-            final isUpdateFailed = widget.message.state.isUpdatingFailed;
-            final channel = StreamChannel.of(context).channel;
-            if (isUpdateFailed) {
-              channel.updateMessage(widget.message);
-            } else {
-              channel.sendMessage(widget.message);
-            }
+            await channel.retryMessage(message);
           },
         ),
       if (shouldShowDeleteAction)
         StreamChatContextMenuItem(
-          leading: StreamSvgIcon.delete(color: Colors.red, size: iconSize),
+          leading: StreamSvgIcon(
+            color: theme.colorTheme.accentError,
+            icon: StreamSvgIcons.delete,
+            size: iconSize
+          ),
           title: Text(
             context.translations.deleteMessageLabel,
-            style: const TextStyle(color: Colors.red),
+            style: TextStyle(color: theme.colorTheme.accentError),
           ),
           onClick: () async {
             if (!isDesktopDeviceOrWeb) {
@@ -1114,14 +1223,10 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
             );
             if (deleted == true) {
               try {
-                final onConfirmDeleteTap = widget.onConfirmDeleteTap;
-                if (onConfirmDeleteTap != null) {
-                  await onConfirmDeleteTap(widget.message);
-                } else {
-                  await StreamChannel.of(context)
-                      .channel
-                      .deleteMessage(widget.message);
-                }
+                await switch (widget.onConfirmDeleteTap) {
+                  final onConfirmDeleteTap? => onConfirmDeleteTap(message),
+                  _ => channel.deleteMessage(message),
+                };
               } catch (e) {
                 showDialog(
                   context: context,
@@ -1135,19 +1240,15 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         (e) => StreamChatContextMenuItem(
           leading: e.leading,
           title: e.title,
-          onClick: () => e.onTap?.call(widget.message),
+          onClick: () => e.onTap?.call(message),
         ),
       ),
     ];
   }
 
-  List<Widget> buildContextMenu() {
-    return messageActionItems(iconSize: 24);
-  }
-
   Widget actionBar() {
-    const iconSize = 14.0;
-    final items = messageActionItems(iconSize: iconSize);
+    final iconSize = widget.actionBarIconSize;
+    final items = _buildDesktopOrWebActions(context, widget.message, iconSize);
     
     return showBottomRow ? Container(
       padding: EdgeInsets.zero,
@@ -1174,8 +1275,9 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
     ) : const SizedBox.shrink();
   }
 
-  void showMessageReactionsModal(BuildContext context) {
+  void _showMessageReactionsModal(BuildContext context) {
     final channel = StreamChannel.of(context).channel;
+    final message = widget.message;
 
     showDialog(
       useRootNavigator: false,
@@ -1185,13 +1287,14 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
       builder: (context) => StreamChannel(
         channel: channel,
         child: StreamMessageReactionsModal(
+          message: message,
           showReactionPicker: widget.showReactionPicker,
           messageWidget: widget.copyWith(
             key: const Key('MessageWidget'),
-            message: widget.message.copyWith(
-              text: (widget.message.text?.length ?? 0) > 200
-                  ? '${widget.message.text!.substring(0, 200)}...'
-                  : widget.message.text,
+            message: message.copyWith(
+              text: (message.text?.length ?? 0) > 200
+                  ? '${message.text!.substring(0, 200)}...'
+                  : message.text,
             ),
             showReactions: true,
             showReactionTail: calculateReactionTailEnabled(
@@ -1206,32 +1309,87 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
             showReactionPicker: widget.showReactionPicker,
             showPinHighlight: false,
             showUserAvatar:
-                widget.message.user!.id == channel.client.state.currentUser!.id
+                message.user!.id == channel.client.state.currentUser!.id
                     ? DisplayWidget.gone
                     : DisplayWidget.show,
           ),
           onUserAvatarTap: widget.onUserAvatarTap,
           messageTheme: widget.messageTheme,
           reverse: widget.reverse,
-          message: widget.message,
         ),
       ),
     );
   }
 
-  void onLongPress(BuildContext context) {
-    if (widget.message.isEphemeral || widget.message.state.isOutgoing) {
-      return;
+  void _onMessageLongPressed(
+    BuildContext context,
+    Message message,
+  ) {
+    if (isBouncedWithError) {
+      return _onBouncedErrorMessageActions(context, message);
     }
 
-    if (widget.onMessageActions != null) {
-      return widget.onMessageActions!(context, widget.message);
-    }
-
-    return _showMessageActionModalBottomSheet(context);
+    return _onMessageActions(context, message);
   }
 
-  void _showMessageActionModalBottomSheet(BuildContext context) {
+  void _onBouncedErrorMessageActions(
+    BuildContext context,
+    Message message,
+  ) {
+    if (widget.onBouncedErrorMessageActions case final onActions?) {
+      return onActions(context, message);
+    }
+
+    return _showBouncedErrorMessageActionsDialog(context, message);
+  }
+
+  void _showBouncedErrorMessageActionsDialog(
+    BuildContext context,
+    Message message,
+  ) {
+    final channel = StreamChannel.of(context).channel;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return ModeratedMessageActionsModal(
+          onSendAnyway: () {
+            Navigator.of(context).pop();
+            channel.sendMessage(widget.message).ignore();
+          },
+          onEditMessage: () {
+            Navigator.of(context).pop();
+            showEditMessageSheet(
+              context: context,
+              channel: channel,
+              message: widget.message,
+              editMessageInputBuilder: widget.editMessageInputBuilder,
+            );
+          },
+          onDeleteMessage: () {
+            Navigator.of(context).pop();
+            channel.deleteMessage(message, hard: true).ignore();
+          },
+        );
+      },
+    );
+  }
+
+  void _onMessageActions(
+    BuildContext context,
+    Message message,
+  ) {
+    if (widget.onMessageActions case final onActions?) {
+      return onActions(context, message);
+    }
+
+    return _showMessageActionModalDialog(context, message);
+  }
+
+  void _showMessageActionModalDialog(
+    BuildContext context,
+    Message message,
+  ) {
     final channel = StreamChannel.of(context).channel;
 
     showDialog(
@@ -1243,12 +1401,13 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
         return StreamChannel(
           channel: channel,
           child: MessageActionsModal(
+            message: message,
             messageWidget: widget.copyWith(
               key: const Key('MessageWidget'),
-              message: widget.message.copyWith(
-                text: (widget.message.text?.length ?? 0) > 200
-                    ? '${widget.message.text!.substring(0, 200)}...'
-                    : widget.message.text,
+              message: message.copyWith(
+                text: (message.text?.length ?? 0) > 200
+                    ? '${message.text!.substring(0, 200)}...'
+                    : message.text,
               ),
               showReactions: false,
               showReactionTail: calculateReactionTailEnabled(
@@ -1260,33 +1419,31 @@ class StreamMessageWidgetState extends State<StreamMessageWidget>
               showSendingIndicator: true,
               padding: EdgeInsets.zero,
               showPinHighlight: false,
-              showUserAvatar: widget.message.user!.id ==
-                      channel.client.state.currentUser!.id
-                  ? DisplayWidget.gone
-                  : DisplayWidget.show,
+              showUserAvatar:
+                  message.user!.id == channel.client.state.currentUser!.id
+                      ? DisplayWidget.gone
+                      : DisplayWidget.show,
             ),
+            onEditMessageTap: (message) {
+              Navigator.of(context).pop();
+              showEditMessageSheet(
+                context: context,
+                channel: channel,
+                message: message,
+                editMessageInputBuilder: widget.editMessageInputBuilder,
+              );
+            },
             onCopyTap: (message) {
-              var messageToCopy = message.text;
-              for (final user in widget.message.mentionedUsers.toSet()) {
-                final userId = user.id;
-                final userName = user.name;
-                messageToCopy = messageToCopy?.replaceAll(
-                      RegExp('@($userId|$userName)'),
-                      '@$userName',
-                    ) ??
-                    '';
-              }
-              if (messageToCopy != null) {
-                Clipboard.setData(
-                  ClipboardData(text: messageToCopy),
-                );
+              Navigator.of(context).pop();
+              final copiedMessage = message.replaceMentions(linkify: false);
+              if (copiedMessage.text case final text?) {
+                Clipboard.setData(ClipboardData(text: text));
               }
             },
             messageTheme: widget.messageTheme,
             reverse: widget.reverse,
             showDeleteMessage: shouldShowDeleteAction,
             onConfirmDeleteTap: widget.onConfirmDeleteTap,
-            message: widget.message,
             editMessageInputBuilder: widget.editMessageInputBuilder,
             onReplyTap: widget.onReplyTap,
             onThreadReplyTap: widget.onThreadTap,

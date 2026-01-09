@@ -1,5 +1,4 @@
 import 'package:mocktail/mocktail.dart';
-import 'package:stream_chat/src/client/retry_policy.dart';
 import 'package:stream_chat/src/client/retry_queue.dart';
 import 'package:stream_chat/stream_chat.dart';
 import 'package:test/test.dart';
@@ -18,19 +17,6 @@ void main() {
       },
     );
     when(() => channel.client.retryPolicy).thenReturn(retryPolicy);
-
-    when(() => channel.client.on(EventType.connectionRecovered)).thenAnswer(
-      (_) => Stream.value(Event(
-        type: EventType.connectionRecovered,
-        online: false,
-      )),
-    );
-
-    when(() => channel.on(any(), any(), any(), any())).thenAnswer(
-      (_) => Stream.value(
-        Event(type: EventType.any),
-      ),
-    );
   });
 
   setUp(() {

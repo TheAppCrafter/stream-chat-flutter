@@ -13,6 +13,7 @@ extension MessageEntityX on MessageEntity {
     List<Reaction>? ownReactions,
     Message? quotedMessage,
     Poll? poll,
+    Draft? draft,
   }) =>
       Message(
         shadowed: shadowed,
@@ -39,12 +40,12 @@ extension MessageEntityX on MessageEntity {
         quotedMessage: quotedMessage,
         pollId: pollId,
         poll: poll,
-        reactionCounts: reactionCounts,
-        reactionScores: reactionScores,
+        reactionGroups: reactionGroups,
         replyCount: replyCount,
         showInChannel: showInChannel,
         text: messageText,
         user: user,
+        channelRole: channelRole,
         pinned: pinned,
         pinnedAt: pinnedAt,
         pinExpires: pinExpires,
@@ -52,6 +53,8 @@ extension MessageEntityX on MessageEntity {
         mentionedUsers:
             mentionedUsers.map((e) => User.fromJson(jsonDecode(e))).toList(),
         i18n: i18n,
+        restrictedVisibility: restrictedVisibility,
+        draft: draft,
       );
 }
 
@@ -72,14 +75,14 @@ extension MessageX on Message {
         shadowed: shadowed,
         showInChannel: showInChannel,
         replyCount: replyCount,
-        reactionScores: reactionScores,
-        reactionCounts: reactionCounts,
+        reactionGroups: reactionGroups,
         mentionedUsers: mentionedUsers.map(jsonEncode).toList(),
         state: jsonEncode(state),
         remoteUpdatedAt: remoteUpdatedAt,
         localUpdatedAt: localUpdatedAt,
         extraData: extraData,
         userId: user?.id,
+        channelRole: channelRole,
         remoteDeletedAt: remoteDeletedAt,
         localDeletedAt: localDeletedAt,
         messageTextUpdatedAt: messageTextUpdatedAt,
@@ -89,5 +92,6 @@ extension MessageX on Message {
         pinExpires: pinExpires,
         pinnedByUserId: pinnedBy?.id,
         i18n: i18n,
+        restrictedVisibility: restrictedVisibility,
       );
 }

@@ -31,6 +31,7 @@ void main() {
         id: 'testMessageId$cid$index',
         type: 'testType',
         user: users[index],
+        channelRole: 'channel_member',
         createdAt: DateTime.now(),
         shadowed: math.Random().nextBool(),
         replyCount: index,
@@ -40,6 +41,10 @@ void main() {
         pinned: math.Random().nextBool(),
         pinnedAt: DateTime.now(),
         pinnedBy: User(id: 'testUserId$index'),
+        reactionGroups: {
+          'testType': ReactionGroup(count: 3, sumScores: 10),
+          'testType2': ReactionGroup(count: 5, sumScores: 20),
+        },
         i18n: {
           'en_text': 'Hello #$index',
           'hi_text': 'नमस्ते #$index',
@@ -53,6 +58,7 @@ void main() {
         id: 'testQuotedMessageId$cid$index',
         type: 'testType',
         user: users[index],
+        channelRole: 'channel_member',
         createdAt: DateTime.now(),
         shadowed: math.Random().nextBool(),
         replyCount: index,
@@ -76,6 +82,7 @@ void main() {
         id: 'testThreadMessageId$cid$index',
         type: 'testType',
         user: users[index],
+        channelRole: 'channel_member',
         parentId:
             mapAllThreadToFirstMessage ? messages[0].id : messages[index].id,
         createdAt: DateTime.now(),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/full_screen_media_widget.dart';
 import 'package:stream_chat_flutter/src/fullscreen_media/gallery_navigation_item.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:video_player/video_player.dart';
 
@@ -289,11 +290,17 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                 return ValueListenableBuilder(
                   valueListenable: _isDisplayingDetail,
                   builder: (context, isDisplayingDetail, child) {
+                    final padding = MediaQuery.paddingOf(context);
+
                     return AnimatedContainer(
                       duration: kThemeChangeDuration,
                       color: isDisplayingDetail
                           ? StreamChannelHeaderTheme.of(context).color
                           : Colors.black,
+                      padding: EdgeInsetsDirectional.only(
+                        top: padding.top + kToolbarHeight,
+                        bottom: padding.bottom + kToolbarHeight,
+                      ),
                       child: Builder(
                         builder: (context) {
                           Widget topWidget;
@@ -342,20 +349,22 @@ class _FullScreenMediaState extends State<StreamFullScreenMedia> {
                                 ),
                               );
                             }
-                          } else if (attachment.type == AttachmentType.file) {
-                            final mediaType = attachment.title?.mediaType;
-                            topWidget = Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              margin: const EdgeInsets.all(50),
-                              child: getFileTypeImage(mediaType?.mimeType),
-                            );
-                          } 
-                          else if (attachment.type == AttachmentType.audio){
-                            return widget.audioAttachmentWidget ?? const SizedBox.shrink();
-                          }
-                          else {
-                            topWidget = const SizedBox.shrink(); // Default case
+                          } else if (attachment.type == AttachmentType.file ||
+                              attachment.type == AttachmentType.audio ||
+                              attachment.type == AttachmentType.voiceRecording) {
+                            if (attachment.type != AttachmentType.file &&
+                                widget.audioAttachmentWidget != null) {
+                              topWidget = widget.audioAttachmentWidget!;
+                            } else {
+                              final mediaType = attachment.title?.mediaType;
+                              final iconSize = MediaQuery.of(context).size.shortestSide / 2;
+                              topWidget = getFileTypeImage(
+                                mediaType?.mimeType,
+                                iconSize,
+                              );
+                            }
+                          } else {
+                            topWidget = const Empty(); // Default case
                           }
 
                           return Stack(

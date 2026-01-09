@@ -79,13 +79,8 @@ class _DesktopReactionsBuilderState extends State<DesktopReactionsBuilder> {
     final reactionIcons = StreamChatConfiguration.of(context).reactionIcons;
     final streamChatTheme = StreamChatTheme.of(context);
 
-    if (widget.message.latestReactions != null) {
-      final reactionTypes = widget.message.latestReactions!.map((r) => r.type).toList();
-    }
-
     if (widget.showAll) {
       // When showAll is true, show all available reaction icons from configuration
-      
       return PortalTarget(
         visible: _showReactionsPopup,
         portalCandidateLabels: const [kPortalMessageListViewLabel],

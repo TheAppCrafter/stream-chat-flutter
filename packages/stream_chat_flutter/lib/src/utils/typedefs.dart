@@ -228,6 +228,11 @@ typedef OnQuotedMessageTap = void Function(String?);
 /// {@endtemplate}
 typedef OnMessageTap = void Function(Message);
 
+/// {@template onMessageLongPress}
+/// The action to perform when a message is long pressed.
+/// {@endtemplate}
+typedef OnMessageLongPress = void Function(Message);
+
 /// {@template onReactionsTap}
 /// The action to perform when a message's reactions are tapped.
 /// {@endtemplate}
@@ -290,6 +295,14 @@ typedef SystemMessageBuilder = Widget Function(
 /// A widget builder for creating custom ephemeral messages.
 /// {@endtemplate}
 typedef EphemeralMessageBuilder = Widget Function(
+  BuildContext,
+  Message,
+);
+
+/// {@template moderatedMessageBuilder}
+/// A widget builder for creating custom moderated messages.
+/// {@endtemplate}
+typedef ModeratedMessageBuilder = Widget Function(
   BuildContext,
   Message,
 );

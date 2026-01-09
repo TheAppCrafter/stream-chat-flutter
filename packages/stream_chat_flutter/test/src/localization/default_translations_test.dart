@@ -76,6 +76,8 @@ void main() {
     expect(translations.deleteLabel, isNotNull);
     expect(translations.deleteMessageLabel, isNotNull);
     expect(translations.deleteMessageQuestion, isNotNull);
+    expect(translations.deletePollOptionLabel, isNotNull);
+    expect(translations.deletePollOptionQuestion, isNotNull);
     expect(translations.operationCouldNotBeCompletedText, isNotNull);
     expect(translations.replyLabel, isNotNull);
     // pinned
@@ -173,5 +175,15 @@ void main() {
     expect(translations.unreadMessagesSeparatorText(), isNotNull);
     expect(translations.markUnreadError, isNotNull);
     expect(translations.markAsUnreadLabel, isNotNull);
+    expect(translations.emptyMessagePreviewText, isNotNull);
+    expect(translations.voiceRecordingText, isNotNull);
+    expect(translations.audioAttachmentText, isNotNull);
+    expect(translations.imageAttachmentText, isNotNull);
+    expect(translations.videoAttachmentText, isNotNull);
+    expect(translations.pollYouVotedText, isNotNull);
+    expect(translations.pollSomeoneVotedText('TestUser'), isNotNull);
+    expect(translations.pollYouCreatedText, isNotNull);
+    expect(translations.pollSomeoneCreatedText('TestUser'), isNotNull);
+    expect(translations.systemMessageLabel, isNotNull);
   });
 }

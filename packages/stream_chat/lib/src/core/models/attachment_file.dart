@@ -28,7 +28,7 @@ class AttachmentFile {
           'File by path is not supported in web, Please provide bytes',
         ),
         assert(
-          name?.contains('.') ?? true,
+          name == null || name.isEmpty || name.contains('.'),
           'Invalid file name, should also contain file extension',
         ),
         _name = name;
@@ -47,8 +47,10 @@ class AttachmentFile {
   final String? _name;
 
   /// File name including its extension.
-  String? get name =>
-      _name ?? path?.split(CurrentPlatform.isWindows ? r'\' : '/').last;
+  String? get name {
+    if (_name case final name? when name.isNotEmpty) return name;
+    return path?.split(CurrentPlatform.isWindows ? r'\' : '/').last;
+  }
 
   /// Byte data for this file. Particularly useful if you want to manipulate
   /// its data or easily upload to somewhere else.
@@ -69,22 +71,18 @@ class AttachmentFile {
 
   /// Converts this into a [MultipartFile]
   Future<MultipartFile> toMultipartFile() async {
-    MultipartFile multiPartFile;
-
-    if (CurrentPlatform.isWeb) {
-      multiPartFile = MultipartFile.fromBytes(
-        bytes!,
-        filename: name,
-        contentType: mediaType,
-      );
-    } else {
-      multiPartFile = await MultipartFile.fromFile(
-        path!,
-        filename: name,
-        contentType: mediaType,
-      );
-    }
-    return multiPartFile;
+    return switch (CurrentPlatform.type) {
+      PlatformType.web => MultipartFile.fromBytes(
+          bytes!,
+          filename: name,
+          contentType: mediaType,
+        ),
+      _ => await MultipartFile.fromFile(
+          path!,
+          filename: name,
+          contentType: mediaType,
+        ),
+    };
   }
 
   /// Creates a copy of this [AttachmentFile] but with the given fields
@@ -106,7 +104,7 @@ class AttachmentFile {
 
 /// Union class to hold various [UploadState] of a attachment.
 @freezed
-class UploadState with _$UploadState {
+sealed class UploadState with _$UploadState {
   // Dummy private constructor in order to use getters
   const UploadState._();
 
@@ -141,3 +139,118 @@ class UploadState with _$UploadState {
   /// Returns true if state is [Failed]
   bool get isFailed => this is Failed;
 }
+
+// coverage:ignore-start
+
+/// @nodoc
+extension UploadStatePatternMatching on UploadState {
+  /// @nodoc
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function() preparing,
+    required TResult Function(int uploaded, int total) inProgress,
+    required TResult Function() success,
+    required TResult Function(String error) failed,
+  }) {
+    final uploadState = this;
+    return switch (uploadState) {
+      Preparing() => preparing(),
+      InProgress() => inProgress(uploadState.uploaded, uploadState.total),
+      Success() => success(),
+      Failed() => failed(uploadState.error),
+    };
+  }
+
+  /// @nodoc
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function()? preparing,
+    TResult? Function(int uploaded, int total)? inProgress,
+    TResult? Function()? success,
+    TResult? Function(String error)? failed,
+  }) {
+    final uploadState = this;
+    return switch (uploadState) {
+      Preparing() => preparing?.call(),
+      InProgress() => inProgress?.call(uploadState.uploaded, uploadState.total),
+      Success() => success?.call(),
+      Failed() => failed?.call(uploadState.error),
+    };
+  }
+
+  /// @nodoc
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function()? preparing,
+    TResult Function(int uploaded, int total)? inProgress,
+    TResult Function()? success,
+    TResult Function(String error)? failed,
+    required TResult orElse(),
+  }) {
+    final uploadState = this;
+    final result = switch (uploadState) {
+      Preparing() => preparing?.call(),
+      InProgress() => inProgress?.call(uploadState.uploaded, uploadState.total),
+      Success() => success?.call(),
+      Failed() => failed?.call(uploadState.error),
+    };
+
+    return result ?? orElse();
+  }
+
+  /// @nodoc
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(Preparing value) preparing,
+    required TResult Function(InProgress value) inProgress,
+    required TResult Function(Success value) success,
+    required TResult Function(Failed value) failed,
+  }) {
+    final uploadState = this;
+    return switch (uploadState) {
+      Preparing() => preparing(uploadState),
+      InProgress() => inProgress(uploadState),
+      Success() => success(uploadState),
+      Failed() => failed(uploadState),
+    };
+  }
+
+  /// @nodoc
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(Preparing value)? preparing,
+    TResult? Function(InProgress value)? inProgress,
+    TResult? Function(Success value)? success,
+    TResult? Function(Failed value)? failed,
+  }) {
+    final uploadState = this;
+    return switch (uploadState) {
+      Preparing() => preparing?.call(uploadState),
+      InProgress() => inProgress?.call(uploadState),
+      Success() => success?.call(uploadState),
+      Failed() => failed?.call(uploadState),
+    };
+  }
+
+  /// @nodoc
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(Preparing value)? preparing,
+    TResult Function(InProgress value)? inProgress,
+    TResult Function(Success value)? success,
+    TResult Function(Failed value)? failed,
+    required TResult orElse(),
+  }) {
+    final uploadState = this;
+    final result = switch (uploadState) {
+      Preparing() => preparing?.call(uploadState),
+      InProgress() => inProgress?.call(uploadState),
+      Success() => success?.call(uploadState),
+      Failed() => failed?.call(uploadState),
+    };
+
+    return result ?? orElse();
+  }
+}
+
+// coverage:ignore-end

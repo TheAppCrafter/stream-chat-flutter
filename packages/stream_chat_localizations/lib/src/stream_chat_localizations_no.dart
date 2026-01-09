@@ -85,6 +85,9 @@ class StreamChatLocalizationsNo extends GlobalStreamChatLocalizations {
   String get messageDeletedLabel => 'Melding slettet';
 
   @override
+  String get systemMessageLabel => 'Systemmelding';
+
+  @override
   String get editedMessageLabel => 'Redigert';
 
   @override
@@ -220,6 +223,12 @@ class StreamChatLocalizationsNo extends GlobalStreamChatLocalizations {
 
   @override
   String get copyMessageLabel => 'Kopier melding';
+
+  @override
+  String get regenerateMessageLabel => 'Regenerer melding';
+
+  @override
+  String get readAloudMessageLabel => 'Les høyt';
 
   @override
   String get editMessageLabel => 'Rediger melding';
@@ -543,7 +552,21 @@ class StreamChatLocalizationsNo extends GlobalStreamChatLocalizations {
   String get enterYourCommentLabel => 'Skriv inn kommentaren din';
 
   @override
+  String get endVoteConfirmationText =>
+      'Er du sikker på at du vil avslutte avstemningen?';
+
+  @override
+  String get deletePollOptionLabel => 'Slett alternativ';
+
+  @override
+  String get deletePollOptionQuestion =>
+      'Er du sikker på at du vil slette dette alternativet?';
+
+  @override
   String get createLabel => 'Opprett';
+
+  @override
+  String get endLabel => 'Avslutt';
 
   @override
   String pollVotingModeLabel(PollVotingMode votingMode) {
@@ -600,4 +623,54 @@ class StreamChatLocalizationsNo extends GlobalStreamChatLocalizations {
     if (count == 1) return '1 ny tråd';
     return '$count nye tråder';
   }
+
+  @override
+  String get slideToCancelLabel => 'Gli for å avbryte';
+
+  @override
+  String get holdToRecordLabel => 'Hold for å ta opp, slipp for å sende';
+
+  @override
+  String get sendAnywayLabel => 'Send likevel';
+
+  @override
+  String get moderatedMessageBlockedText =>
+      'Meldingen ble blokkert av modereringsregler';
+
+  @override
+  String get moderationReviewModalTitle => 'Er du sikker?';
+
+  @override
+  String get moderationReviewModalDescription =>
+      '''Tenk på hvordan kommentaren din kan få andre til å føle seg og sørg for å følge retningslinjene for fellesskapet.''';
+
+  @override
+  String get emptyMessagePreviewText => '';
+
+  @override
+  String get voiceRecordingText => 'Taleopptak';
+
+  @override
+  String get audioAttachmentText => 'Lyd';
+
+  @override
+  String get imageAttachmentText => 'Bilde';
+
+  @override
+  String get videoAttachmentText => 'Video';
+
+  @override
+  String get pollYouVotedText => 'Du stemte';
+
+  @override
+  String pollSomeoneVotedText(String username) => '$username stemte';
+
+  @override
+  String get pollYouCreatedText => 'Du opprettet';
+
+  @override
+  String pollSomeoneCreatedText(String username) => '$username opprettet';
+
+  @override
+  String get draftLabel => 'Utkast';
 }

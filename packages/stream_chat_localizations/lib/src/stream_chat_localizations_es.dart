@@ -84,7 +84,10 @@ class StreamChatLocalizationsEs extends GlobalStreamChatLocalizations {
   String get messageDeletedText => 'Este mensaje ha sido borrado.';
 
   @override
-  String get messageDeletedLabel => 'Mensaje borrado';
+  String get messageDeletedLabel => 'Mensaje eliminado';
+
+  @override
+  String get systemMessageLabel => 'Mensaje del sistema';
 
   @override
   String get editedMessageLabel => 'Editado';
@@ -228,6 +231,12 @@ class StreamChatLocalizationsEs extends GlobalStreamChatLocalizations {
 
   @override
   String get copyMessageLabel => 'Copiar el mensaje';
+
+  @override
+  String get regenerateMessageLabel => 'Regenerar mensaje';
+
+  @override
+  String get readAloudMessageLabel => 'Leer en voz alta';
 
   @override
   String get editMessageLabel => 'Editar el mensaje';
@@ -554,10 +563,24 @@ No es posible añadir más de $limit archivos adjuntos
   String get updateYourCommentLabel => 'Actualizar tu comentario';
 
   @override
-  String get enterYourCommentLabel => 'Ingresar tu comentario';
+  String get enterYourCommentLabel => 'Ingresa tu comentario';
+
+  @override
+  String get endVoteConfirmationText =>
+      '¿Estás seguro de que quieres finalizar la votación?';
+
+  @override
+  String get deletePollOptionLabel => 'Eliminar opción';
+
+  @override
+  String get deletePollOptionQuestion =>
+      '¿Estás seguro de que quieres eliminar esta opción?';
 
   @override
   String get createLabel => 'Crear';
+
+  @override
+  String get endLabel => 'Finalizar';
 
   @override
   String pollVotingModeLabel(PollVotingMode votingMode) {
@@ -615,4 +638,55 @@ No es posible añadir más de $limit archivos adjuntos
     if (count == 1) return '1 nuevo hilo';
     return '$count nuevos hilos';
   }
+
+  @override
+  String get slideToCancelLabel => 'Desliza para cancelar';
+
+  @override
+  String get holdToRecordLabel =>
+      'Mantén pulsado para grabar, suelta para enviar';
+
+  @override
+  String get sendAnywayLabel => 'Enviar de todos modos';
+
+  @override
+  String get moderatedMessageBlockedText =>
+      'Mensaje bloqueado por políticas de moderación';
+
+  @override
+  String get moderationReviewModalTitle => '¿Estás seguro?';
+
+  @override
+  String get moderationReviewModalDescription =>
+      '''Considera cómo tu comentario podría hacer sentir a los demás y asegúrate de seguir nuestras Directrices de la Comunidad.''';
+
+  @override
+  String get emptyMessagePreviewText => '';
+
+  @override
+  String get voiceRecordingText => 'Grabación de voz';
+
+  @override
+  String get audioAttachmentText => 'Audio';
+
+  @override
+  String get imageAttachmentText => 'Imagen';
+
+  @override
+  String get videoAttachmentText => 'Video';
+
+  @override
+  String get pollYouVotedText => 'Has votado';
+
+  @override
+  String pollSomeoneVotedText(String username) => '$username ha votado';
+
+  @override
+  String get pollYouCreatedText => 'Has creado';
+
+  @override
+  String pollSomeoneCreatedText(String username) => '$username ha creado';
+
+  @override
+  String get draftLabel => 'Borrador';
 }

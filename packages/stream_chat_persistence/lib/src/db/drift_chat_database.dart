@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:stream_chat/stream_chat.dart' show VotingVisibility;
+import 'package:stream_chat/stream_chat.dart';
 import 'package:stream_chat_persistence/src/converter/converter.dart';
 import 'package:stream_chat_persistence/src/dao/dao.dart';
 import 'package:stream_chat_persistence/src/entity/entity.dart';
@@ -12,6 +12,7 @@ part 'drift_chat_database.g.dart';
 @DriftDatabase(
   tables: [
     Channels,
+    DraftMessages,
     Messages,
     PinnedMessages,
     Polls,
@@ -28,6 +29,7 @@ part 'drift_chat_database.g.dart';
     UserDao,
     ChannelDao,
     MessageDao,
+    DraftMessageDao,
     PinnedMessageDao,
     PinnedMessageReactionDao,
     MemberDao,
@@ -53,30 +55,36 @@ class DriftChatDatabase extends _$DriftChatDatabase {
 
   // you should bump this number whenever you change or add a table definition.
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
-        onUpgrade: (openingDetails, before, after) async {
-          if (before != after) {
-            final m = createMigrator();
+        onUpgrade: (migrator, from, to) async {
+          if (from != to) {
             for (final table in allTables) {
-              await m.deleteTable(table.actualTableName);
-              await m.createTable(table);
+              await migrator.deleteTable(table.actualTableName);
             }
+            await migrator.createAll();
           }
         },
       );
 
   /// Deletes all the tables
-  Future<void> flush() => batch((batch) {
-        allTables.forEach((table) {
-          delete(table).go();
-        });
+  Future<void> flush() async {
+    await customStatement('PRAGMA foreign_keys = OFF');
+    try {
+      await transaction(() async {
+        for (final table in allTables) {
+          await delete(table).go();
+        }
       });
+    } finally {
+      await customStatement('PRAGMA foreign_keys = ON');
+    }
+  }
 
   /// Closes the database instance
   Future<void> disconnect() => close();

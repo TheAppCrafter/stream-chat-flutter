@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/src/avatars/user_avatar.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/src/theme/poll_interactor_theme.dart';
 import 'package:stream_chat_flutter/src/theme/stream_chat_theme.dart';
-import 'package:stream_chat_flutter/src/utils/utils.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 
 /// {@template pollOptionsListView}
@@ -162,13 +162,16 @@ class PollOptionItem extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
+          spacing: 4,
           children: <Widget>[
             if (pollClosed case false) control,
             Expanded(
               child: Column(
+                spacing: 4,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Row(
+                    spacing: 4,
                     children: <Widget>[
                       Expanded(
                         child: Text(
@@ -190,7 +193,7 @@ class PollOptionItem extends StatelessWidget {
                         poll.voteCountFor(option).toString(),
                         style: theme.pollOptionVoteCountTextStyle,
                       ),
-                    ].insertBetween(const SizedBox(width: 4)),
+                    ],
                   ),
                   if (showProgressBar)
                     OptionVotesProgressBar(
@@ -204,10 +207,10 @@ class PollOptionItem extends StatelessWidget {
                         false => theme.pollOptionVotesProgressBarValueColor,
                       },
                     ),
-                ].insertBetween(const SizedBox(height: 4)),
+                ],
               ),
             )
-          ].insertBetween(const SizedBox(width: 4)),
+          ],
         ),
       ),
     );
@@ -244,7 +247,7 @@ class OptionVoters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (voters.isEmpty) return const SizedBox.shrink();
+    if (voters.isEmpty) return const Empty();
 
     final theme = StreamChatTheme.of(context);
 

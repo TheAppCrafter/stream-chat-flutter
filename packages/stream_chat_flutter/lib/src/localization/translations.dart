@@ -1,8 +1,7 @@
 import 'package:jiffy/jiffy.dart';
 import 'package:stream_chat_flutter/src/message_list_view/message_list_view.dart';
 import 'package:stream_chat_flutter/src/misc/connection_status_builder.dart';
-import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart'
-    show PollVotingMode, Range, User;
+import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 
 /// Translation strings for the stream chat widgets
 abstract class Translations {
@@ -68,6 +67,9 @@ abstract class Translations {
 
   /// The label for message deleted
   String get messageDeletedLabel;
+
+  /// The label for system message
+  String get systemMessageLabel;
 
   /// The label for showing the message is edited
   String get editedMessageLabel;
@@ -446,8 +448,20 @@ abstract class Translations {
   /// The label for "Enter your comment".
   String get enterYourCommentLabel;
 
+  /// The confirmation text shown when the user tries to end a poll.
+  String get endVoteConfirmationText;
+
+  /// The label for "delete poll option"
+  String get deletePollOptionLabel;
+
+  /// The question asked while showing delete poll option dialog
+  String get deletePollOptionQuestion;
+
   /// The label for "Create".
   String get createLabel;
+
+  /// The label for "End".
+  String get endLabel;
 
   /// The label for Poll voting mode.
   ///
@@ -493,6 +507,54 @@ abstract class Translations {
 
   /// The label for "$count new threads"
   String newThreadsLabel({required int count});
+
+  /// The label for "Slide to cancel"
+  String get slideToCancelLabel;
+
+  /// The label for "Hold to record"
+  String get holdToRecordLabel;
+
+  /// The label for "Send Anyway"
+  String get sendAnywayLabel;
+
+  /// Text shown when a message was blocked by moderation policies
+  String get moderatedMessageBlockedText;
+
+  /// The title of the moderated message warning dialog
+  String get moderationReviewModalTitle;
+
+  /// The content text of the moderated message warning dialog
+  String get moderationReviewModalDescription;
+
+  /// The text for empty message previews
+  String get emptyMessagePreviewText;
+
+  /// The text for voice recording in channel list preview
+  String get voiceRecordingText;
+
+  /// The text for audio attachment in channel list preview
+  String get audioAttachmentText;
+
+  /// The text for image attachment in channel list preview
+  String get imageAttachmentText;
+
+  /// The text for video attachment in channel list preview
+  String get videoAttachmentText;
+
+  /// The text for poll when current user voted
+  String get pollYouVotedText;
+
+  /// The text for poll when someone voted
+  String pollSomeoneVotedText(String username);
+
+  /// The text for poll when current user created
+  String get pollYouCreatedText;
+
+  /// The text for poll when someone created
+  String pollSomeoneCreatedText(String username);
+
+  /// The label for draft message
+  String get draftLabel;
 }
 
 /// Default implementation of Translation strings for the stream chat widgets
@@ -580,6 +642,9 @@ class DefaultTranslations implements Translations {
 
   @override
   String get messageDeletedLabel => 'Message deleted';
+
+  @override
+  String get systemMessageLabel => 'System Message';
 
   @override
   String get editedMessageLabel => 'Edited';
@@ -1055,7 +1120,21 @@ Attachment limit exceeded: it's not possible to add more than $limit attachments
   String get enterYourCommentLabel => 'Enter your comment';
 
   @override
+  String get endVoteConfirmationText =>
+      'Are you sure you want to end the vote?';
+
+  @override
+  String get deletePollOptionLabel => 'Delete Option';
+
+  @override
+  String get deletePollOptionQuestion =>
+      'Are you sure you want to delete this option?';
+
+  @override
   String get createLabel => 'Create';
+
+  @override
+  String get endLabel => 'End';
 
   @override
   String pollVotingModeLabel(PollVotingMode votingMode) {
@@ -1112,4 +1191,54 @@ Attachment limit exceeded: it's not possible to add more than $limit attachments
     if (count == 1) return '1 new thread';
     return '$count new threads';
   }
+
+  @override
+  String get slideToCancelLabel => 'Slide to cancel';
+
+  @override
+  String get holdToRecordLabel => 'Hold to record, release to send.';
+
+  @override
+  String get sendAnywayLabel => 'Send Anyway';
+
+  @override
+  String get moderatedMessageBlockedText =>
+      'Message was blocked by moderation policies';
+
+  @override
+  String get moderationReviewModalTitle => 'Are you sure?';
+
+  @override
+  String get moderationReviewModalDescription =>
+      '''Consider how your comment might make others feel and be sure to follow our Community Guidelines.''';
+
+  @override
+  String get emptyMessagePreviewText => '';
+
+  @override
+  String get voiceRecordingText => 'Voice Recording';
+
+  @override
+  String get audioAttachmentText => 'Audio';
+
+  @override
+  String get imageAttachmentText => 'Image';
+
+  @override
+  String get videoAttachmentText => 'Video';
+
+  @override
+  String get pollYouVotedText => 'You voted';
+
+  @override
+  String pollSomeoneVotedText(String username) => '$username voted';
+
+  @override
+  String get pollYouCreatedText => 'You created';
+
+  @override
+  String pollSomeoneCreatedText(String username) => '$username created';
+
+  @override
+  String get draftLabel => 'Draft';
 }

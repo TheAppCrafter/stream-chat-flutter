@@ -1,3 +1,5 @@
+// coverage:ignore-file
+
 import 'dart:async';
 import 'dart:math';
 
@@ -5,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stream_chat_flutter/src/attachment/builder/voice_recording_attachment_builder/stream_voice_recording_slider.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+
 
 /// {@template StreamVoiceRecordingPlayer}
 /// Embedded player for audio messages. It displays the data for the audio
@@ -14,6 +18,7 @@ import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 ///
 /// When waveBars are not provided they are shown as 0 bars.
 /// {@endtemplate}
+@Deprecated("Use 'StreamVoiceRecordingAttachment' instead")
 class StreamVoiceRecordingPlayer extends StatefulWidget {
   /// {@macro StreamVoiceRecordingPlayer}
   const StreamVoiceRecordingPlayer({
@@ -55,6 +60,7 @@ class StreamVoiceRecordingPlayer extends StatefulWidget {
       _StreamVoiceRecordingPlayerState();
 }
 
+@Deprecated("Use 'StreamVoiceRecordingAttachment' instead")
 class _StreamVoiceRecordingPlayerState
     extends State<StreamVoiceRecordingPlayer> {
   var _seeking = false;
@@ -87,22 +93,14 @@ class _StreamVoiceRecordingPlayerState
   }
 
   Widget _content(Duration totalDuration) {
-    final availableWidth = widget.constraints?.maxWidth ?? 500; // Fallback to a default value
-    final availableHeight = widget.constraints?.maxHeight ?? 60; // Fallback to a default value
-
-    // Calculate relative sizes based on available constraints
-    final controlButtonSize = availableHeight * 0.55; // 60% of the height
-    final sliderHeight = availableHeight * 0.6; // 30% of the height
-    final fontSize = availableHeight * 0.2; // 20% of the height for the text
-
     return Container(
-      constraints: widget.constraints,
       padding: const EdgeInsets.all(8),
+      height: 60,
       child: Row(
         children: <Widget>[
           SizedBox(
-            width: controlButtonSize,
-            height: controlButtonSize,
+            width: 36,
+            height: 36,
             child: _controlButton(),
           ),
           Padding(
@@ -110,12 +108,12 @@ class _StreamVoiceRecordingPlayerState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _timer(totalDuration, fontSize),
-                _fileSizeWidget(widget.fileSize, fontSize),
+                _timer(totalDuration),
+                _fileSizeWidget(widget.fileSize),
               ],
             ),
           ),
-          _audioWaveSlider(totalDuration, sliderHeight),
+          _audioWaveSlider(totalDuration),
           _speedAndActionButton(),
         ],
       ),
@@ -221,8 +219,8 @@ class _StreamVoiceRecordingPlayerState
             return widget.actionButton!;
           } else {
             return SizedBox(
-              width: widget.constraints!.maxHeight! * 0.5,
-              height: widget.constraints!.maxHeight! * 0.5,
+              width: theme.speedButtonSize!.width,
+              height: theme.speedButtonSize!.height,
               child: theme.fileTypeIcon,
             );
           }
@@ -231,13 +229,12 @@ class _StreamVoiceRecordingPlayerState
     );
   }
 
-  Widget _timer(Duration totalDuration, double fontSize) {
+  Widget _timer(Duration totalDuration) {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
 
     return StreamBuilder<Duration>(
       stream: widget.player.positionStream,
       builder: (context, snapshot) {
-        final textStyle = theme.timerTextStyle ?? TextStyle(); // Provide a default TextStyle
         if (snapshot.hasData &&
             (widget.player.currentIndex == widget.index &&
                 (widget.player.playing ||
@@ -245,33 +242,32 @@ class _StreamVoiceRecordingPlayerState
                     _seeking))) {
           return Text(
             snapshot.data!.toMinutesAndSeconds(),
-            style: textStyle.copyWith(fontSize: fontSize), // Safe to call copyWith
+            style: theme.timerTextStyle,
           );
         } else {
           return Text(
             totalDuration.toMinutesAndSeconds(),
-            style: textStyle.copyWith(fontSize: fontSize), // Safe to call copyWith
+            style: theme.timerTextStyle,
           );
         }
       },
     );
   }
 
-  Widget _fileSizeWidget(int? fileSize, double fontSize) {
+  Widget _fileSizeWidget(int? fileSize) {
     final theme = StreamChatTheme.of(context).voiceRecordingTheme.playerTheme;
 
-    final fileSizeTextStyle = theme.fileSizeTextStyle ?? TextStyle();
     if (fileSize != null) {
       return Text(
         fileSize.toHumanReadableSize(),
-        style: fileSizeTextStyle.copyWith(fontSize: fontSize),
+        style: theme.fileSizeTextStyle,
       );
     } else {
-      return const SizedBox.shrink();
+      return const Empty();
     }
   }
 
-  Widget _audioWaveSlider(Duration totalDuration, double sliderHeight) {
+  Widget _audioWaveSlider(Duration totalDuration) {
     final positionStream = widget.player.currentIndexStream.flatMap(
       (index) => widget.player.positionStream.map((duration) => _sliderValue(
             duration,
@@ -301,7 +297,6 @@ class _StreamVoiceRecordingPlayerState
             _seeking = false;
           });
         },
-        customSliderButtonWidth: sliderHeight * 0.1, 
       ),
     );
   }
