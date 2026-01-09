@@ -409,7 +409,18 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
 
   /// Flag to indicate if we should preserve scroll position during this rebuild.
   /// Set to true when message content updates (same count) and user is scrolled away.
+  /// Remains true until explicitly reset.
   bool _preservingPosition = false;
+  
+  /// Timer to reset position preservation after content updates stabilize
+  Timer? _preservePositionTimer;
+  
+  /// Callback for ScrollPhysics to check if position should be preserved.
+  /// This is called at runtime, avoiding the Flutter physics caching issue.
+  bool _shouldPreservePosition() {
+    final result = _preservingPosition && _inBetweenList && widget.maintainPositionOnUpdate;
+    return result;
+  }
 
   int initialIndex = 0;
   double initialAlignment = 0;
@@ -511,6 +522,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
 
   @override
   void dispose() {
+    _preservePositionTimer?.cancel();
     debouncedMarkRead.cancel();
     debouncedMarkThreadRead.cancel();
     _messageNewListener?.cancel();
@@ -594,8 +606,22 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         _inBetweenList &&
         widget.maintainPositionOnUpdate;
 
-    // Set flag to enable position preservation in scroll physics
-    _preservingPosition = isContentUpdate;
+    // When content update is detected, enable position preservation
+    if (isContentUpdate) {
+      // Set the flag immediately - callback will read this at runtime
+      _preservingPosition = true;
+      
+      // Start/reset the timer
+      _preservePositionTimer?.cancel();
+      
+      // Keep preservation active for 500ms after last content update
+      // This allows multiple content changes (like AI streaming) to be handled
+      _preservePositionTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _preservingPosition = false;
+        }
+      });
+    }
 
     _messageListLength = newMessagesListLength;
 
@@ -633,6 +659,9 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
               child: LazyLoadScrollView(
                 onStartOfPage: () async {
                   _inBetweenList = false;
+                  // User has scrolled to the bottom, disable position preservation
+                  _preservingPosition = false;
+                  _preservePositionTimer?.cancel();
                   if (!_upToDate) {
                     _bottomPaginationActive = true;
                     return _paginateData(
@@ -643,6 +672,9 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 },
                 onEndOfPage: () async {
                   _inBetweenList = false;
+                  // User has scrolled to the top, disable position preservation
+                  _preservingPosition = false;
+                  _preservePositionTimer?.cancel();
                   _bottomPaginationActive = false;
                   return _paginateData(
                     streamChannel,
@@ -662,7 +694,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                   initialAlignment: initialAlignment,
                   physics: PositionPreservingScrollPhysics(
                     parent: widget.scrollPhysics,
-                    preservePosition: _preservingPosition,
+                    shouldPreservePositionCallback: _shouldPreservePosition,
                   ),
                   itemScrollController: _scrollController,
                   reverse: widget.reverse,
