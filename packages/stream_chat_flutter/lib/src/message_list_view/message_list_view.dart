@@ -135,6 +135,8 @@ class StreamMessageListView extends StatefulWidget {
     this.spacingWidgetBuilder = _defaultSpacingWidgetBuilder,
     this.maintainPositionOnUpdate = true,
     this.isContentUpdating,
+    this.newMessageScrollAlignment,
+    this.scrollToNewMessagesFromOthers = false,
   });
 
   /// [ScrollViewKeyboardDismissBehavior] the defines how this [PositionedList] will
@@ -404,6 +406,24 @@ class StreamMessageListView extends StatefulWidget {
   /// Requires [maintainPositionOnUpdate] to be `true` to have any effect.
   final ValueNotifier<bool>? isContentUpdating;
 
+  /// The alignment to use when scrolling to the newest message after the
+  /// current user sends a new message.
+  ///
+  /// If null, defaults to 0.0 (leading edge of the scroll view).
+  /// For reversed lists where you want new messages at the visual top,
+  /// set this to 1.0.
+  final double? newMessageScrollAlignment;
+
+  /// Whether to also scroll to new messages when they arrive from other users.
+  ///
+  /// When false (default), only scrolls when the current user sends a message.
+  /// When true, scrolls to the newest message regardless of who sent it.
+  /// Uses [newMessageScrollAlignment] for the scroll position.
+  ///
+  /// This is useful for AI chat interfaces where you want to keep the newest
+  /// messages at the top of the viewport.
+  final bool scrollToNewMessagesFromOthers;
+
   static Widget _defaultSpacingWidgetBuilder(
     BuildContext context,
     List<SpacingType> spacingTypes,
@@ -570,16 +590,25 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         if (_upToDate) {
           _bottomPaginationActive = false;
         }
-        if (event.message?.parentId == widget.parentMessage?.id &&
-            event.message!.user!.id ==
-                streamChannel!.channel.client.state.currentUser!.id) {
-          setState(() => unreadCount = 0);
+        
+        final isCorrectThread = event.message?.parentId == widget.parentMessage?.id;
+        final isCurrentUser = event.message!.user!.id ==
+            streamChannel!.channel.client.state.currentUser!.id;
+        
+        // Scroll to new message if:
+        // 1. It's in the correct thread AND
+        // 2. It's from current user OR scrollToNewMessagesFromOthers is enabled
+        if (isCorrectThread && (isCurrentUser || widget.scrollToNewMessagesFromOthers)) {
+          if (isCurrentUser) {
+            setState(() => unreadCount = 0);
+          }
 
           if (mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _scrollController?.isAttached == true) {
                 _scrollController?.jumpTo(
                   index: 0,
+                  alignment: widget.newMessageScrollAlignment ?? 0.0,
                 );
               }
             });
@@ -677,8 +706,12 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
           final first = _itemPositionListener.itemPositions.value.first;
           final diff = newMessagesListLength - _messageListLength!;
           if (diff > 0) {
+            // Only preserve position for other users' messages if we're NOT
+            // configured to scroll to them. If scrollToNewMessagesFromOthers
+            // is true, we'll handle scrolling in the message listener instead.
             if (messages[0].user?.id !=
-                streamChannel!.channel.client.state.currentUser?.id) {
+                    streamChannel!.channel.client.state.currentUser?.id &&
+                !widget.scrollToNewMessagesFromOthers) {
               initialIndex = first.index + diff;
               initialAlignment = first.itemLeadingEdge;
             }
