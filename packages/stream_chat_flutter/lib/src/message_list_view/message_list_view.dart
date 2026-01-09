@@ -134,6 +134,7 @@ class StreamMessageListView extends StatefulWidget {
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag,
     this.spacingWidgetBuilder = _defaultSpacingWidgetBuilder,
     this.maintainPositionOnUpdate = true,
+    this.isContentUpdating,
   });
 
   /// [ScrollViewKeyboardDismissBehavior] the defines how this [PositionedList] will
@@ -364,7 +365,44 @@ class StreamMessageListView extends StatefulWidget {
   ///
   /// See also:
   /// - [PositionPreservingScrollPhysics], which implements this behavior
+  /// - [isContentUpdating], which can be used to externally trigger position
+  ///   preservation when content updates happen outside of Stream Chat's
+  ///   message list (e.g., via Riverpod or other state management)
   final bool maintainPositionOnUpdate;
+
+  /// External notifier to signal when message content is updating.
+  ///
+  /// Use this when content updates happen outside of Stream Chat's message
+  /// list (e.g., AI text streaming via Riverpod, BLoC, or other state
+  /// management solutions).
+  ///
+  /// When [isContentUpdating.value] changes to `true` and the user is
+  /// scrolled away from the bottom, position preservation is activated.
+  /// It automatically deactivates after 500ms of no updates, or when the
+  /// user scrolls to the top/bottom of the list.
+  ///
+  /// This is useful when:
+  /// - Message text is streamed via external state management
+  /// - Content changes don't trigger [StreamMessageListView] rebuilds
+  /// - You need to preserve position during custom animations
+  ///
+  /// Example:
+  /// ```dart
+  /// final isStreamingNotifier = ValueNotifier<bool>(false);
+  ///
+  /// StreamMessageListView(
+  ///   maintainPositionOnUpdate: true,
+  ///   isContentUpdating: isStreamingNotifier,
+  ///   // ...
+  /// )
+  ///
+  /// // In your streaming widget:
+  /// void onStreamStart() => isStreamingNotifier.value = true;
+  /// void onStreamEnd() => isStreamingNotifier.value = false;
+  /// ```
+  ///
+  /// Requires [maintainPositionOnUpdate] to be `true` to have any effect.
+  final ValueNotifier<bool>? isContentUpdating;
 
   static Widget _defaultSpacingWidgetBuilder(
     BuildContext context,
@@ -422,6 +460,25 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     return result;
   }
 
+  /// Handler for external content update notifications.
+  /// Called when [widget.isContentUpdating] value changes.
+  void _handleExternalContentUpdate() {
+    final isUpdating = widget.isContentUpdating?.value ?? false;
+    
+    // Only activate preservation when content is updating AND user is scrolled away
+    if (isUpdating && _inBetweenList && widget.maintainPositionOnUpdate) {
+      _preservingPosition = true;
+      
+      // Reset the timer on each update signal
+      _preservePositionTimer?.cancel();
+      _preservePositionTimer = Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _preservingPosition = false;
+        }
+      });
+    }
+  }
+
   int initialIndex = 0;
   double initialAlignment = 0;
 
@@ -452,6 +509,9 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         widget.itemPositionListener ?? ItemPositionsListener.create();
     _itemPositionListener.itemPositions
         .addListener(_handleItemPositionsChanged);
+
+    // Listen to external content updating signal
+    widget.isContentUpdating?.addListener(_handleExternalContentUpdate);
 
     _getOnThreadTap();
   }
@@ -521,8 +581,20 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   }
 
   @override
+  void didUpdateWidget(covariant StreamMessageListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Handle isContentUpdating notifier changes
+    if (oldWidget.isContentUpdating != widget.isContentUpdating) {
+      oldWidget.isContentUpdating?.removeListener(_handleExternalContentUpdate);
+      widget.isContentUpdating?.addListener(_handleExternalContentUpdate);
+    }
+  }
+
+  @override
   void dispose() {
     _preservePositionTimer?.cancel();
+    widget.isContentUpdating?.removeListener(_handleExternalContentUpdate);
     debouncedMarkRead.cancel();
     debouncedMarkThreadRead.cancel();
     _messageNewListener?.cancel();
