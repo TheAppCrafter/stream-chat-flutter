@@ -603,10 +603,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     final newStreamChannel = StreamChannel.of(context);
     _streamTheme = StreamChatTheme.of(context);
 
-    print('[SDK didChangeDependencies] Called. newStreamChannel == streamChannel: ${newStreamChannel == streamChannel}');
+    // print('[SDK didChangeDependencies] Called. newStreamChannel == streamChannel: ${newStreamChannel == streamChannel}');
     
     if (newStreamChannel != streamChannel) {
-      print('[SDK didChangeDependencies] 🔄 CHANNEL CHANGED - recalculating initialIndex');
+      // print('[SDK didChangeDependencies] 🔄 CHANNEL CHANGED - recalculating initialIndex');
       streamChannel = newStreamChannel;
 
       debouncedMarkRead.cancel();
@@ -618,32 +618,32 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       unreadCount = streamChannel?.channel.state?.unreadCount ?? 0;
       _firstUnreadMessage = streamChannel?.getFirstUnreadMessage();
 
-      print('[StreamMessageListView] 🔵 Initial scroll setup - calculating initialIndex');
-      print('[StreamMessageListView] widget.initialScrollIndex: ${widget.initialScrollIndex}');
+      // print('[StreamMessageListView] 🔵 Initial scroll setup - calculating initialIndex');
+      // print('[StreamMessageListView] widget.initialScrollIndex: ${widget.initialScrollIndex}');
       initialIndex = getInitialIndex(
         widget.initialScrollIndex,
         streamChannel!,
         widget.messageFilter,
       );
-      print('[StreamMessageListView] Calculated initialIndex: $initialIndex');
+      // print('[StreamMessageListView] Calculated initialIndex: $initialIndex');
 
       initialAlignment = _initialAlignment;
-      print('[StreamMessageListView] initialAlignment: $initialAlignment');
+      // print('[StreamMessageListView] initialAlignment: $initialAlignment');
 
       if (_scrollController?.isAttached == true) {
-        print('[StreamMessageListView] 🔵 INITIAL JUMP TO index: $initialIndex, alignment: $initialAlignment');
+        // print('[StreamMessageListView] 🔵 INITIAL JUMP TO index: $initialIndex, alignment: $initialAlignment');
         _scrollController?.jumpTo(
           index: initialIndex,
           alignment: initialAlignment,
         );
-        print('[StreamMessageListView] 🔵 Initial jump completed');
+        // print('[StreamMessageListView] 🔵 Initial jump completed');
       } else {
-        print('[StreamMessageListView] ⚠️ Scroll controller not attached, skipping initial jump');
+        // print('[StreamMessageListView] ⚠️ Scroll controller not attached, skipping initial jump');
       }
 
       _messageNewListener =
           streamChannel!.channel.on(EventType.messageNew).listen((event) {
-        print('[SDK messageNewListener] 📨 New message received: "${event.message?.text?.substring(0, (event.message?.text?.length ?? 0).clamp(0, 20))}"');
+        // print('[SDK messageNewListener] 📨 New message received: "${event.message?.text?.substring(0, (event.message?.text?.length ?? 0).clamp(0, 20))}"');
         
         if (_upToDate) {
           _bottomPaginationActive = false;
@@ -653,14 +653,14 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         final isCurrentUser = event.message!.user!.id ==
             streamChannel!.channel.client.state.currentUser!.id;
         
-        print('[SDK messageNewListener] isCurrentUser: $isCurrentUser, isCorrectThread: $isCorrectThread, scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+        // print('[SDK messageNewListener] isCurrentUser: $isCurrentUser, isCorrectThread: $isCorrectThread, scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
         
         // Scroll to new message if:
         // 1. It's in the correct thread AND
         // 2. It's from current user OR scrollToNewMessagesFromOthers is enabled
         if (isCorrectThread && (isCurrentUser || widget.scrollToNewMessagesFromOthers)) {
           if (isCurrentUser) {
-            print('[SDK messageNewListener] 🔄 Calling setState for unreadCount');
+            // print('[SDK messageNewListener] 🔄 Calling setState for unreadCount');
             setState(() => unreadCount = 0);
           }
 
@@ -710,10 +710,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 const newestMessageIndex = 2;
                 
                 if (widget.onNewMessageScroll != null) {
-                  print('[SDK messageNewListener] 📤 Calling onNewMessageScroll callback (index: $newestMessageIndex, alignment: $targetAlignment)');
+                  // print('[SDK messageNewListener] 📤 Calling onNewMessageScroll callback (index: $newestMessageIndex, alignment: $targetAlignment)');
                   widget.onNewMessageScroll!(newestMessageIndex, targetAlignment);
                 } else {
-                  print('[SDK messageNewListener] 🎯 Calling internal jumpTo (index: $newestMessageIndex, alignment: $targetAlignment)');
+                  // print('[SDK messageNewListener] 🎯 Calling internal jumpTo (index: $newestMessageIndex, alignment: $targetAlignment)');
                   _scrollController?.jumpTo(
                     index: newestMessageIndex,
                     alignment: targetAlignment,
@@ -823,11 +823,11 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     final newMessagesListLength = messages.length;
     final previousLength = _messageListLength;
     
-    print('[SDK _buildListView] ========================================');
-    print('[SDK _buildListView] Message count: $previousLength -> $newMessagesListLength');
-    print('[SDK _buildListView] initialIndex BEFORE: $initialIndex, initialAlignment: $initialAlignment');
-    print('[SDK _buildListView] _bottomPaginationActive: $_bottomPaginationActive, _inBetweenList: $_inBetweenList, _upToDate: $_upToDate');
-    print('[SDK _buildListView] scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+    // print('[SDK _buildListView] ========================================');
+    // print('[SDK _buildListView] Message count: $previousLength -> $newMessagesListLength');
+    // print('[SDK _buildListView] initialIndex BEFORE: $initialIndex, initialAlignment: $initialAlignment');
+    // print('[SDK _buildListView] _bottomPaginationActive: $_bottomPaginationActive, _inBetweenList: $_inBetweenList, _upToDate: $_upToDate');
+    // print('[SDK _buildListView] scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
 
     if (_messageListLength != null) {
       // Check if new messages were added
@@ -845,21 +845,21 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
           final topVisible = messagePositions.first;
           
           final diff = newMessagesListLength - _messageListLength!;
-          print('[SDK _buildListView] Position check: diff=$diff, topVisible.index=${topVisible.index}, leading=${topVisible.itemLeadingEdge}');
+          // print('[SDK _buildListView] Position check: diff=$diff, topVisible.index=${topVisible.index}, leading=${topVisible.itemLeadingEdge}');
           
           if (diff > 0) {
             // New messages were added - adjust initialIndex to keep the top message steady
             final newIndex = topVisible.index + diff;
-            print('[SDK _buildListView] 🔄 Adjusting for $diff new messages: ${topVisible.index} -> $newIndex');
+            // print('[SDK _buildListView] 🔄 Adjusting for $diff new messages: ${topVisible.index} -> $newIndex');
             initialIndex = newIndex;
             initialAlignment = topVisible.itemLeadingEdge;
           }
         }
       } else {
-        print('[SDK _buildListView] No visible messages yet');
+        // print('[SDK _buildListView] No visible messages yet');
       }
     } else {
-      print('[SDK _buildListView] First build - no previous message count');
+      // print('[SDK _buildListView] First build - no previous message count');
     }
 
     _messageListLength = newMessagesListLength;
@@ -930,7 +930,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                         ? ValueKey('$initialIndex-$initialAlignment')
                         : null;
                     
-                    print('[SDK Builder] listKey: $listKey (initialIndex: $initialIndex, initialAlignment: $initialAlignment)');
+                    // print('[SDK Builder] listKey: $listKey (initialIndex: $initialIndex, initialAlignment: $initialAlignment)');
                     
                     return ScrollablePositionedList.separated(
                       key: listKey,
@@ -1109,7 +1109,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                   },
                   itemBuilder: (context, i) {
                     if (i == itemCount - 1) {
-                      print('[StreamMessageListView] itemBuilder index: $i -> ParentMessage');
+                      // print('[StreamMessageListView] itemBuilder index: $i -> ParentMessage');
                       if (widget.parentMessage == null) {
                         return const Empty();
                       }
@@ -1117,7 +1117,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                     }
 
                     if (i == itemCount - 2) {
-                      print('[StreamMessageListView] itemBuilder index: $i -> Header/Footer');
+                      // print('[StreamMessageListView] itemBuilder index: $i -> Header/Footer');
                       if (widget.reverse) {
                         return widget.headerBuilder?.call(context) ??
                             const Empty();
@@ -1131,7 +1131,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                         widget.paginationLoadingIndicatorBuilder;
 
                     if (i == itemCount - 3) {
-                      print('[StreamMessageListView] itemBuilder index: $i -> TopLoader');
+                      // print('[StreamMessageListView] itemBuilder index: $i -> TopLoader');
                       return LoadingIndicator(
                         direction: QueryDirection.top,
                         streamTheme: _streamTheme,
@@ -1142,7 +1142,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                     }
 
                     if (i == 1) {
-                      print('[StreamMessageListView] itemBuilder index: $i -> BottomLoader');
+                      // print('[StreamMessageListView] itemBuilder index: $i -> BottomLoader');
                       return LoadingIndicator(
                         direction: QueryDirection.bottom,
                         streamTheme: _streamTheme,
@@ -1153,7 +1153,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                     }
 
                     if (i == 0) {
-                      print('[StreamMessageListView] itemBuilder index: $i -> Footer/Header');
+                      // print('[StreamMessageListView] itemBuilder index: $i -> Footer/Header');
                       if (widget.reverse) {
                         return widget.footerBuilder?.call(context) ??
                             const Empty();
@@ -1167,7 +1167,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                     // (loader and footer) at the bottom of the ListView.
                     final messageIndex = i - 2;
                     final message = messages[messageIndex];
-                    print('[StreamMessageListView] itemBuilder index: $i -> Message: ${message.text?.substring(0, min(20, message.text?.length ?? 0))}...');
+                    // print('[StreamMessageListView] itemBuilder index: $i -> Message: ${message.text?.substring(0, min(20, message.text?.length ?? 0))}...');
 
                     return KeyedSubtree(
                       key: ValueKey(message.id),
