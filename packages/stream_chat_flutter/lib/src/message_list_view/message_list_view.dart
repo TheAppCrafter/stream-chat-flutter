@@ -603,7 +603,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     final newStreamChannel = StreamChannel.of(context);
     _streamTheme = StreamChatTheme.of(context);
 
+    print('[SDK didChangeDependencies] Called. newStreamChannel == streamChannel: ${newStreamChannel == streamChannel}');
+    
     if (newStreamChannel != streamChannel) {
+      print('[SDK didChangeDependencies] 🔄 CHANNEL CHANGED - recalculating initialIndex');
       streamChannel = newStreamChannel;
 
       debouncedMarkRead.cancel();
@@ -640,6 +643,8 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
 
       _messageNewListener =
           streamChannel!.channel.on(EventType.messageNew).listen((event) {
+        print('[SDK messageNewListener] 📨 New message received: "${event.message?.text?.substring(0, (event.message?.text?.length ?? 0).clamp(0, 20))}"');
+        
         if (_upToDate) {
           _bottomPaginationActive = false;
         }
@@ -648,11 +653,14 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         final isCurrentUser = event.message!.user!.id ==
             streamChannel!.channel.client.state.currentUser!.id;
         
+        print('[SDK messageNewListener] isCurrentUser: $isCurrentUser, isCorrectThread: $isCorrectThread, scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+        
         // Scroll to new message if:
         // 1. It's in the correct thread AND
         // 2. It's from current user OR scrollToNewMessagesFromOthers is enabled
         if (isCorrectThread && (isCurrentUser || widget.scrollToNewMessagesFromOthers)) {
           if (isCurrentUser) {
+            print('[SDK messageNewListener] 🔄 Calling setState for unreadCount');
             setState(() => unreadCount = 0);
           }
 
@@ -702,8 +710,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 const newestMessageIndex = 2;
                 
                 if (widget.onNewMessageScroll != null) {
+                  print('[SDK messageNewListener] 📤 Calling onNewMessageScroll callback (index: $newestMessageIndex, alignment: $targetAlignment)');
                   widget.onNewMessageScroll!(newestMessageIndex, targetAlignment);
                 } else {
+                  print('[SDK messageNewListener] 🎯 Calling internal jumpTo (index: $newestMessageIndex, alignment: $targetAlignment)');
                   _scrollController?.jumpTo(
                     index: newestMessageIndex,
                     alignment: targetAlignment,
@@ -811,49 +821,45 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       messagesIndex[messages[index].id] = index;
     }
     final newMessagesListLength = messages.length;
+    final previousLength = _messageListLength;
+    
+    print('[SDK _buildListView] ========================================');
+    print('[SDK _buildListView] Message count: $previousLength -> $newMessagesListLength');
+    print('[SDK _buildListView] initialIndex BEFORE: $initialIndex, initialAlignment: $initialAlignment');
+    print('[SDK _buildListView] _bottomPaginationActive: $_bottomPaginationActive, _inBetweenList: $_inBetweenList, _upToDate: $_upToDate');
+    print('[SDK _buildListView] scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
 
     if (_messageListLength != null) {
-      if (_bottomPaginationActive || (_inBetweenList && _upToDate)) {
-        if (_itemPositionListener.itemPositions.value.isNotEmpty) {
-          final first = _itemPositionListener.itemPositions.value.first;
+      // Check if new messages were added
+      if (_itemPositionListener.itemPositions.value.isNotEmpty) {
+        final positions = _itemPositionListener.itemPositions.value.toList();
+        
+        // Filter out footer (0), bottom loader (1), top loader, and header
+        // We only want to pin the position of actual messages
+        final messagePositions = positions.where((p) => p.index >= 2).toList();
+        
+        if (messagePositions.isNotEmpty) {
+          // Sort to find the top-most visible message
+          // In reverse:true, the top-most message has the HIGHEST index
+          messagePositions.sort((a, b) => b.index.compareTo(a.index));
+          final topVisible = messagePositions.first;
+          
           final diff = newMessagesListLength - _messageListLength!;
+          print('[SDK _buildListView] Position check: diff=$diff, topVisible.index=${topVisible.index}, leading=${topVisible.itemLeadingEdge}');
+          
           if (diff > 0) {
-            // Only preserve position for other users' messages if we're NOT
-            // configured to scroll to them. If scrollToNewMessagesFromOthers
-            // is true, we'll handle scrolling in the message listener instead.
-            if (messages[0].user?.id !=
-                    streamChannel!.channel.client.state.currentUser?.id &&
-                !widget.scrollToNewMessagesFromOthers) {
-              initialIndex = first.index + diff;
-              initialAlignment = first.itemLeadingEdge;
-            }
+            // New messages were added - adjust initialIndex to keep the top message steady
+            final newIndex = topVisible.index + diff;
+            print('[SDK _buildListView] 🔄 Adjusting for $diff new messages: ${topVisible.index} -> $newIndex');
+            initialIndex = newIndex;
+            initialAlignment = topVisible.itemLeadingEdge;
           }
         }
+      } else {
+        print('[SDK _buildListView] No visible messages yet');
       }
-    }
-
-    // Detect content updates (message sizes changing, not count changing)
-    // This happens during AI message streaming where text grows character by character
-    final isContentUpdate = _messageListLength != null &&
-        newMessagesListLength == _messageListLength &&
-        _inBetweenList &&
-        widget.maintainPositionOnUpdate;
-
-    // When content update is detected, enable position preservation
-    if (isContentUpdate) {
-      // Set the flag immediately - callback will read this at runtime
-      _preservingPosition = true;
-      
-      // Start/reset the timer
-      _preservePositionTimer?.cancel();
-      
-      // Keep preservation active for 500ms after last content update
-      // This allows multiple content changes (like AI streaming) to be handled
-      _preservePositionTimer = Timer(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _preservingPosition = false;
-        }
-      });
+    } else {
+      print('[SDK _buildListView] First build - no previous message count');
     }
 
     _messageListLength = newMessagesListLength;
@@ -919,9 +925,12 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 },
                 child: Builder(
                   builder: (context) {
+                    // Use stable key based on initial values to prevent list recreation
                     final listKey = (initialIndex != 0 && initialAlignment != 0)
                         ? ValueKey('$initialIndex-$initialAlignment')
                         : null;
+                    
+                    print('[SDK Builder] listKey: $listKey (initialIndex: $initialIndex, initialAlignment: $initialAlignment)');
                     
                     return ScrollablePositionedList.separated(
                       key: listKey,
@@ -929,10 +938,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                       itemPositionsListener: _itemPositionListener,
                       initialScrollIndex: initialIndex,
                       initialAlignment: initialAlignment,
-                  physics: PositionPreservingScrollPhysics(
-                    parent: widget.scrollPhysics,
-                    shouldPreservePositionCallback: _shouldPreservePosition,
-                  ),
+                  physics: widget.scrollPhysics,
                   itemScrollController: _scrollController,
                   reverse: widget.reverse,
                   shrinkWrap: widget.shrinkWrap,
