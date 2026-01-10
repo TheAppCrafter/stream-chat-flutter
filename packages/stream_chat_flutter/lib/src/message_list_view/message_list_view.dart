@@ -612,19 +612,27 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       unreadCount = streamChannel?.channel.state?.unreadCount ?? 0;
       _firstUnreadMessage = streamChannel?.getFirstUnreadMessage();
 
+      print('[StreamMessageListView] 🔵 Initial scroll setup - calculating initialIndex');
+      print('[StreamMessageListView] widget.initialScrollIndex: ${widget.initialScrollIndex}');
       initialIndex = getInitialIndex(
         widget.initialScrollIndex,
         streamChannel!,
         widget.messageFilter,
       );
+      print('[StreamMessageListView] Calculated initialIndex: $initialIndex');
 
       initialAlignment = _initialAlignment;
+      print('[StreamMessageListView] initialAlignment: $initialAlignment');
 
       if (_scrollController?.isAttached == true) {
+        print('[StreamMessageListView] 🔵 INITIAL JUMP TO index: $initialIndex, alignment: $initialAlignment');
         _scrollController?.jumpTo(
           index: initialIndex,
           alignment: initialAlignment,
         );
+        print('[StreamMessageListView] 🔵 Initial jump completed');
+      } else {
+        print('[StreamMessageListView] ⚠️ Scroll controller not attached, skipping initial jump');
       }
 
       _messageNewListener =
