@@ -438,9 +438,12 @@ class StreamMessageListView extends StatefulWidget {
   /// The alignment to use when scrolling to the newest message after the
   /// current user sends a new message.
   ///
-  /// If null, defaults to 0.0 (leading edge of the scroll view).
-  /// For reversed lists where you want new messages at the visual top,
-  /// set this to 1.0.
+  /// If null, defaults to:
+  /// - `1.0` (top of viewport) for reversed lists (`reverse: true`)
+  /// - `0.0` (leading edge) for non-reversed lists
+  ///
+  /// For reversed lists, this positions new messages at the visual top.
+  /// For non-reversed lists, this positions new messages at the leading edge.
   final double? newMessageScrollAlignment;
 
   /// Whether to also scroll to new messages when they arrive from other users.
@@ -654,7 +657,10 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
           }
 
           if (mounted) {
-            final targetAlignment = widget.newMessageScrollAlignment ?? 0.0;
+            // For reversed lists, default to 1.0 (top) to show new messages at top
+            // For non-reversed lists, default to 0.0 (leading edge)
+            final defaultAlignment = widget.reverse ? 1.0 : 0.0;
+            final targetAlignment = widget.newMessageScrollAlignment ?? defaultAlignment;
             
             // Check if we already have a pending scroll to the same target
             if (_pendingScrollTargetAlignment != null && 
