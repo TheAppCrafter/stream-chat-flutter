@@ -477,6 +477,14 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   /// Timer to reset position preservation after content updates stabilize
   Timer? _preservePositionTimer;
   
+  /// Counter to track pending scroll-to-new-message requests.
+  /// Used to cancel stale scroll requests when multiple messages arrive rapidly.
+  int _scrollRequestId = 0;
+  
+  /// The target alignment of any pending scroll request.
+  /// Used to detect if a new message arrives while we're already scrolling to the correct position.
+  double? _pendingScrollTargetAlignment;
+  
   /// Callback for ScrollPhysics to check if position should be preserved.
   /// This is called at runtime, avoiding the Flutter physics caching issue.
   bool _shouldPreservePosition() {
@@ -595,24 +603,136 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         final isCurrentUser = event.message!.user!.id ==
             streamChannel!.channel.client.state.currentUser!.id;
         
+        print('[StreamMessageListView] messageNew event received:');
+        print('  - messageId: ${event.message?.id}');
+        print('  - from: ${event.message!.user!.name} (${event.message!.user!.id})');
+        print('  - isCurrentUser: $isCurrentUser');
+        print('  - isCorrectThread: $isCorrectThread');
+        print('  - scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+        print('  - currentMessageCount: ${messages.length}');
+        
         // Scroll to new message if:
         // 1. It's in the correct thread AND
         // 2. It's from current user OR scrollToNewMessagesFromOthers is enabled
         if (isCorrectThread && (isCurrentUser || widget.scrollToNewMessagesFromOthers)) {
+          print('[StreamMessageListView] Will scroll to new message');
+          print('  - alignment: ${widget.newMessageScrollAlignment ?? 0.0}');
+          
           if (isCurrentUser) {
             setState(() => unreadCount = 0);
           }
 
           if (mounted) {
+            final targetAlignment = widget.newMessageScrollAlignment ?? 0.0;
+            
+            print('[StreamMessageListView] Current _pendingScrollTargetAlignment: $_pendingScrollTargetAlignment');
+            
+            // Check if we already have a pending scroll to the same target
+            if (_pendingScrollTargetAlignment != null && 
+                (_pendingScrollTargetAlignment! - targetAlignment).abs() < 0.01) {
+              print('[StreamMessageListView] Skipped scroll - already have pending scroll to alignment: $targetAlignment');
+              return;
+            }
+            
+            // Check if we're already at the target position
+            // Messages start at index 2 (newest message when reverse:true)
+            const newestMessageIndex = 2;
+            final positions = _itemPositionListener.itemPositions.value;
+            print('[StreamMessageListView] Current positions count: ${positions.length}');
+            
+            final alreadyAtTarget = positions.any((pos) {
+              if (pos.index != newestMessageIndex) return false;
+              // Tighter tolerance - within 2% is considered "at target"
+              final atTarget = (targetAlignment - pos.itemLeadingEdge).abs() < 0.02;
+              print('[StreamMessageListView] Checking position - index: ${pos.index}, leadingEdge: ${pos.itemLeadingEdge}, target: $targetAlignment, atTarget: $atTarget');
+              return atTarget;
+            });
+            
+            if (alreadyAtTarget) {
+              print('[StreamMessageListView] Skipped scroll - already at target (index: $newestMessageIndex, alignment: $targetAlignment)');
+              return;
+            }
+            
+            // Mark that we have a pending scroll to this alignment
+            print('[StreamMessageListView] Setting _pendingScrollTargetAlignment = $targetAlignment');
+            _pendingScrollTargetAlignment = targetAlignment;
+            
+            _scrollRequestId++;
+            final requestId = _scrollRequestId;
+            final currentAlignment = positions.isNotEmpty 
+                ? positions.firstWhere((p) => p.index == newestMessageIndex, orElse: () => positions.first).itemLeadingEdge 
+                : 'unknown';
+            print('[StreamMessageListView] Scheduling scroll request #$requestId to alignment: $targetAlignment (current: $currentAlignment)');
+            
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Only execute if no newer messages have arrived
+              if (requestId != _scrollRequestId) {
+                print('[StreamMessageListView] Skipped jumpTo - newer scroll request exists (current: $_scrollRequestId, this: $requestId)');
+                return;
+              }
+              
               if (mounted && _scrollController?.isAttached == true) {
+                // Log current positions before jumpTo
+                final positionsBefore = _itemPositionListener.itemPositions.value.toList();
+                print('[StreamMessageListView] BEFORE jumpTo - positions:');
+                for (final pos in positionsBefore.take(3)) {
+                  print('    index: ${pos.index}, leadingEdge: ${pos.itemLeadingEdge}');
+                }
+                
+                // Messages start at index 2 (after footer at 0, bottom loader at 1)
+                // So newest message (messages[0]) is at list index 2
+                const newestMessageIndex = 2;
+                
+                print('[StreamMessageListView] Executing jumpTo(index: $newestMessageIndex, alignment: $targetAlignment) for request #$requestId');
                 _scrollController?.jumpTo(
-                  index: 0,
-                  alignment: widget.newMessageScrollAlignment ?? 0.0,
+                  index: newestMessageIndex,
+                  alignment: targetAlignment,
                 );
+                
+                // Check positions immediately after jumpTo
+                Future.microtask(() {
+                  if (mounted) {
+                    final positionsAfter = _itemPositionListener.itemPositions.value.toList();
+                    print('[StreamMessageListView] AFTER jumpTo (microtask) - positions:');
+                    for (final pos in positionsAfter.take(3)) {
+                      print('    index: ${pos.index}, leadingEdge: ${pos.itemLeadingEdge}');
+                    }
+                  }
+                });
+                
+                // Check again after a short delay
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  if (mounted) {
+                    final positionsDelayed = _itemPositionListener.itemPositions.value.toList();
+                    print('[StreamMessageListView] AFTER jumpTo (100ms) - positions:');
+                    for (final pos in positionsDelayed.take(3)) {
+                      print('    index: ${pos.index}, leadingEdge: ${pos.itemLeadingEdge}');
+                    }
+                  }
+                });
+                
+                // Keep pending target alive for a longer period to prevent
+                // rapid duplicate scrolls. AI messages typically arrive within 500ms
+                // of user messages (user message + AI placeholder)
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (mounted) {
+                    if (_pendingScrollTargetAlignment == targetAlignment) {
+                      print('[StreamMessageListView] Clearing _pendingScrollTargetAlignment (was: $targetAlignment, now: null)');
+                      _pendingScrollTargetAlignment = null;
+                    } else {
+                      print('[StreamMessageListView] NOT clearing _pendingScrollTargetAlignment - value changed (current: $_pendingScrollTargetAlignment, expected: $targetAlignment)');
+                    }
+                  }
+                });
+              } else {
+                print('[StreamMessageListView] Skipped jumpTo - controller not attached or not mounted');
+                print('[StreamMessageListView] Clearing _pendingScrollTargetAlignment (controller not ready)');
+                _pendingScrollTargetAlignment = null;
               }
             });
           }
+        } else {
+          print('[StreamMessageListView] Will NOT scroll to new message');
         }
       });
 
@@ -651,6 +771,11 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
 
   @override
   Widget build(BuildContext context) {
+    print('[StreamMessageListView] ========== BUILD METHOD CALLED ==========');
+    print('[StreamMessageListView] Current initialIndex: $initialIndex, initialAlignment: $initialAlignment');
+    print('[StreamMessageListView] Stack trace:');
+    print(StackTrace.current.toString().split('\n').take(8).join('\n'));
+    
     return Portal(
       labels: const [kPortalMessageListViewLabel],
       child: ScaffoldMessenger(
@@ -706,14 +831,26 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
           final first = _itemPositionListener.itemPositions.value.first;
           final diff = newMessagesListLength - _messageListLength!;
           if (diff > 0) {
+            print('[StreamMessageListView] Build: detected new messages');
+            print('  - diff: $diff');
+            print('  - newest message from: ${messages[0].user?.name}');
+            print('  - scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+            print('  - first.index: ${first.index}');
+            print('  - first.itemLeadingEdge: ${first.itemLeadingEdge}');
+            
             // Only preserve position for other users' messages if we're NOT
             // configured to scroll to them. If scrollToNewMessagesFromOthers
             // is true, we'll handle scrolling in the message listener instead.
             if (messages[0].user?.id !=
                     streamChannel!.channel.client.state.currentUser?.id &&
                 !widget.scrollToNewMessagesFromOthers) {
+              print('[StreamMessageListView] Build: preserving position by adjusting initialIndex/initialAlignment');
               initialIndex = first.index + diff;
               initialAlignment = first.itemLeadingEdge;
+              print('  - new initialIndex: $initialIndex');
+              print('  - new initialAlignment: $initialAlignment');
+            } else {
+              print('[StreamMessageListView] Build: NOT preserving position (will scroll via listener)');
             }
           }
         }
@@ -745,6 +882,11 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     }
 
     _messageListLength = newMessagesListLength;
+    
+    print('[StreamMessageListView] After build logic - finalizing with:');
+    print('  - initialIndex: $initialIndex');
+    print('  - initialAlignment: $initialAlignment');
+    print('  - messageCount: ${messages.length}');
 
     final itemCount = messages.length + // total messages
             2 + // top + bottom loading indicator
@@ -805,14 +947,25 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 onInBetweenOfPage: () {
                   _inBetweenList = true;
                 },
-                child: ScrollablePositionedList.separated(
-                  key: (initialIndex != 0 && initialAlignment != 0)
-                      ? ValueKey('$initialIndex-$initialAlignment')
-                      : null,
-                  keyboardDismissBehavior: widget.keyboardDismissBehavior,
-                  itemPositionsListener: _itemPositionListener,
-                  initialScrollIndex: initialIndex,
-                  initialAlignment: initialAlignment,
+                child: Builder(
+                  builder: (context) {
+                    final listKey = (initialIndex != 0 && initialAlignment != 0)
+                        ? ValueKey('$initialIndex-$initialAlignment')
+                        : null;
+                    
+                    print('[StreamMessageListView] Building ScrollablePositionedList:');
+                    print('  - key: $listKey');
+                    print('  - initialScrollIndex: $initialIndex');
+                    print('  - initialAlignment: $initialAlignment');
+                    print('  - messageCount: ${messages.length}');
+                    print('  - reverse: ${widget.reverse}');
+                    
+                    return ScrollablePositionedList.separated(
+                      key: listKey,
+                      keyboardDismissBehavior: widget.keyboardDismissBehavior,
+                      itemPositionsListener: _itemPositionListener,
+                      initialScrollIndex: initialIndex,
+                      initialAlignment: initialAlignment,
                   physics: PositionPreservingScrollPhysics(
                     parent: widget.scrollPhysics,
                     shouldPreservePositionCallback: _shouldPreservePosition,
@@ -1045,6 +1198,8 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                       key: ValueKey(message.id),
                       child: buildMessage(message, messages, messageIndex),
                     );
+                  },
+                );
                   },
                 ),
               ),
