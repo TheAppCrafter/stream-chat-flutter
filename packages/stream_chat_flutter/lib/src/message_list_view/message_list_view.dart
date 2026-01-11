@@ -133,12 +133,8 @@ class StreamMessageListView extends StatefulWidget {
     this.paginationLoadingIndicatorBuilder,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag,
     this.spacingWidgetBuilder = _defaultSpacingWidgetBuilder,
-    this.maintainPositionOnUpdate = true,
-    this.isContentUpdating,
     this.newMessageScrollAlignment,
-    this.scrollToNewMessagesFromOthers = false,
     this.onNewMessageScroll,
-    this.shouldPreservePosition,
     this.showScrollToBottomController,
     this.handleReadReceipts = true,
     this.onAtBottomChanged,
@@ -167,13 +163,6 @@ class StreamMessageListView extends StatefulWidget {
   /// If provided, this function is called instead of the internal [jumpTo]
   /// whenever a new message arrives that would normally trigger a scroll.
   final void Function(int index, double alignment)? onNewMessageScroll;
-
-  /// Callback to override the internal position preservation logic.
-  /// 
-  /// If provided, this function is called to determine if the scroll position
-  /// should be preserved during content updates. If it returns null, the 
-  /// default internal logic is used.
-  final bool? Function()? shouldPreservePosition;
 
   /// Whether the view scrolls in the reading direction.
   ///
@@ -375,66 +364,6 @@ class StreamMessageListView extends StatefulWidget {
   /// {@macro spacingWidgetBuilder}
   final SpacingWidgetBuilder spacingWidgetBuilder;
 
-  /// Whether to maintain scroll position when message content updates while
-  /// the user is scrolled away from the bottom.
-  ///
-  /// When true (default), prevents the list from jumping when streaming
-  /// messages grow vertically (e.g., AI assistant responses). The position
-  /// is only preserved when specific safety conditions are met:
-  /// - User is not actively scrolling
-  /// - No scroll animation is running
-  /// - Viewport size hasn't changed (keyboard/rotation handled normally)
-  /// - Content change is small (pagination handled normally)
-  ///
-  /// When false, uses the default Flutter scroll behavior where the list
-  /// may adjust position to keep items visible as they grow.
-  ///
-  /// This feature is particularly useful for chat applications with AI
-  /// assistants that stream responses character-by-character.
-  ///
-  /// Defaults to true.
-  ///
-  /// See also:
-  /// - [PositionPreservingScrollPhysics], which implements this behavior
-  /// - [isContentUpdating], which can be used to externally trigger position
-  ///   preservation when content updates happen outside of Stream Chat's
-  ///   message list (e.g., via Riverpod or other state management)
-  final bool maintainPositionOnUpdate;
-
-  /// External notifier to signal when message content is updating.
-  ///
-  /// Use this when content updates happen outside of Stream Chat's message
-  /// list (e.g., AI text streaming via Riverpod, BLoC, or other state
-  /// management solutions).
-  ///
-  /// When [isContentUpdating.value] changes to `true` and the user is
-  /// scrolled away from the bottom, position preservation is activated.
-  /// It automatically deactivates after 500ms of no updates, or when the
-  /// user scrolls to the top/bottom of the list.
-  ///
-  /// This is useful when:
-  /// - Message text is streamed via external state management
-  /// - Content changes don't trigger [StreamMessageListView] rebuilds
-  /// - You need to preserve position during custom animations
-  ///
-  /// Example:
-  /// ```dart
-  /// final isStreamingNotifier = ValueNotifier<bool>(false);
-  ///
-  /// StreamMessageListView(
-  ///   maintainPositionOnUpdate: true,
-  ///   isContentUpdating: isStreamingNotifier,
-  ///   // ...
-  /// )
-  ///
-  /// // In your streaming widget:
-  /// void onStreamStart() => isStreamingNotifier.value = true;
-  /// void onStreamEnd() => isStreamingNotifier.value = false;
-  /// ```
-  ///
-  /// Requires [maintainPositionOnUpdate] to be `true` to have any effect.
-  final ValueNotifier<bool>? isContentUpdating;
-
   /// The alignment to use when scrolling to the newest message after the
   /// current user sends a new message.
   ///
@@ -445,16 +374,6 @@ class StreamMessageListView extends StatefulWidget {
   /// For reversed lists, this positions new messages at the visual top.
   /// For non-reversed lists, this positions new messages at the leading edge.
   final double? newMessageScrollAlignment;
-
-  /// Whether to also scroll to new messages when they arrive from other users.
-  ///
-  /// When false (default), only scrolls when the current user sends a message.
-  /// When true, scrolls to the newest message regardless of who sent it.
-  /// Uses [newMessageScrollAlignment] for the scroll position.
-  ///
-  /// This is useful for AI chat interfaces where you want to keep the newest
-  /// messages at the top of the viewport.
-  final bool scrollToNewMessagesFromOthers;
 
   static Widget _defaultSpacingWidgetBuilder(
     BuildContext context,
@@ -496,18 +415,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   bool get _isThreadConversation => widget.parentMessage != null;
 
   bool _bottomPaginationActive = false;
-
-  /// Flag to indicate if we should preserve scroll position during this rebuild.
-  /// Set to true when message content updates (same count) and user is scrolled away.
-  /// Remains true until explicitly reset.
-  bool _preservingPosition = false;
-  
-  /// Flag to track if preservation was triggered externally (via isContentUpdating).
-  /// When true, position is preserved regardless of scroll position (_inBetweenList).
-  bool _externallyTriggered = false;
-  
-  /// Timer to reset position preservation after content updates stabilize
-  Timer? _preservePositionTimer;
   
   /// Counter to track pending scroll-to-new-message requests.
   /// Used to cancel stale scroll requests when multiple messages arrive rapidly.
@@ -516,49 +423,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   /// The target alignment of any pending scroll request.
   /// Used to detect if a new message arrives while we're already scrolling to the correct position.
   double? _pendingScrollTargetAlignment;
-  
-  /// Callback for ScrollPhysics to check if position should be preserved.
-  /// This is called at runtime, avoiding the Flutter physics caching issue.
-  bool _shouldPreservePosition() {
-    if (widget.shouldPreservePosition != null) {
-      final override = widget.shouldPreservePosition!();
-      if (override != null) return override;
-    }
-
-    if (!widget.maintainPositionOnUpdate) return false;
-    if (!_preservingPosition) return false;
-    
-    // For external triggers (e.g., Riverpod state updates), preserve position
-    // regardless of scroll position. This allows preserving even when at bottom.
-    if (_externallyTriggered) return true;
-    
-    // For internal detection (message list rebuilds), only preserve when
-    // user is scrolled away from bottom.
-    return _inBetweenList;
-  }
-
-  /// Handler for external content update notifications.
-  /// Called when [widget.isContentUpdating] value changes.
-  void _handleExternalContentUpdate() {
-    final isUpdating = widget.isContentUpdating?.value ?? false;
-    
-    // For external triggers, activate preservation regardless of scroll position.
-    // This is important for AI streaming where we want to preserve position
-    // even when the user is at the bottom of the list.
-    if (isUpdating && widget.maintainPositionOnUpdate) {
-      _preservingPosition = true;
-      _externallyTriggered = true;
-      
-      // Reset the timer on each update signal
-      _preservePositionTimer?.cancel();
-      _preservePositionTimer = Timer(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          _preservingPosition = false;
-          _externallyTriggered = false;
-        }
-      });
-    }
-  }
 
   int initialIndex = 0;
   double initialAlignment = 0;
@@ -590,9 +454,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         widget.itemPositionListener ?? ItemPositionsListener.create();
     _itemPositionListener.itemPositions
         .addListener(_handleItemPositionsChanged);
-
-    // Listen to external content updating signal
-    widget.isContentUpdating?.addListener(_handleExternalContentUpdate);
 
     _getOnThreadTap();
   }
@@ -653,12 +514,12 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         final isCurrentUser = event.message!.user!.id ==
             streamChannel!.channel.client.state.currentUser!.id;
         
-        // print('[SDK messageNewListener] isCurrentUser: $isCurrentUser, isCorrectThread: $isCorrectThread, scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
+        // print('[SDK messageNewListener] isCurrentUser: $isCurrentUser, isCorrectThread: $isCorrectThread, hasScrollCallback: ${widget.onNewMessageScroll != null}');
         
         // Scroll to new message if:
         // 1. It's in the correct thread AND
-        // 2. It's from current user OR scrollToNewMessagesFromOthers is enabled
-        if (isCorrectThread && (isCurrentUser || widget.scrollToNewMessagesFromOthers)) {
+        // 2. It's from current user OR a custom scroll callback is provided
+        if (isCorrectThread && (isCurrentUser || widget.onNewMessageScroll != null)) {
           if (isCurrentUser) {
             // print('[SDK messageNewListener] 🔄 Calling setState for unreadCount');
             setState(() => unreadCount = 0);
@@ -748,20 +609,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
   }
 
   @override
-  void didUpdateWidget(covariant StreamMessageListView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    
-    // Handle isContentUpdating notifier changes
-    if (oldWidget.isContentUpdating != widget.isContentUpdating) {
-      oldWidget.isContentUpdating?.removeListener(_handleExternalContentUpdate);
-      widget.isContentUpdating?.addListener(_handleExternalContentUpdate);
-    }
-  }
-
-  @override
   void dispose() {
-    _preservePositionTimer?.cancel();
-    widget.isContentUpdating?.removeListener(_handleExternalContentUpdate);
     debouncedMarkRead.cancel();
     debouncedMarkThreadRead.cancel();
     _messageNewListener?.cancel();
@@ -827,7 +675,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     // print('[SDK _buildListView] Message count: $previousLength -> $newMessagesListLength');
     // print('[SDK _buildListView] initialIndex BEFORE: $initialIndex, initialAlignment: $initialAlignment');
     // print('[SDK _buildListView] _bottomPaginationActive: $_bottomPaginationActive, _inBetweenList: $_inBetweenList, _upToDate: $_upToDate');
-    // print('[SDK _buildListView] scrollToNewMessagesFromOthers: ${widget.scrollToNewMessagesFromOthers}');
 
     if (_messageListLength != null) {
       // Check if new messages were added
@@ -898,9 +745,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
               child: LazyLoadScrollView(
                 onStartOfPage: () async {
                   _inBetweenList = false;
-                  // User has scrolled to the bottom, disable position preservation
-                  _preservingPosition = false;
-                  _preservePositionTimer?.cancel();
                   if (!_upToDate) {
                     _bottomPaginationActive = true;
                     return _paginateData(
@@ -911,9 +755,6 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
                 },
                 onEndOfPage: () async {
                   _inBetweenList = false;
-                  // User has scrolled to the top, disable position preservation
-                  _preservingPosition = false;
-                  _preservePositionTimer?.cancel();
                   _bottomPaginationActive = false;
                   return _paginateData(
                     streamChannel,
